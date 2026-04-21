@@ -892,7 +892,7 @@ export default function App() {
 
         {/* HERO */}
         <section style={{ padding: "5rem 0 3rem", textAlign: "center" }}>
-          <h1 style={{ fontFamily: F.heading, fontSize: "clamp(5rem,15vw,10rem)", fontWeight: 800, color: C.ink, lineHeight: 1, letterSpacing: "0", margin: "0 0 1rem" }}>
+          <h1 style={{ fontFamily: F.heading, fontSize: "clamp(5rem,15vw,10rem)", fontWeight: 800, color: C.green, lineHeight: 1, letterSpacing: "0", margin: "0 0 1rem" }}>
             修行
           </h1>
           <div style={{ fontFamily: F.body, fontSize: "0.9rem", color: C.muted, lineHeight: 1.8, marginBottom: "2.5rem", maxWidth: "520px", margin: "0 auto 2.5rem", textAlign: "center", fontStyle: "italic" }}>
