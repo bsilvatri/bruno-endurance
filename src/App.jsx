@@ -842,34 +842,28 @@ function ActivityInfoIcon() {
   useEffect(() => {
     if (!open || counts) return;
     const H = {apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'count=exact'};
-    const types = ['Run','Ride','VirtualRide','Swim','Workout','WeightTraining','AlpineSki','Walk','Hike','Yoga','Rowing','StandUpPaddling','Kayaking','Crossfit','Elliptical','StairStepper','RockClimbing','IceSkate','InlineSkate','NordicSki','BackcountrySki','Snowboard','Snowshoe','Golf','Surfing','Windsurf','Kitesurf','Canoeing','Sailing','Velomobile','EMountainBikeRide','MountainBikeRide','GravelRide','Handcycle','Wheelchair'];
+    const types = ['Run','Ride','VirtualRide','Swim','Workout','WeightTraining','AlpineSki','Walk','Hike','Yoga'];
     Promise.all(types.map(t =>
       fetch(`${SB_URL}/rest/v1/activities?select=count&type=eq.${t}`, {headers:H})
       .then(r=>({type:t, count:parseInt(r.headers.get('content-range')?.split('/')[1]||'0')}))
     )).then(results => setCounts(results.filter(r=>r.count>0).sort((a,b)=>b.count-a.count)));
   }, [open]);
-  const label = {Run:'Run',Ride:'Ride (outdoor)',VirtualRide:'Ride (virtual)',Swim:'Swim',Workout:'Workout',WeightTraining:'Weights',AlpineSki:'Alpine Ski',Walk:'Walk',Hike:'Hike',Yoga:'Yoga',Rowing:'Rowing',Crossfit:'Crossfit',Elliptical:'Elliptical',MountainBikeRide:'MTB',GravelRide:'Gravel Ride',EMountainBikeRide:'E-MTB'};
+  const typeLabel = {Run:'Run',Ride:'Ride (outdoor)',VirtualRide:'Ride (virtual)',Swim:'Swim',Workout:'Workout',WeightTraining:'Weights',AlpineSki:'Alpine Ski',Walk:'Walk',Hike:'Hike',Yoga:'Yoga'};
   return (
     <div style={{position:"relative",display:"inline-flex",alignItems:"center"}}>
-      <span onClick={e=>{e.stopPropagation();setOpen(v=>!v);}}
-        style={{cursor:"pointer",color:C.faint,fontSize:"0.65rem",lineHeight:1,userSelect:"none",marginLeft:2}}>ⓘ</span>
-      {open && (
-        <>
-          <div onClick={()=>setOpen(false)} style={{position:"fixed",inset:0,zIndex:99}} />
-          <div style={{position:"absolute",bottom:"calc(100% + 8px)",left:"50%",transform:"translateX(-50%)",zIndex:100,
-            background:C.bg,border:`1px solid ${C.border}`,borderRadius:4,padding:"10px 14px",minWidth:180,
-            boxShadow:"0 4px 20px rgba(0,0,0,0.08)"}}>
-            <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.15em",color:C.faint,marginBottom:"6px",textTransform:"uppercase"}}>By activity type</div>
-            {counts ? counts.map(({type,count})=>(
-              <div key={type} style={{display:"flex",justifyContent:"space-between",gap:"2rem",fontFamily:F.mono,
-                fontSize:"0.6rem",color:C.dim,padding:"2px 0",borderBottom:`1px solid ${C.border}`}}>
-                <span style={{color:C.muted}}>{label[type]||type}</span>
-                <span style={{fontWeight:600,color:C.ink}}>{count.toLocaleString()}</span>
-              </div>
-            )) : <div style={{fontFamily:F.mono,fontSize:"0.6rem",color:C.faint}}>loading...</div>}
-          </div>
-        </>
-      )}
+      <span onClick={e=>{e.stopPropagation();setOpen(v=>!v);}} style={{cursor:"pointer",color:C.faint,fontSize:"0.65rem",lineHeight:1,userSelect:"none",marginLeft:2}}>ⓘ</span>
+      {open && <>
+        <div onClick={()=>setOpen(false)} style={{position:"fixed",inset:0,zIndex:99}} />
+        <div style={{position:"absolute",bottom:"calc(100% + 8px)",left:"50%",transform:"translateX(-50%)",zIndex:100,background:C.bg,border:`1px solid ${C.border}`,borderRadius:4,padding:"10px 14px",minWidth:180,boxShadow:"0 4px 20px rgba(0,0,0,0.08)"}}>
+          <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.15em",color:C.faint,marginBottom:"6px",textTransform:"uppercase"}}>By activity type</div>
+          {counts ? counts.map(({type,count})=>(
+            <div key={type} style={{display:"flex",justifyContent:"space-between",gap:"2rem",fontFamily:F.mono,fontSize:"0.6rem",padding:"2px 0",borderBottom:`1px solid ${C.border}`}}>
+              <span style={{color:C.muted}}>{typeLabel[type]||type}</span>
+              <span style={{fontWeight:600,color:C.ink}}>{count.toLocaleString()}</span>
+            </div>
+          )) : <div style={{fontFamily:F.mono,fontSize:"0.6rem",color:C.faint}}>loading...</div>}
+        </div>
+      </>}
     </div>
   );
 }
@@ -951,19 +945,7 @@ export default function App() {
                 </div>
                 <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.15em", color: C.muted, margin: "0.35rem 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                     {label}
-                    {label === "ACTIVITIES" && sports && (
-                      <span style={{ position: "relative", display: "inline-block" }}>
-                        <span
-                          onMouseEnter={e => { const p = e.currentTarget.nextSibling; p.style.display = "block"; }}
-                          onMouseLeave={e => { const p = e.currentTarget.nextSibling; p.style.display = "none"; }}
-                          style={{ cursor: "pointer", color: C.green, fontSize: "0.6rem", lineHeight: 1 }}>ⓘ</span>
-                        <div style={{ display: "none", position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", background: C.ink, color: C.white, borderRadius: 4, padding: "8px 12px", whiteSpace: "nowrap", zIndex: 100, fontSize: "0.6rem", fontFamily: F.mono, letterSpacing: "0.05em", lineHeight: 2, pointerEvents: "none" }}>
-                          {[["RUN", sports?.run?.count],["RIDE", sports?.ride?.count],["SWIM", sports?.swim?.count]].map(([l,v])=>(
-                            <div key={l}>{l} <span style={{color:l==="RUN"?C.run:l==="RIDE"?C.ride:C.swim,fontWeight:700}}>{(v||0).toLocaleString()}</span></div>
-                          ))}
-                        </div>
-                      </span>
-                    )}
+                    {label === "ACTIVITIES" && <ActivityInfoIcon />}
                   </div>
                 {sub && <div style={{ fontFamily: F.body, fontSize: "0.65rem", color: C.faint, lineHeight: 1.4 }}>{sub}</div>}
               </div>
