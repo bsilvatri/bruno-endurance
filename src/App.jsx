@@ -906,11 +906,11 @@ export default function App() {
               { val: hrs, label: "HOURS", sub: hero ? `${(hero.total_hours / 24).toFixed(0)} full days` : null },
               { val: elev, label: "M CLIMBED", sub: hero ? `${(hero.total_elevation / 3500).toFixed(1)} Everests base camp to summit` : null, last: true },
             ].map(({ val, label, sub, last }) => (
-              <div key={label} style={{ padding: "2rem 1rem", textAlign: "center", borderRight: last ? "none" : `1px solid ${C.border}` }}>
-                <div style={{ fontFamily: F.heading, fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 800, color: C.green, letterSpacing: "-1.5px", lineHeight: 1 }}>
+              <div key={label} style={{ padding: "1.25rem 1rem", textAlign: "center", borderRight: last ? "none" : `1px solid ${C.border}` }}>
+                <div style={{ fontFamily: F.heading, fontSize: "clamp(1.6rem,2.5vw,2.2rem)", fontWeight: 800, color: C.green, letterSpacing: "-1px", lineHeight: 1 }}>
                   {val.toLocaleString()}
                 </div>
-                <div style={{ fontFamily: F.mono, fontSize: "0.55rem", letterSpacing: "0.18em", color: C.muted, margin: "0.4rem 0" }}>{label}</div>
+                <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.15em", color: C.muted, margin: "0.35rem 0" }}>{label}</div>
                 {sub && <div style={{ fontFamily: F.body, fontSize: "0.65rem", color: C.faint, lineHeight: 1.4 }}>{sub}</div>}
               </div>
             ))}
