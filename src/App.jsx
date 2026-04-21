@@ -975,7 +975,7 @@ export default function App() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
               <div style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, color: C.ink, marginBottom: "0.3rem" }}>Bruno Silva</div>
-              <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, letterSpacing: "0.12em" }}>Rio de Janeiro · Cascais · São Paulo</div>
+              <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, letterSpacing: "0.12em" }}>From Tokyo — and all over the world — to Rio de Janeiro</div>
             </div>
             <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint }}>2026</div>
           </div>
