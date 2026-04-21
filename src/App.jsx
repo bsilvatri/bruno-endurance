@@ -873,6 +873,7 @@ export default function App() {
   const [hero, setHero] = useState(null);
   const [sports, setSports] = useState(null);
   const [lastSync, setLastSync] = useState(null);
+  const [restDays, setRestDays] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [sportFilter, setSportFilter] = useState("all");
   const [statsTab, setStatsTab] = useState("all");
@@ -891,6 +892,15 @@ export default function App() {
     });
     fetch(`${SB_URL}/rest/v1/activities?select=start_date_local&order=start_date_local.desc&limit=1`, { headers: SBH })
       .then(r => r.json()).then(d => { if (d[0]?.start_date_local) setLastSync(new Date(d[0].start_date_local)); });
+    // Calculate rest days for current year
+    const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString().slice(0,10);
+    const yearEnd = new Date(new Date().getFullYear() + 1, 0, 1).toISOString().slice(0,10);
+    fetch(`${SB_URL}/rest/v1/activities?select=start_date_local&start_date_local=gte.${yearStart}&start_date_local=lt.${yearEnd}`, { headers: SBH })
+      .then(r => r.json()).then(acts => {
+        const activeDays = new Set(acts.map(a => a.start_date_local?.slice(0,10))).size;
+        const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 1)) / 86400000) + 1;
+        setRestDays(dayOfYear - activeDays);
+      });
   }, []);
 
   const fmtSync = d => {
@@ -934,7 +944,7 @@ export default function App() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", border: `1px solid ${C.border}` }}>
             {[
-              { val: acts, label: "ACTIVITIES", sub: hero ? `${Math.round((hero.total_activities / 365))} avg/year` : null, showInfo: true },
+              { val: acts, label: "ACTIVITIES", sub: restDays !== null ? `${restDays} rest day${restDays !== 1 ? 's' : ''} in ${new Date().getFullYear()}` : null, showInfo: true },
               { val: km, label: "KILOMETERS", sub: hero ? `${(hero.total_km / 40075).toFixed(2)} laps around the Earth` : null },
               { val: hrs, label: "HOURS", sub: hero ? `${(hero.total_hours / 24).toFixed(0)} full days` : null },
               { val: elev, label: "M CLIMBED", sub: hero ? `${(hero.total_elevation / 3500).toFixed(1)} Everests base camp to summit` : null, last: true },
