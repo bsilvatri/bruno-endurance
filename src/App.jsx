@@ -901,7 +901,7 @@ export default function App() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", border: `1px solid ${C.border}` }}>
             {[
-              { val: acts, label: "ACTIVITIES", sub: hero ? `${Math.round((hero.total_activities / 365))} avg/year` : null, dropdown: hero ? `${Math.round((Date.now() - new Date("2022-01-01")) / 86400000)} days of data` : null },
+              { val: acts, label: "ACTIVITIES", sub: hero ? `${Math.round((hero.total_activities / 365))} avg/year` : null, showInfo: true },
               { val: km, label: "KILOMETERS", sub: hero ? `${(hero.total_km / 40075).toFixed(2)} laps around the Earth` : null },
               { val: hrs, label: "HOURS", sub: hero ? `${(hero.total_hours / 24).toFixed(0)} full days` : null },
               { val: elev, label: "M CLIMBED", sub: hero ? `${(hero.total_elevation / 3500).toFixed(1)} Everests base camp to summit` : null, last: true },
@@ -910,7 +910,22 @@ export default function App() {
                 <div style={{ fontFamily: F.heading, fontSize: "clamp(1.6rem,2.5vw,2.2rem)", fontWeight: 800, color: C.green, letterSpacing: "-1px", lineHeight: 1 }}>
                   {val.toLocaleString()}
                 </div>
-                <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.15em", color: C.muted, margin: "0.35rem 0" }}>{label}</div>
+                <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.15em", color: C.muted, margin: "0.35rem 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+                    {label}
+                    {label === "ACTIVITIES" && sports && (
+                      <span style={{ position: "relative", display: "inline-block" }}>
+                        <span
+                          onMouseEnter={e => { const p = e.currentTarget.nextSibling; p.style.display = "block"; }}
+                          onMouseLeave={e => { const p = e.currentTarget.nextSibling; p.style.display = "none"; }}
+                          style={{ cursor: "pointer", color: C.green, fontSize: "0.6rem", lineHeight: 1 }}>ⓘ</span>
+                        <div style={{ display: "none", position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", background: C.ink, color: C.white, borderRadius: 4, padding: "8px 12px", whiteSpace: "nowrap", zIndex: 100, fontSize: "0.6rem", fontFamily: F.mono, letterSpacing: "0.05em", lineHeight: 2, pointerEvents: "none" }}>
+                          {[["RUN", sports?.run?.count],["RIDE", sports?.ride?.count],["SWIM", sports?.swim?.count]].map(([l,v])=>(
+                            <div key={l}>{l} <span style={{color:l==="RUN"?C.run:l==="RIDE"?C.ride:C.swim,fontWeight:700}}>{(v||0).toLocaleString()}</span></div>
+                          ))}
+                        </div>
+                      </span>
+                    )}
+                  </div>
                 {sub && <div style={{ fontFamily: F.body, fontSize: "0.65rem", color: C.faint, lineHeight: 1.4 }}>{sub}</div>}
               </div>
             ))}
