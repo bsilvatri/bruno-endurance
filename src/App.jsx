@@ -968,7 +968,7 @@ export default function App() {
               <p key={i} style={{ fontFamily: F.body, fontSize: "0.9rem", lineHeight: 1.8, color: i === 0 ? C.ink : C.dim, marginBottom: "1.2rem", fontWeight: i === 0 ? 500 : 400 }}>{p}</p>
             ))}
             <p style={{ fontFamily: F.body, fontSize: "0.875rem", lineHeight: 1.8, color: C.green, fontStyle: "italic", marginBottom: "2rem" }}>
-              "This is the never-ending search for my own limits."
+              This is the never-ending search for my own limits.
             </p>
           </div>
           <Divider />
