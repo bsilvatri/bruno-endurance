@@ -848,7 +848,7 @@ function ActivityInfoIcon() {
       .then(r=>({type:t, count:parseInt(r.headers.get('content-range')?.split('/')[1]||'0')}))
     )).then(results => setCounts(results.filter(r=>r.count>0).sort((a,b)=>b.count-a.count)));
   }, [open]);
-  const typeLabel = {Run:'Run',Ride:'Ride (outdoor)',VirtualRide:'Ride (virtual)',Swim:'Swim',Workout:'Workout',WeightTraining:'Weights',AlpineSki:'Alpine Ski',Walk:'Walk',Hike:'Hike',Yoga:'Yoga'};
+  const typeLabel = {Run:'Run',Ride:'Ride',VirtualRide:'Virtual Ride',Swim:'Swim',Workout:'Workout',WeightTraining:'Weights',AlpineSki:'Alpine Ski',Walk:'Walk',Hike:'Hike',Yoga:'Yoga'};
   return (
     <div style={{position:"relative",display:"inline-flex",alignItems:"center"}}>
       <span onClick={e=>{e.stopPropagation();setOpen(v=>!v);}} style={{cursor:"pointer",color:C.faint,fontSize:"0.65rem",lineHeight:1,userSelect:"none",marginLeft:2}}>ⓘ</span>
