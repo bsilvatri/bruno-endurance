@@ -841,28 +841,30 @@ function ActivityInfoIcon() {
   const [counts, setCounts] = useState(null);
   useEffect(() => {
     if (!open || counts) return;
-    const SB_URL_LOCAL = "https://pihupambluuzonkxeopn.supabase.co";
-    const SB_KEY_LOCAL = "sb_publishable_YI1LTvDuAczFV9f0bCSTaw_u394FFBp";
-    const H = {apikey:SB_KEY_LOCAL, Authorization:`Bearer ${SB_KEY_LOCAL}`, 'Content-Type':'application/json', 'Prefer':'count=exact'};
-    const types = ['Run','Ride','VirtualRide','Swim','Workout','WeightTraining','AlpineSki','Walk','Hike','Yoga'];
+    const H = {apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'count=exact'};
+    const types = ['Run','Ride','VirtualRide','Swim','Workout','WeightTraining','AlpineSki','Walk','Hike','Yoga','Rowing','StandUpPaddling','Kayaking','Crossfit','Elliptical','StairStepper','RockClimbing','IceSkate','InlineSkate','NordicSki','BackcountrySki','Snowboard','Snowshoe','Golf','Surfing','Windsurf','Kitesurf','Canoeing','Sailing','Velomobile','EMountainBikeRide','MountainBikeRide','GravelRide','Handcycle','Wheelchair'];
     Promise.all(types.map(t =>
-      fetch(`${SB_URL_LOCAL}/rest/v1/activities?select=count&type=eq.${t}`, {headers:H})
+      fetch(`${SB_URL}/rest/v1/activities?select=count&type=eq.${t}`, {headers:H})
       .then(r=>({type:t, count:parseInt(r.headers.get('content-range')?.split('/')[1]||'0')}))
     )).then(results => setCounts(results.filter(r=>r.count>0).sort((a,b)=>b.count-a.count)));
   }, [open]);
-  const typeLabel = {Run:'Run',Ride:'Outdoor Ride',VirtualRide:'Virtual Ride',Swim:'Swim',Workout:'Workout',WeightTraining:'Weights',AlpineSki:'Ski',Walk:'Walk',Hike:'Hike',Yoga:'Yoga'};
+  const label = {Run:'Run',Ride:'Ride (outdoor)',VirtualRide:'Ride (virtual)',Swim:'Swim',Workout:'Workout',WeightTraining:'Weights',AlpineSki:'Alpine Ski',Walk:'Walk',Hike:'Hike',Yoga:'Yoga',Rowing:'Rowing',Crossfit:'Crossfit',Elliptical:'Elliptical',MountainBikeRide:'MTB',GravelRide:'Gravel Ride',EMountainBikeRide:'E-MTB'};
   return (
-    <div style={{position:"relative",display:"inline-flex"}}>
-      <span onClick={e=>{e.stopPropagation();setOpen(v=>!v);}} style={{cursor:"pointer",color:C.faint,fontSize:"0.6rem",lineHeight:1,userSelect:"none"}} title="Activity breakdown">ⓘ</span>
+    <div style={{position:"relative",display:"inline-flex",alignItems:"center"}}>
+      <span onClick={e=>{e.stopPropagation();setOpen(v=>!v);}}
+        style={{cursor:"pointer",color:C.faint,fontSize:"0.65rem",lineHeight:1,userSelect:"none",marginLeft:2}}>ⓘ</span>
       {open && (
         <>
           <div onClick={()=>setOpen(false)} style={{position:"fixed",inset:0,zIndex:99}} />
-          <div style={{position:"absolute",bottom:"calc(100% + 6px)",left:"50%",transform:"translateX(-50%)",zIndex:100,background:C.ink,borderRadius:4,padding:"10px 14px",minWidth:160,boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
-            <div style={{fontFamily:F.mono,fontSize:"0.5rem",letterSpacing:"0.12em",color:C.faint,marginBottom:"6px",textTransform:"uppercase"}}>Activity breakdown</div>
+          <div style={{position:"absolute",bottom:"calc(100% + 8px)",left:"50%",transform:"translateX(-50%)",zIndex:100,
+            background:C.bg,border:`1px solid ${C.border}`,borderRadius:4,padding:"10px 14px",minWidth:180,
+            boxShadow:"0 4px 20px rgba(0,0,0,0.08)"}}>
+            <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.15em",color:C.faint,marginBottom:"6px",textTransform:"uppercase"}}>By activity type</div>
             {counts ? counts.map(({type,count})=>(
-              <div key={type} style={{display:"flex",justifyContent:"space-between",gap:"1.5rem",fontFamily:F.mono,fontSize:"0.62rem",color:C.white,padding:"2px 0",borderBottom:`1px solid rgba(255,255,255,0.06)`}}>
-                <span style={{color:C.faint}}>{typeLabel[type]||type}</span>
-                <span style={{fontWeight:600}}>{count.toLocaleString()}</span>
+              <div key={type} style={{display:"flex",justifyContent:"space-between",gap:"2rem",fontFamily:F.mono,
+                fontSize:"0.6rem",color:C.dim,padding:"2px 0",borderBottom:`1px solid ${C.border}`}}>
+                <span style={{color:C.muted}}>{label[type]||type}</span>
+                <span style={{fontWeight:600,color:C.ink}}>{count.toLocaleString()}</span>
               </div>
             )) : <div style={{fontFamily:F.mono,fontSize:"0.6rem",color:C.faint}}>loading...</div>}
           </div>
