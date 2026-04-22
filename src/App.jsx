@@ -267,6 +267,7 @@ function NotableSection() {
   const fmtDist = m => `${(m / 1000).toFixed(1)} km`;
   const fmtPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 1000); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`; };
   const fmtSpeed = s => s ? `${(s * 3.6).toFixed(1)} km/h` : "—";
+  const fmtSwimPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 100); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/100m`; };
 
   const cols = tab === "pbs"
     ? [{ k: "#", l: "#", w: "40px" }, { k: "dist", l: "Distance", w: "100px" }, { k: "date", l: "Date", w: "110px" }, { k: "time", l: "Time", w: "1fr", mono: true, accent: true }]
@@ -324,7 +325,7 @@ function NotableSection() {
                 {[
                   { l: "KILOMETERS", v: `${(cur.distance / 1000).toFixed(1)} km` },
                   { l: "TIME", v: fmtTime(cur.moving_time) },
-                  { l: sport !== "ride" ? "AVG PACE" : "AVG SPEED", v: sport !== "ride" ? fmtPace(cur.moving_time, cur.distance) : fmtSpeed(cur.average_speed) },
+                  { l: sport === "ride" ? "AVG SPEED" : sport === "swim" ? "AVG PACE" : "AVG PACE", v: sport === "ride" ? fmtSpeed(cur.average_speed) : sport === "swim" ? fmtSwimPace(cur.moving_time, cur.distance) : fmtPace(cur.moving_time, cur.distance) },
                   { l: "ELEVATION", v: `${Math.round(cur.total_elevation_gain || 0)} m` },
                 ].map(({ l, v }) => (
                   <div key={l}>
