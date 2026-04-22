@@ -636,29 +636,30 @@ function GeoSection() {
 }
 
 /* ─── RECENT ─── */
-function DonutChart({ data, size = 140 }) {
+function DonutChart({ data, size = 180 }) {
   const total = data.reduce((s, d) => s + d.value, 0);
   if (!total) return null;
-  let cumAngle = -Math.PI / 2;
-  const cx = size / 2, cy = size / 2, r = size / 2 - 8, inner = r * 0.58;
+  const cx = size/2, cy = size/2, outerR = size*0.42, innerR = size*0.25;
+  let cumAngle = -Math.PI/2;
   const slices = data.map(d => {
-    const angle = (d.value / total) * 2 * Math.PI;
-    const x1 = cx + r * Math.cos(cumAngle), y1 = cy + r * Math.sin(cumAngle);
-    cumAngle += angle;
-    const x2 = cx + r * Math.cos(cumAngle), y2 = cy + r * Math.sin(cumAngle);
-    const li = angle > Math.PI ? 1 : 0;
-    const xi1 = cx + inner * Math.cos(cumAngle - angle), yi1 = cy + inner * Math.sin(cumAngle - angle);
-    const xi2 = cx + inner * Math.cos(cumAngle), yi2 = cy + inner * Math.sin(cumAngle);
-    const path = `M ${x1} ${y1} A ${r} ${r} 0 ${li} 1 ${x2} ${y2} L ${xi2} ${yi2} A ${inner} ${inner} 0 ${li} 0 ${xi1} ${yi1} Z`;
-    return { ...d, path };
+    const angle = (d.value/total)*2*Math.PI;
+    const x1=cx+outerR*Math.cos(cumAngle), y1=cy+outerR*Math.sin(cumAngle);
+    cumAngle+=angle;
+    const x2=cx+outerR*Math.cos(cumAngle), y2=cy+outerR*Math.sin(cumAngle);
+    const li=angle>Math.PI?1:0;
+    const xi1=cx+innerR*Math.cos(cumAngle-angle), yi1=cy+innerR*Math.sin(cumAngle-angle);
+    const xi2=cx+innerR*Math.cos(cumAngle), yi2=cy+innerR*Math.sin(cumAngle);
+    const path=`M ${x1} ${y1} A ${outerR} ${outerR} 0 ${li} 1 ${x2} ${y2} L ${xi2} ${yi2} A ${innerR} ${innerR} 0 ${li} 0 ${xi1} ${yi1} Z`;
+    return {...d, path};
   });
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {slices.map(s => <path key={s.label} d={s.path} fill={s.color} opacity={0.9} />)}
-      <circle cx={cx} cy={cy} r={inner - 2} fill={C.surface} />
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{display:"block",margin:"0 auto"}}>
+      {slices.map(s=><path key={s.label} d={s.path} fill={s.color} opacity={0.75} />)}
+      <circle cx={cx} cy={cy} r={innerR-2} fill={C.bg} />
     </svg>
   );
 }
+
 
 function RecentSection({ lang }) {
   const [period, setPeriod] = useState("thisweek");
@@ -702,7 +703,7 @@ function RecentSection({ lang }) {
 
   const fmtTime = s => { if (!s) return "0m"; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`; };
   const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" }) : "";
-  const typeColor = { Swim: C.swim, Ride: C.ride, VirtualRide: "#8B6030", Run: C.run, Workout: C.muted, WeightTraining: "#888", AlpineSki: "#6ab" };
+  const typeColor = { Swim: "#3a7ca8", Ride: "#b85a3a", VirtualRide: "#b85a3a", Run: C.green, Workout: "#9a8070", WeightTraining: "#b85a7a", AlpineSki: "#6ab" };
   const typeIcon = { Swim: "~", Ride: "⊙", VirtualRide: "⊙", Run: "↗", Workout: "◈", WeightTraining: "◈", AlpineSki: "❄" };
   const typeLabel = { Swim:"Swim", Ride:"Ride", VirtualRide:"Virtual Ride", Run:"Run", Workout:"Workout", WeightTraining:"Weights", AlpineSki:"Ski" };
 
@@ -796,40 +797,37 @@ function RecentSection({ lang }) {
 
           {/* RIGHT PANEL */}
           <div style={{ position:"sticky", top:65 }}>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:4, padding:"1.25rem" }}>
-              <div style={{ marginBottom:"0.75rem" }}>
-                <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.15em", color:C.faint, textTransform:"uppercase", marginBottom:"0.2rem" }}>Total Time</div>
-                <div style={{ fontFamily:F.heading, fontSize:"1.6rem", fontWeight:800, color:C.ink, letterSpacing:"-0.5px" }}>{fmtTime(totalTime)}</div>
+            <div style={{ marginBottom:"1rem" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", fontFamily:F.mono, fontSize:"0.6rem", marginBottom:"0.3rem" }}>
+                <span style={{ color:C.faint, textTransform:"uppercase", letterSpacing:"0.1em" }}>Total Time</span>
+                <span style={{ color:C.ink, fontWeight:600 }}>{fmtTime(totalTime)}</span>
               </div>
-              <div style={{ marginBottom:"1.25rem" }}>
-                <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.15em", color:C.faint, textTransform:"uppercase", marginBottom:"0.2rem" }}>Total Distance</div>
-                <div style={{ fontFamily:F.heading, fontSize:"1.6rem", fontWeight:800, color:C.ink, letterSpacing:"-0.5px" }}>{totalDist.toFixed(1)} km</div>
+              <div style={{ display:"flex", justifyContent:"space-between", fontFamily:F.mono, fontSize:"0.6rem" }}>
+                <span style={{ color:C.faint, textTransform:"uppercase", letterSpacing:"0.1em" }}>Total Distance</span>
+                <span style={{ color:C.ink, fontWeight:600 }}>{totalDist.toFixed(1)} km</span>
               </div>
-
-              {donutData.length > 0 && (
-                <>
-                  <div style={{ display:"flex", justifyContent:"center", marginBottom:"1rem" }}>
-                    <DonutChart data={donutData} size={140} />
-                  </div>
-                  <div style={{ borderTop:`1px solid ${C.border}`, paddingTop:"0.75rem" }}>
-                    {donutData.map(d => {
-                      const pct = totalTime ? Math.round(d.value/totalTime*100) : 0;
-                      return (
-                        <div key={d.label} style={{ display:"flex", alignItems:"center", gap:"0.5rem", marginBottom:"0.45rem" }}>
-                          <div style={{ width:8, height:8, borderRadius:2, background:d.color, flexShrink:0 }} />
-                          <div style={{ flex:1, fontFamily:F.mono, fontSize:"0.58rem", color:C.muted }}>{d.label}</div>
-                          <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.ink, fontWeight:600, textAlign:"right" }}>
-                            <span style={{ color:C.faint }}>{pct}%</span>
-                            {d.dist>0 && <span style={{ marginLeft:"0.4rem" }}>{(d.dist/1000).toFixed(1)}km</span>}
-                            <span style={{ marginLeft:"0.4rem", color:C.faint }}>{fmtTime(d.value)}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
             </div>
+
+            {donutData.length > 0 && (
+              <>
+                <div style={{ fontFamily:F.mono, fontSize:"0.55rem", letterSpacing:"0.12em", textTransform:"uppercase", color:C.faint, marginBottom:"0.75rem" }}>Time Breakdown</div>
+                <DonutChart data={donutData} size={180} />
+                <div style={{ marginTop:"1rem" }}>
+                  {donutData.map(d => {
+                    const pct = totalTime ? Math.round(d.value/totalTime*100) : 0;
+                    return (
+                      <div key={d.label} style={{ display:"flex", alignItems:"center", gap:"0.5rem", marginBottom:"0.4rem" }}>
+                        <div style={{ width:7, height:7, borderRadius:"50%", background:d.color, opacity:0.75, flexShrink:0 }} />
+                        <span style={{ flex:1, fontFamily:F.mono, fontSize:"0.58rem", color:C.muted }}>{d.label}</span>
+                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint }}>{pct}%</span>
+                        {d.dist>0 && <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.ink }}>{(d.dist/1000).toFixed(1)}km</span>}
+                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint }}>{fmtTime(d.value)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
