@@ -1090,7 +1090,7 @@ function ProgressionSection() {
                   <div key={wi} style={{ display:"grid", gridTemplateRows:"repeat(7,13px)", gap:2 }}>
                     {week.map((day, di) => (
                       <div key={di}
-                        title={day.mins >= 0 ? (day.mins > 0 ? `${day.date}: ${day.mins}min` : `${day.date}: rest`) : ''}
+                        title={day.mins > 0 ? `${day.date}: ${String(Math.floor(day.mins/60)).padStart(2,'0')}:${String(day.mins%60).padStart(2,'0')}` : day.mins === 0 ? `${day.date}: rest` : ''}
                         style={{ width:13, height:13, borderRadius:2, background:getColor(day.mins) }}
                       />
                     ))}
