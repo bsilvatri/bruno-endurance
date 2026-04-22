@@ -819,7 +819,7 @@ function RecentSection({ lang }) {
                       <div key={d.label} style={{ display:"grid", gridTemplateColumns:"8px 1fr auto auto auto", alignItems:"center", gap:"0.4rem", marginBottom:"0.4rem" }}>
                         <div style={{ width:7, height:7, borderRadius:"50%", background:d.color, opacity:0.75 }} />
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{d.label}</span>
-                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{pct}%</span>
+                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.ink, textAlign:"right" }}>{pct}%</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{fmtTime(d.value)}</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{d.dist>0 ? (d.dist/1000).toFixed(1)+'km' : '—'}</span>
                       </div>
