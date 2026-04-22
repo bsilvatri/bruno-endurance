@@ -821,7 +821,7 @@ function RecentSection({ lang }) {
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{d.label}</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{pct}%</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{fmtTime(d.value)}</span>
-                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.ink, textAlign:"right" }}>{d.dist>0 ? (d.dist/1000).toFixed(1)+'km' : '—'}</span>
+                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{d.dist>0 ? (d.dist/1000).toFixed(1)+'km' : '—'}</span>
                       </div>
                     );
                   })}
