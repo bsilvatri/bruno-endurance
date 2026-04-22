@@ -661,6 +661,33 @@ function DonutChart({ data, size = 180 }) {
 }
 
 
+function ActivityIcon({ type, color }) {
+  const s = { width:20, height:20, display:"block", flexShrink:0 };
+  const p = { fill:"none", stroke:color||"currentColor", strokeWidth:1.6, strokeLinecap:"round", strokeLinejoin:"round" };
+  if (type === "Swim") return (
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M2 12c1.5 0 2.5-1 4-1s2.5 1 4 1 2.5-1 4-1 2.5 1 4 1M2 17c1.5 0 2.5-1 4-1s2.5 1 4 1 2.5-1 4-1 2.5 1 4 1M12 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM7 8l2 2 3-4" /></svg>
+  );
+  if (type === "Run") return (
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M13 4a1 1 0 1 0 2 0 1 1 0 0 0-2 0M6 20l4-4 2 2 2-6M15 8l-2 4h4l-1 3M9 12l-3 8" /></svg>
+  );
+  if (type === "Ride" || type === "VirtualRide" || type === "GravelRide" || type === "MountainBikeRide") return (
+    <svg viewBox="0 0 24 24" style={s}><circle {...p} cx="6" cy="15" r="4"/><circle {...p} cx="18" cy="15" r="4"/><path {...p} d="M6 15l4-8h3l2 4h3M10 7l1 4"/></svg>
+  );
+  if (type === "Workout" || type === "WeightTraining" || type === "Crossfit") return (
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M6.5 6.5h1v11h-1zM16.5 6.5h1v11h-1zM3 9h3.5M17.5 9H21M3 15h3.5M17.5 15H21M8 11h8" /></svg>
+  );
+  if (type === "AlpineSki" || type === "BackcountrySki" || type === "NordicSki") return (
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M20 4L4 20M7 4h3l3 5-5 4 2 3 4-2M18 14l-2 2-2-1-1 4 5 2" /></svg>
+  );
+  if (type === "Walk" || type === "Hike") return (
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M13 4a1 1 0 1 0 2 0 1 1 0 0 0-2 0M10 8l2 2-1 4M14 8l2 8-3-1M8 12l-2 8M10 14l4 6" /></svg>
+  );
+  // Default: generic activity pulse
+  return (
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M2 12h4l3-7 4 14 3-9 2 4h4" /></svg>
+  );
+}
+
 function RecentSection({ lang }) {
   const [period, setPeriod] = useState("thisweek");
   const [acts, setActs] = useState([]);
@@ -751,7 +778,7 @@ function RecentSection({ lang }) {
                 return (
                   <div key={act.id}>
                     <div onClick={()=>setExpanded(isExp?null:act.id)} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.8rem 0", borderBottom:`1px solid ${C.border}`, cursor:"pointer" }}>
-                      <div style={{ width:32, height:32, borderRadius:4, background:tc, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:"0.85rem", flexShrink:0 }}>{ic}</div>
+                      <ActivityIcon type={act.type} color={tc} />
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:600, color:C.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{act.name}</div>
                         <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint }}>{fmtDate(act.start_date_local)}</div>
