@@ -637,10 +637,11 @@ function GeoSection() {
 
 /* ─── RECENT ─── */
 function DonutChart({ data, size = 180 }) {
+  const [tooltip, setTooltip] = useState(null);
   const total = data.reduce((s, d) => s + d.value, 0);
   if (!total) return null;
   const cx = size/2, cy = size/2, outerR = size*0.42, innerR = size*0.25;
-  const GAP = 0.03; // radians gap between slices
+  const GAP = 0.03;
   let cum = -Math.PI/2;
   const slices = data.map(d => {
     const angle = (d.value/total)*2*Math.PI;
@@ -648,37 +649,47 @@ function DonutChart({ data, size = 180 }) {
     const end = cum + angle - GAP/2;
     cum += angle;
     const mid = (start+end)/2;
-    // outer arc points
     const x1=cx+outerR*Math.cos(start), y1=cy+outerR*Math.sin(start);
     const x2=cx+outerR*Math.cos(end), y2=cy+outerR*Math.sin(end);
-    // inner arc points
     const xi1=cx+innerR*Math.cos(end), yi1=cy+innerR*Math.sin(end);
     const xi2=cx+innerR*Math.cos(start), yi2=cy+innerR*Math.sin(start);
     const li=angle>Math.PI?1:0;
     const path=`M ${x1} ${y1} A ${outerR} ${outerR} 0 ${li} 1 ${x2} ${y2} L ${xi1} ${yi1} A ${innerR} ${innerR} 0 ${li} 0 ${xi2} ${yi2} Z`;
-    // label position — midpoint between inner and outer radius
     const labelR = (outerR+innerR)/2;
     const lx = cx+labelR*Math.cos(mid);
     const ly = cy+labelR*Math.sin(mid);
-    const pct = Math.round(d.value/total*100);
+    const pct = (d.value/total*100).toFixed(1);
     return {...d, path, lx, ly, pct, angle};
   });
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{display:"block",margin:"0 auto"}}>
-      {slices.map(s=>(
-        <g key={s.label}>
-          <path d={s.path} fill={s.color} opacity={0.85} />
-          {s.angle > 0.35 && (
-            <text
-              x={s.lx} y={s.ly}
-              textAnchor="middle" dominantBaseline="central"
-              style={{fontFamily:"monospace", fontSize:size*0.043, fontWeight:400, fill:"#fff", pointerEvents:"none"}}
-            >{(s.value/total*100).toFixed(1)}%</text>
-          )}
-        </g>
-      ))}
-      <circle cx={cx} cy={cy} r={innerR-2} fill={C.bg} />
-    </svg>
+    <div style={{position:"relative", display:"inline-block"}}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{display:"block",margin:"0 auto"}}>
+        {slices.map(s=>(
+          <g key={s.label}
+            onMouseEnter={()=>setTooltip(s.label)}
+            onMouseLeave={()=>setTooltip(null)}
+            style={{cursor:"default"}}
+          >
+            <path d={s.path} fill={s.color} opacity={tooltip===s.label ? 1 : 0.85} />
+            {s.angle > 0.35 && (
+              <text
+                x={s.lx} y={s.ly}
+                textAnchor="middle" dominantBaseline="central"
+                style={{fontFamily:"monospace", fontSize:size*0.043, fontWeight:400, fill:"#fff", pointerEvents:"none"}}
+              >{s.pct}%</text>
+            )}
+          </g>
+        ))}
+        <circle cx={cx} cy={cy} r={innerR-2} fill={C.bg} />
+      </svg>
+      {tooltip && (
+        <div style={{position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)",
+          fontFamily:F.mono, fontSize:"0.55rem", color:C.ink, letterSpacing:"0.05em",
+          textAlign:"center", pointerEvents:"none", lineHeight:1.4}}>
+          {tooltip}
+        </div>
+      )}
+    </div>
   );
 }
 
