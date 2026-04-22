@@ -689,8 +689,7 @@ function GeoSection() {
             onClick={() => mapRef.current?.flyTo({center:[l.lng,l.lat],zoom:8,duration:1200})}
             style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0.5rem 0.75rem", background:C.bg, cursor:"pointer", gap:"0.5rem" }}>
             <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", minWidth:0 }}>
-              <span style={{ fontFamily:F.mono, fontSize:"0.45rem", color:C.faint, flexShrink:0 }}>{String(i+1).padStart(2,'0')}</span>
-              <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.city}</span>
+<span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.city}</span>
             </div>
             <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.green, fontWeight:600, flexShrink:0 }}>{(geoCounts[l.key]||0).toLocaleString()}</span>
           </div>
