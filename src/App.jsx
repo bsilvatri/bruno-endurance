@@ -816,7 +816,7 @@ function RecentSection({ lang }) {
                   {donutData.map(d => {
                     const pct = totalTime ? Math.round(d.value/totalTime*100) : 0;
                     return (
-                      <div key={d.label} style={{ display:"grid", gridTemplateColumns:"8px 1fr auto auto auto", alignItems:"center", gap:"0.4rem", marginBottom:"0.4rem" }}>
+                      <div key={d.label} style={{ display:"grid", gridTemplateColumns:"8px 1fr 30px 52px 42px", alignItems:"center", gap:"0.4rem", marginBottom:"0.4rem" }}>
                         <div style={{ width:7, height:7, borderRadius:"50%", background:d.color, opacity:0.75 }} />
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{d.label}</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.ink, textAlign:"right" }}>{pct}%</span>
