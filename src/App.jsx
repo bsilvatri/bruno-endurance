@@ -662,7 +662,7 @@ function GeoSection() {
 
       <div style={{ border:`1px solid ${C.border}`, borderTop:"none", background:C.surface, padding:"1rem 1.25rem" }}>
         <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.2em", textTransform:"uppercase", color:C.faint, marginBottom:"0.5rem" }}>Top places</div>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:"0 1.5rem", marginBottom:"1rem" }}>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:"0 1.5rem", marginBottom:"1rem", justifyContent:"center" }}>
           {sorted.slice(0,5).map(l => (
             <span key={l.city} onClick={() => mapRef.current?.flyTo({center:[l.lng,l.lat],zoom:8,duration:1200})} style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted, cursor:"pointer" }}>
               <span style={{color:C.green,fontWeight:600}}>{(geoCounts[l.key]||0).toLocaleString()}</span> in {l.city}, {l.country}
@@ -670,7 +670,7 @@ function GeoSection() {
           ))}
         </div>
         <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.2em", textTransform:"uppercase", color:C.faint, marginBottom:"0.5rem" }}>Facts</div>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:"0 1.5rem" }}>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:"0 1.5rem", justifyContent:"center" }}>
           {[
             { val: sorted.length, label: "locations" },
             { val: uniqueCountries, label: "countries" },
