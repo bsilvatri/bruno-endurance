@@ -683,19 +683,16 @@ function GeoSection() {
         </div>
       </div>
 
-      <div style={{ marginTop:"1.5rem" }}>
+      <div style={{ marginTop:"1rem", display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"1px", background:C.border }}>
         {sorted.map((l, i) => (
           <div key={l.city}
             onClick={() => mapRef.current?.flyTo({center:[l.lng,l.lat],zoom:8,duration:1200})}
-            style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0.6rem 0", borderBottom:`1px solid ${C.border}`, cursor:"pointer" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:"0.75rem" }}>
-              <span style={{ fontFamily:F.mono, fontSize:"0.5rem", color:C.faint, width:16, textAlign:"right" }}>{String(i+1).padStart(2,'0')}</span>
-              <div>
-                <div style={{ fontFamily:F.body, fontSize:"0.82rem", color:C.ink }}>{l.city}</div>
-                <div style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.faint }}>{l.country}</div>
-              </div>
+            style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0.5rem 0.75rem", background:C.bg, cursor:"pointer", gap:"0.5rem" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", minWidth:0 }}>
+              <span style={{ fontFamily:F.mono, fontSize:"0.45rem", color:C.faint, flexShrink:0 }}>{String(i+1).padStart(2,'0')}</span>
+              <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.city}</span>
             </div>
-            <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.green, fontWeight:600 }}>{(geoCounts[l.key]||0).toLocaleString()}</span>
+            <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.green, fontWeight:600, flexShrink:0 }}>{(geoCounts[l.key]||0).toLocaleString()}</span>
           </div>
         ))}
       </div>
