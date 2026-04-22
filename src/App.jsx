@@ -977,38 +977,46 @@ function ProgressionSection() {
 
   useEffect(() => {
     setLoading(true);
-    // Fetch all activities with just the date field
-    fetch(`${SB_URL}/rest/v1/activities?select=start_date_local,moving_time&order=start_date_local.asc`, { headers: SBH })
-      .then(r => r.json()).then(acts => {
-        const map = {};
-        (acts || []).forEach(a => {
-          const day = a.start_date_local?.slice(0,10);
-          if(!day) return;
+    // Fetch all activities in pages of 1000 to get past Supabase row limit
+    async function fetchAll() {
+      const map = {};
+      let offset = 0;
+      const pageSize = 1000;
+      while(true) {
+        const res = await fetch(
+          `${SB_URL}/rest/v1/activities?select=start_date_local,moving_time&order=start_date_local.asc&limit=${pageSize}&offset=${offset}`,
+          { headers: SBH }
+        ).then(r => r.json());
+        if(!Array.isArray(res) || res.length === 0) break;
+        res.forEach(a => {
+          // Convert UTC timestamp to Rio local date (UTC-3)
+          const utcDate = new Date(a.start_date_local);
+          const localDate = new Date(utcDate.getTime() - 3 * 60 * 60 * 1000);
+          const day = localDate.toISOString().slice(0, 10);
           if(!map[day]) map[day] = 0;
           map[day] += a.moving_time || 0;
         });
-        setActDays(map);
-        setLoading(false);
-      });
+        if(res.length < pageSize) break;
+        offset += pageSize;
+      }
+      setActDays(map);
+      setLoading(false);
+    }
+    fetchAll();
   }, []);
 
-  // Build date range based on selected period
   const getRange = () => {
     const today = new Date();
     if(period === "Last 365") {
-      const start = new Date(today); start.setDate(start.getDate() - 364);
-      return { start, end: today };
+      const s = new Date(today); s.setDate(s.getDate() - 364);
+      return { start: s, end: today };
     }
-    if(period === "All time") {
-      return { start: new Date("2019-01-01"), end: today };
-    }
+    if(period === "All time") return { start: new Date("2019-01-01"), end: today };
     const yr = parseInt(period);
     return { start: new Date(yr, 0, 1), end: yr === today.getFullYear() ? today : new Date(yr, 11, 31) };
   };
 
   const { start: rangeStart, end: rangeEnd } = getRange();
-
-  // Build weeks array (Mon-Sun)
   const startMonday = new Date(rangeStart);
   startMonday.setDate(startMonday.getDate() - ((startMonday.getDay()+6)%7));
   const weeks = [];
@@ -1025,7 +1033,6 @@ function ProgressionSection() {
     weeks.push(week);
   }
 
-  // Month labels
   const monthLabels = [];
   let lastMonth = -1;
   weeks.forEach((week, wi) => {
@@ -1034,19 +1041,18 @@ function ProgressionSection() {
     else monthLabels[wi] = '';
   });
 
-  // Stats
-  const allDays = Object.keys(actDays).filter(d => d >= rangeStart.toISOString().slice(0,10) && d <= rangeEnd.toISOString().slice(0,10));
+  const rangeStartStr = rangeStart.toISOString().slice(0,10);
+  const rangeEndStr = rangeEnd.toISOString().slice(0,10);
+  const activeDays = Object.keys(actDays).filter(d => d >= rangeStartStr && d <= rangeEndStr).length;
   const totalDays = Math.round((rangeEnd - rangeStart) / 86400000) + 1;
-  const activeDays = allDays.length;
   const restDaysCount = totalDays - activeDays;
 
-  // Color scale
   const getColor = (mins) => {
     if(mins < 0) return 'transparent';
     if(mins === 0) return C.border;
-    if(mins < 30) return '#c6dfc9';
-    if(mins < 60) return '#8cbf92';
-    if(mins < 120) return C.greenMid || '#4a9a5c';
+    if(mins < 45) return '#c6dfc9';
+    if(mins < 90) return '#8cbf92';
+    if(mins < 150) return '#4a9a5c';
     return C.green;
   };
 
@@ -1058,41 +1064,34 @@ function ProgressionSection() {
         PROGRESSION
       </h2>
       <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>i take rest days, but not often.</div>
-
-      {/* Period tabs */}
       <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap" }}>
         {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
       </div>
-
       {loading ? (
         <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div>
       ) : (
         <>
-          {/* Heatmap */}
           <div style={{ overflowX:"auto", paddingBottom:"0.5rem" }}>
-            <div style={{ display:"inline-flex", flexDirection:"column", minWidth:"100%" }}>
-              {/* Month labels */}
-              <div style={{ display:"flex", gap:3, marginBottom:4, marginLeft:20 }}>
+            <div style={{ display:"inline-flex", flexDirection:"column" }}>
+              <div style={{ display:"flex", gap:3, marginBottom:4, marginLeft:18 }}>
                 {weeks.map((_, wi) => (
-                  <div key={wi} style={{ width:13, flexShrink:0, fontFamily:F.mono, fontSize:"0.48rem", color:C.faint, textTransform:"uppercase" }}>
+                  <div key={wi} style={{ width:13, flexShrink:0, fontFamily:F.mono, fontSize:"0.45rem", color:C.faint, textTransform:"uppercase", overflow:"hidden" }}>
                     {monthLabels[wi]||''}
                   </div>
                 ))}
               </div>
               <div style={{ display:"flex", gap:3 }}>
-                {/* Day labels */}
-                <div style={{ display:"grid", gridTemplateRows:"repeat(7,13px)", gap:2, marginRight:4 }}>
-                  {['M','','W','','F','',''].map((d,i) => (
-                    <div key={i} style={{ height:13, fontFamily:F.mono, fontSize:"0.45rem", color:C.faint, display:"flex", alignItems:"center" }}>{d}</div>
+                <div style={{ display:"grid", gridTemplateRows:"repeat(7,13px)", gap:2, marginRight:2 }}>
+                  {['M','','W','','F','',''].map((lbl,i) => (
+                    <div key={i} style={{ height:13, fontFamily:F.mono, fontSize:"0.45rem", color:C.faint, display:"flex", alignItems:"center" }}>{lbl}</div>
                   ))}
                 </div>
-                {/* Weeks */}
                 {weeks.map((week, wi) => (
                   <div key={wi} style={{ display:"grid", gridTemplateRows:"repeat(7,13px)", gap:2 }}>
                     {week.map((day, di) => (
                       <div key={di}
-                        title={day.mins >= 0 ? `${day.date}: ${day.mins > 0 ? day.mins+'min' : 'rest'}` : ''}
-                        style={{ width:13, height:13, borderRadius:2, background:getColor(day.mins), cursor:day.mins>0?'pointer':'default' }}
+                        title={day.mins >= 0 ? (day.mins > 0 ? `${day.date}: ${day.mins}min` : `${day.date}: rest`) : ''}
+                        style={{ width:13, height:13, borderRadius:2, background:getColor(day.mins) }}
                       />
                     ))}
                   </div>
@@ -1100,8 +1099,6 @@ function ProgressionSection() {
               </div>
             </div>
           </div>
-
-          {/* Stats + legend */}
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:"0.75rem" }}>
             <div style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>
               <span style={{ fontFamily:F.heading, fontSize:"1.4rem", fontWeight:800, color:C.ink }}>{restDaysCount}</span>
@@ -1109,7 +1106,7 @@ function ProgressionSection() {
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:4, fontFamily:F.mono, fontSize:"0.52rem", color:C.faint }}>
               <span>Less</span>
-              {[C.border,'#c6dfc9','#8cbf92',C.greenMid||'#4a9a5c',C.green].map((c,i)=>(
+              {[C.border,'#c6dfc9','#8cbf92','#4a9a5c',C.green].map((c,i)=>(
                 <div key={i} style={{ width:13, height:13, borderRadius:2, background:c }} />
               ))}
               <span>More</span>
