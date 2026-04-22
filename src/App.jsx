@@ -640,21 +640,43 @@ function DonutChart({ data, size = 180 }) {
   const total = data.reduce((s, d) => s + d.value, 0);
   if (!total) return null;
   const cx = size/2, cy = size/2, outerR = size*0.42, innerR = size*0.25;
-  let cumAngle = -Math.PI/2;
+  const GAP = 0.03; // radians gap between slices
+  let cum = -Math.PI/2;
   const slices = data.map(d => {
     const angle = (d.value/total)*2*Math.PI;
-    const x1=cx+outerR*Math.cos(cumAngle), y1=cy+outerR*Math.sin(cumAngle);
-    cumAngle+=angle;
-    const x2=cx+outerR*Math.cos(cumAngle), y2=cy+outerR*Math.sin(cumAngle);
+    const start = cum + GAP/2;
+    const end = cum + angle - GAP/2;
+    cum += angle;
+    const mid = (start+end)/2;
+    // outer arc points
+    const x1=cx+outerR*Math.cos(start), y1=cy+outerR*Math.sin(start);
+    const x2=cx+outerR*Math.cos(end), y2=cy+outerR*Math.sin(end);
+    // inner arc points
+    const xi1=cx+innerR*Math.cos(end), yi1=cy+innerR*Math.sin(end);
+    const xi2=cx+innerR*Math.cos(start), yi2=cy+innerR*Math.sin(start);
     const li=angle>Math.PI?1:0;
-    const xi1=cx+innerR*Math.cos(cumAngle-angle), yi1=cy+innerR*Math.sin(cumAngle-angle);
-    const xi2=cx+innerR*Math.cos(cumAngle), yi2=cy+innerR*Math.sin(cumAngle);
-    const path=`M ${x1} ${y1} A ${outerR} ${outerR} 0 ${li} 1 ${x2} ${y2} L ${xi2} ${yi2} A ${innerR} ${innerR} 0 ${li} 0 ${xi1} ${yi1} Z`;
-    return {...d, path};
+    const path=`M ${x1} ${y1} A ${outerR} ${outerR} 0 ${li} 1 ${x2} ${y2} L ${xi1} ${yi1} A ${innerR} ${innerR} 0 ${li} 0 ${xi2} ${yi2} Z`;
+    // label position — midpoint between inner and outer radius
+    const labelR = (outerR+innerR)/2;
+    const lx = cx+labelR*Math.cos(mid);
+    const ly = cy+labelR*Math.sin(mid);
+    const pct = Math.round(d.value/total*100);
+    return {...d, path, lx, ly, pct, angle};
   });
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{display:"block",margin:"0 auto"}}>
-      {slices.map(s=><path key={s.label} d={s.path} fill={s.color} opacity={0.75} />)}
+      {slices.map(s=>(
+        <g key={s.label}>
+          <path d={s.path} fill={s.color} opacity={0.85} />
+          {s.angle > 0.35 && (
+            <text
+              x={s.lx} y={s.ly}
+              textAnchor="middle" dominantBaseline="central"
+              style={{fontFamily:"monospace", fontSize:size*0.07, fontWeight:700, fill:"#fff", pointerEvents:"none"}}
+            >{s.pct}%</text>
+          )}
+        </g>
+      ))}
       <circle cx={cx} cy={cy} r={innerR-2} fill={C.bg} />
     </svg>
   );
