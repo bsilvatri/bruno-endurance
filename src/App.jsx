@@ -636,86 +636,149 @@ function GeoSection() {
 }
 
 /* ─── RECENT ─── */
+function DonutChart({ data, size = 140 }) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  if (!total) return null;
+  let cumAngle = -Math.PI / 2;
+  const cx = size / 2, cy = size / 2, r = size / 2 - 8, inner = r * 0.58;
+  const slices = data.map(d => {
+    const angle = (d.value / total) * 2 * Math.PI;
+    const x1 = cx + r * Math.cos(cumAngle), y1 = cy + r * Math.sin(cumAngle);
+    cumAngle += angle;
+    const x2 = cx + r * Math.cos(cumAngle), y2 = cy + r * Math.sin(cumAngle);
+    const li = angle > Math.PI ? 1 : 0;
+    const xi1 = cx + inner * Math.cos(cumAngle - angle), yi1 = cy + inner * Math.sin(cumAngle - angle);
+    const xi2 = cx + inner * Math.cos(cumAngle), yi2 = cy + inner * Math.sin(cumAngle);
+    const path = `M ${x1} ${y1} A ${r} ${r} 0 ${li} 1 ${x2} ${y2} L ${xi2} ${yi2} A ${inner} ${inner} 0 ${li} 0 ${xi1} ${yi1} Z`;
+    return { ...d, path };
+  });
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {slices.map(s => <path key={s.label} d={s.path} fill={s.color} opacity={0.9} />)}
+      <circle cx={cx} cy={cy} r={inner - 2} fill={C.surface} />
+    </svg>
+  );
+}
+
 function RecentSection({ lang }) {
-  const [period, setPeriod] = useState(7);
+  const [period, setPeriod] = useState("thisweek");
   const [acts, setActs] = useState([]);
   const [expanded, setExpanded] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const getRange = (p) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (p === "thisweek") {
+      const mon = new Date(today); mon.setDate(today.getDate() - ((today.getDay()+6)%7));
+      return { since: mon, until: null };
+    }
+    if (p === "lastweek") {
+      const mon = new Date(today); mon.setDate(today.getDate() - ((today.getDay()+6)%7) - 7);
+      const sun = new Date(mon); sun.setDate(mon.getDate() + 7);
+      return { since: mon, until: sun };
+    }
+    if (p === "thismonth") {
+      return { since: new Date(today.getFullYear(), today.getMonth(), 1), until: null };
+    }
+    if (p === "last60") {
+      const d = new Date(today); d.setDate(d.getDate() - 60);
+      return { since: d, until: null };
+    }
+    if (p === "ytd") {
+      return { since: new Date(today.getFullYear(), 0, 1), until: null };
+    }
+    return { since: new Date(today), until: null };
+  };
+
   useEffect(() => {
     setLoading(true); setShowAll(false); setExpanded(null);
-    const since = new Date(); since.setDate(since.getDate() - period);
-    q(`activities?select=id,name,type,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,average_speed,average_watts,map_summary_polyline&start_date_local=gte.${since.toISOString().slice(0, 10)}&order=start_date_local.desc&limit=100`)
-      .then(d => { setActs(safe(d)); setLoading(false); });
+    const { since, until } = getRange(period);
+    let url = `activities?select=id,name,type,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,average_speed,average_watts,map_summary_polyline&start_date_local=gte.${since.toISOString().slice(0,10)}&order=start_date_local.desc&limit=200`;
+    if (until) url += `&start_date_local=lt.${until.toISOString().slice(0,10)}`;
+    q(url).then(d => { setActs(safe(d)); setLoading(false); });
   }, [period]);
 
-  const fmtTime = s => { if (!s) return "0m"; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); return h > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`; };
-  const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
-  const typeColor = { Swim: C.swim, Ride: C.ride, VirtualRide: "#8B6030", Run: C.run, Workout: C.muted };
-  const typeIcon = { Swim: "~", Ride: "⊙", VirtualRide: "⊙", Run: "↗", Workout: "◈" };
+  const fmtTime = s => { if (!s) return "0m"; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`; };
+  const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" }) : "";
+  const typeColor = { Swim: C.swim, Ride: C.ride, VirtualRide: "#8B6030", Run: C.run, Workout: C.muted, WeightTraining: "#888", AlpineSki: "#6ab" };
+  const typeIcon = { Swim: "~", Ride: "⊙", VirtualRide: "⊙", Run: "↗", Workout: "◈", WeightTraining: "◈", AlpineSki: "❄" };
+  const typeLabel = { Swim:"Swim", Ride:"Ride", VirtualRide:"Virtual Ride", Run:"Run", Workout:"Workout", WeightTraining:"Weights", AlpineSki:"Ski" };
 
-  const totalTime = acts.reduce((s, a) => s + (a.moving_time || 0), 0);
-  const totalDist = acts.reduce((s, a) => s + (a.distance || 0), 0) / 1000;
+  const totalTime = acts.reduce((s,a) => s+(a.moving_time||0), 0);
+  const totalDist = acts.reduce((s,a) => s+(a.distance||0), 0) / 1000;
+
+  // Build donut data grouped by sport category
+  const byType = {};
+  acts.forEach(a => {
+    const t = a.type || "Other";
+    if(!byType[t]) byType[t] = { time:0, dist:0, count:0 };
+    byType[t].time += a.moving_time||0;
+    byType[t].dist += a.distance||0;
+    byType[t].count++;
+  });
+  const donutData = Object.entries(byType)
+    .map(([type, v]) => ({ label: typeLabel[type]||type, value: v.time, dist: v.dist, count: v.count, color: typeColor[type]||C.faint }))
+    .sort((a,b) => b.value - a.value);
 
   const shown = showAll ? acts : acts.slice(0, 8);
+  const periodLabels = { thisweek:"THIS WEEK", lastweek:"LAST WEEK", thismonth:"THIS MONTH", last60:"LAST 60 DAYS", ytd:"YEAR TO DATE" };
 
   return (
     <section id="recent" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
       <Divider />
       <SectionNum n={6} />
-      <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 1.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>
-        RECENT ACTIVITIES
-      </h2>
+      <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 1.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>RECENT ACTIVITIES</h2>
       <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>stalk me if you must.</div>
 
-      <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1.5rem", flexWrap: "wrap", alignItems: "center" }}>
-        {[{ l: "THIS WEEK", d: 7 }, { l: "LAST WEEK", d: 14 }, { l: "THIS MONTH", d: 30 }, { l: "LAST 60 DAYS", d: 60 }, { l: "YEAR TO DATE", d: 120 }].map(({ l, d }) => (
-          <SubTab key={d} label={l} active={period === d} onClick={() => setPeriod(d)} />
+      <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap", alignItems:"center" }}>
+        {Object.entries(periodLabels).map(([key,lbl]) => (
+          <SubTab key={key} label={lbl} active={period===key} onClick={()=>setPeriod(key)} />
         ))}
-        {!loading && <span style={{ fontFamily: F.mono, fontSize: "0.6rem", color: C.faint, marginLeft: "0.5rem" }}>{acts.length} activities</span>}
+        {!loading && <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint, marginLeft:"0.5rem" }}>{acts.length} activities</span>}
       </div>
 
-      {loading ? <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint }}>loading...</div> : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 240px", gap: "2rem" }}>
+      {loading ? <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div> : (
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 220px", gap:"2rem", alignItems:"start" }}>
           <div>
-            <div style={{ borderTop: `1px solid ${C.border}` }}>
+            <div style={{ borderTop:`1px solid ${C.border}` }}>
               {shown.map(act => {
                 const isExp = expanded === act.id;
                 const tc = typeColor[act.type] || C.muted;
                 const ic = typeIcon[act.type] || "·";
                 return (
                   <div key={act.id}>
-                    <div onClick={() => setExpanded(isExp ? null : act.id)} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.8rem 0", borderBottom: `1px solid ${C.border}`, cursor: "pointer" }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 4, background: tc, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "0.85rem", flexShrink: 0 }}>{ic}</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: F.body, fontSize: "0.85rem", fontWeight: 600, color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{act.name}</div>
-                        <div style={{ fontFamily: F.mono, fontSize: "0.6rem", color: C.faint }}>{fmtDate(act.start_date_local)}</div>
+                    <div onClick={()=>setExpanded(isExp?null:act.id)} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.8rem 0", borderBottom:`1px solid ${C.border}`, cursor:"pointer" }}>
+                      <div style={{ width:32, height:32, borderRadius:4, background:tc, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:"0.85rem", flexShrink:0 }}>{ic}</div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:600, color:C.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{act.name}</div>
+                        <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint }}>{fmtDate(act.start_date_local)}</div>
                       </div>
-                      <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexShrink: 0 }}>
-                        {act.distance > 0 && <span style={{ fontFamily: F.heading, fontSize: "0.9rem", fontWeight: 700, color: C.ink }}>{(act.distance / 1000).toFixed(1)} km</span>}
-                        <span style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.muted }}>{fmtTime(act.moving_time)}</span>
-                        <span style={{ fontFamily: F.mono, fontSize: "0.65rem", color: isExp ? C.green : C.faint }}>{isExp ? "▲" : "▼"}</span>
+                      <div style={{ display:"flex", gap:"1rem", alignItems:"center", flexShrink:0 }}>
+                        {act.distance > 0 && <span style={{ fontFamily:F.heading, fontSize:"0.9rem", fontWeight:700, color:C.ink }}>{(act.distance/1000).toFixed(1)} km</span>}
+                        <span style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.muted }}>{fmtTime(act.moving_time)}</span>
+                        <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:isExp?C.green:C.faint }}>{isExp?"▲":"▼"}</span>
                       </div>
                     </div>
                     {isExp && (
-                      <div style={{ borderBottom: `1px solid ${C.border}`, background: C.surface, padding: "1rem" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                      <div style={{ borderBottom:`1px solid ${C.border}`, background:C.surface, padding:"1rem" }}>
+                        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1rem" }}>
                           <ActivityMap polyline={act.map_summary_polyline} type={act.type} height={200} />
                           <div>
-                            <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "0.75rem" }}>{fmtDate(act.start_date_local)}</div>
+                            <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"0.75rem" }}>{fmtDate(act.start_date_local)}</div>
                             {[
-                              act.distance > 0 && { l: "Distance", v: `${(act.distance / 1000).toFixed(1)} km` },
-                              { l: "Time", v: fmtTime(act.moving_time) },
-                              act.total_elevation_gain && { l: "Elevation", v: `${Math.round(act.total_elevation_gain)} m` },
-                              act.average_heartrate && { l: "Avg HR", v: `${Math.round(act.average_heartrate)} bpm` },
-                              act.average_watts && { l: "Avg Power", v: `${Math.round(act.average_watts)} W` },
-                            ].filter(Boolean).map(({ l, v }) => (
-                              <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "0.35rem 0", borderBottom: `1px solid ${C.border}`, fontFamily: F.mono, fontSize: "0.72rem" }}>
-                                <span style={{ color: C.faint }}>{l}</span><span style={{ color: C.ink, fontWeight: 600 }}>{v}</span>
+                              act.distance>0 && { l:"Distance", v:`${(act.distance/1000).toFixed(1)} km` },
+                              { l:"Time", v:fmtTime(act.moving_time) },
+                              act.total_elevation_gain && { l:"Elevation", v:`${Math.round(act.total_elevation_gain)} m` },
+                              act.average_heartrate && { l:"Avg HR", v:`${Math.round(act.average_heartrate)} bpm` },
+                              act.average_watts && { l:"Avg Power", v:`${Math.round(act.average_watts)} W` },
+                            ].filter(Boolean).map(({l,v}) => (
+                              <div key={l} style={{ display:"flex", justifyContent:"space-between", padding:"0.35rem 0", borderBottom:`1px solid ${C.border}`, fontFamily:F.mono, fontSize:"0.72rem" }}>
+                                <span style={{ color:C.faint }}>{l}</span><span style={{ color:C.ink, fontWeight:600 }}>{v}</span>
                               </div>
                             ))}
-                            <a href={`https://www.strava.com/activities/${act.id}`} target="_blank" rel="noopener noreferrer" style={{ display: "block", marginTop: "0.75rem", fontFamily: F.mono, fontSize: "0.58rem", color: C.green, textDecoration: "none", letterSpacing: "0.08em" }}>VIEW ON STRAVA →</a>
+                            <a href={`https://www.strava.com/activities/${act.id}`} target="_blank" rel="noopener noreferrer" style={{ display:"block", marginTop:"0.75rem", fontFamily:F.mono, fontSize:"0.58rem", color:C.green, textDecoration:"none", letterSpacing:"0.08em" }}>VIEW ON STRAVA →</a>
                           </div>
                         </div>
                       </div>
@@ -725,22 +788,47 @@ function RecentSection({ lang }) {
               })}
             </div>
             {acts.length > 8 && (
-              <button onClick={() => setShowAll(v => !v)} style={{ width: "100%", marginTop: "0.5rem", padding: "0.75rem", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 2, cursor: "pointer", fontFamily: F.mono, fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted }}>
+              <button onClick={()=>setShowAll(v=>!v)} style={{ width:"100%", marginTop:"0.5rem", padding:"0.75rem", background:"transparent", border:`1px solid ${C.border}`, borderRadius:2, cursor:"pointer", fontFamily:F.mono, fontSize:"0.6rem", letterSpacing:"0.1em", textTransform:"uppercase", color:C.muted }}>
                 {showAll ? "SHOW LESS ▲" : `SHOW ALL ${acts.length} ACTIVITIES ▼`}
               </button>
             )}
           </div>
 
-          <div style={{ position: "sticky", top: 65 }}>
-            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "1.25rem" }}>
-              <div style={{ marginBottom: "1rem" }}>
-                <Label>Total Time</Label>
-                <div style={{ fontFamily: F.heading, fontSize: "1.8rem", fontWeight: 800, color: C.ink, letterSpacing: "-0.5px" }}>{fmtTime(totalTime)}</div>
+          {/* RIGHT PANEL */}
+          <div style={{ position:"sticky", top:65 }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:4, padding:"1.25rem" }}>
+              <div style={{ marginBottom:"0.75rem" }}>
+                <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.15em", color:C.faint, textTransform:"uppercase", marginBottom:"0.2rem" }}>Total Time</div>
+                <div style={{ fontFamily:F.heading, fontSize:"1.6rem", fontWeight:800, color:C.ink, letterSpacing:"-0.5px" }}>{fmtTime(totalTime)}</div>
               </div>
-              <div style={{ marginBottom: "1rem" }}>
-                <Label>Total Distance</Label>
-                <div style={{ fontFamily: F.heading, fontSize: "1.8rem", fontWeight: 800, color: C.ink, letterSpacing: "-0.5px" }}>{totalDist.toFixed(0)} km</div>
+              <div style={{ marginBottom:"1.25rem" }}>
+                <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.15em", color:C.faint, textTransform:"uppercase", marginBottom:"0.2rem" }}>Total Distance</div>
+                <div style={{ fontFamily:F.heading, fontSize:"1.6rem", fontWeight:800, color:C.ink, letterSpacing:"-0.5px" }}>{totalDist.toFixed(1)} km</div>
               </div>
+
+              {donutData.length > 0 && (
+                <>
+                  <div style={{ display:"flex", justifyContent:"center", marginBottom:"1rem" }}>
+                    <DonutChart data={donutData} size={140} />
+                  </div>
+                  <div style={{ borderTop:`1px solid ${C.border}`, paddingTop:"0.75rem" }}>
+                    {donutData.map(d => {
+                      const pct = totalTime ? Math.round(d.value/totalTime*100) : 0;
+                      return (
+                        <div key={d.label} style={{ display:"flex", alignItems:"center", gap:"0.5rem", marginBottom:"0.45rem" }}>
+                          <div style={{ width:8, height:8, borderRadius:2, background:d.color, flexShrink:0 }} />
+                          <div style={{ flex:1, fontFamily:F.mono, fontSize:"0.58rem", color:C.muted }}>{d.label}</div>
+                          <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.ink, fontWeight:600, textAlign:"right" }}>
+                            <span style={{ color:C.faint }}>{pct}%</span>
+                            {d.dist>0 && <span style={{ marginLeft:"0.4rem" }}>{(d.dist/1000).toFixed(1)}km</span>}
+                            <span style={{ marginLeft:"0.4rem", color:C.faint }}>{fmtTime(d.value)}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -748,6 +836,7 @@ function RecentSection({ lang }) {
     </section>
   );
 }
+
 
 /* ─── PROGRESSION ─── */
 function ProgressionSection() {
