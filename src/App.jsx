@@ -672,8 +672,8 @@ function DonutChart({ data, size = 180 }) {
             <text
               x={s.lx} y={s.ly}
               textAnchor="middle" dominantBaseline="central"
-              style={{fontFamily:"monospace", fontSize:size*0.07, fontWeight:700, fill:"#fff", pointerEvents:"none"}}
-            >{s.pct}%</text>
+              style={{fontFamily:"monospace", fontSize:size*0.055, fontWeight:400, fill:"#fff", pointerEvents:"none"}}
+            >{(d.value/total*100).toFixed(1)}%</text>
           )}
         </g>
       ))}
