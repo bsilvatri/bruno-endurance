@@ -592,7 +592,7 @@ function GeoSection() {
     if (loaded || !containerRef.current) return;
     loadMapbox(() => {
       if (mapRef.current) return;
-      const map = new window.mapboxgl.Map({ container: containerRef.current, style: "mapbox://styles/mapbox/light-v11", center: [-20, 10], zoom: 1.2, attributionControl: false });
+      const map = new window.mapboxgl.Map({ container: containerRef.current, style: "mapbox://styles/mapbox/dark-v11", center: [-20, 10], zoom: 1.2, attributionControl: false });
       mapRef.current = map;
       map.addControl(new window.mapboxgl.NavigationControl(), "top-right");
       map.on("load", () => {
