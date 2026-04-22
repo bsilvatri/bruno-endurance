@@ -809,11 +809,11 @@ function RecentSection({ lang }) {
                     <div onClick={()=>setExpanded(isExp?null:act.id)} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.8rem 0", borderBottom:`1px solid ${C.border}`, cursor:"pointer" }}>
                       <ActivityIcon type={act.type} color={tc} />
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:600, color:C.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{act.name}</div>
+                        <div style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:400, color:C.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{act.name}</div>
                         <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint }}>{fmtDate(act.start_date_local)}</div>
                       </div>
                       <div style={{ display:"flex", gap:"1rem", alignItems:"center", flexShrink:0 }}>
-                        {act.distance > 0 && <span style={{ fontFamily:F.heading, fontSize:"0.9rem", fontWeight:700, color:C.ink }}>{(act.distance/1000).toFixed(1)} km</span>}
+                        {act.distance > 0 && <span style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:400, color:C.ink }}>{(act.distance/1000).toFixed(1)} km</span>}
                         <span style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.muted }}>{fmtTime(act.moving_time)}</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:isExp?C.green:C.faint }}>{isExp?"▲":"▼"}</span>
                       </div>
