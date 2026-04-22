@@ -970,90 +970,157 @@ function RecentSection({ lang }) {
 
 /* ─── PROGRESSION ─── */
 function ProgressionSection() {
-  const [year, setYear] = useState("2025");
-  const REST = { "All time": 114, "Last 365": 66, "2026": 3, "2025": 37, "2024": 29, "2023": 22, "2022": 18 };
-  const [weeklyVol, setWeeklyVol] = useState([]);
+  const YEARS = ["All time","Last 365","2026","2025","2024","2023","2022","2021","2020","2019"];
+  const [period, setPeriod] = useState("Last 365");
+  const [actDays, setActDays] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    rpc("get_weekly_volume").then(d => setWeeklyVol(safe(d).map(r => ({ week: r.week_start?.slice(0, 7), km: +r.total_km || 0 }))));
+    setLoading(true);
+    // Fetch all activities with just the date field
+    fetch(`${SB_URL}/rest/v1/activities?select=start_date_local,moving_time&order=start_date_local.asc`, { headers: SBH })
+      .then(r => r.json()).then(acts => {
+        const map = {};
+        (acts || []).forEach(a => {
+          const day = a.start_date_local?.slice(0,10);
+          if(!day) return;
+          if(!map[day]) map[day] = 0;
+          map[day] += a.moving_time || 0;
+        });
+        setActDays(map);
+        setLoading(false);
+      });
   }, []);
 
-  const DPM = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const mCount = year === "2026" ? 4 : 12;
-  const rng = s => { s = Math.sin(s) * 43758.5453; return s - Math.floor(s); };
-  const restCount = REST[year] || 37;
-  const total = mCount === 4 ? 111 : 365;
-  const rs = new Set(); let att = 0;
-  while (rs.size < Math.min(restCount, total - 5) && att < 10000) rs.add(Math.floor(rng(att++ * restCount + 7.3) * total));
-  const cells = []; let idx = 0;
-  for (let m = 0; m < mCount; m++) {
-    const dm = year === "2026" && m === 3 ? 20 : DPM[m];
-    for (let d = 0; d < dm; d++) {
-      const isR = rs.has(idx);
-      cells.push({ month: m, day: d, active: !isR, mins: isR ? 0 : Math.floor(rng(idx * 3.1) * 120) + 60 });
-      idx++;
+  // Build date range based on selected period
+  const getRange = () => {
+    const today = new Date();
+    if(period === "Last 365") {
+      const start = new Date(today); start.setDate(start.getDate() - 364);
+      return { start, end: today };
     }
+    if(period === "All time") {
+      return { start: new Date("2019-01-01"), end: today };
+    }
+    const yr = parseInt(period);
+    return { start: new Date(yr, 0, 1), end: yr === today.getFullYear() ? today : new Date(yr, 11, 31) };
+  };
+
+  const { start: rangeStart, end: rangeEnd } = getRange();
+
+  // Build weeks array (Mon-Sun)
+  const startMonday = new Date(rangeStart);
+  startMonday.setDate(startMonday.getDate() - ((startMonday.getDay()+6)%7));
+  const weeks = [];
+  let cur = new Date(startMonday);
+  while(cur <= rangeEnd) {
+    const week = [];
+    for(let i=0;i<7;i++) {
+      const d = new Date(cur);
+      const str = d.toISOString().slice(0,10);
+      const inRange = d >= rangeStart && d <= rangeEnd;
+      week.push({ date: str, mins: inRange ? Math.round((actDays[str]||0)/60) : -1 });
+      cur.setDate(cur.getDate()+1);
+    }
+    weeks.push(week);
   }
+
+  // Month labels
+  const monthLabels = [];
+  let lastMonth = -1;
+  weeks.forEach((week, wi) => {
+    const m = new Date(week[0].date).getMonth();
+    if(m !== lastMonth) { monthLabels[wi] = new Date(week[0].date).toLocaleString('en',{month:'short'}); lastMonth = m; }
+    else monthLabels[wi] = '';
+  });
+
+  // Stats
+  const allDays = Object.keys(actDays).filter(d => d >= rangeStart.toISOString().slice(0,10) && d <= rangeEnd.toISOString().slice(0,10));
+  const totalDays = Math.round((rangeEnd - rangeStart) / 86400000) + 1;
+  const activeDays = allDays.length;
+  const restDaysCount = totalDays - activeDays;
+
+  // Color scale
+  const getColor = (mins) => {
+    if(mins < 0) return 'transparent';
+    if(mins === 0) return C.border;
+    if(mins < 30) return '#c6dfc9';
+    if(mins < 60) return '#8cbf92';
+    if(mins < 120) return C.greenMid || '#4a9a5c';
+    return C.green;
+  };
 
   return (
     <section id="progression" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
       <Divider />
       <SectionNum n={4} />
-      <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 0.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>
+      <h2 style={{ fontFamily:F.heading, fontSize:"clamp(2rem,5vw,3.5rem)", fontWeight:800, color:C.ink, margin:"0 0 0.5rem", lineHeight:0.9, letterSpacing:"-1px" }}>
         PROGRESSION
       </h2>
-      <div style={{ fontFamily: F.mono, fontSize: "0.85rem", color: C.green, marginBottom: "1.5rem" }}>
-        <strong>{restCount}</strong> <span style={{ color: C.muted }}>rest days</span>
+      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>i take rest days, but not often.</div>
+
+      {/* Period tabs */}
+      <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap" }}>
+        {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
       </div>
 
-      <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-        {Object.keys(REST).map(y => <SubTab key={y} label={y} active={year === y} onClick={() => setYear(y)} />)}
-      </div>
-
-      {/* Heatmap */}
-      <div style={{ display: "flex", gap: 3, overflowX: "auto", paddingBottom: "0.5rem", marginBottom: "0.75rem" }}>
-        {Array.from({ length: mCount }, (_, mi) => {
-          const dm = year === "2026" && mi === 3 ? 20 : DPM[mi];
-          const mCells = cells.filter(c => c.month === mi);
-          return (
-            <div key={mi} style={{ flexShrink: 0 }}>
-              <div style={{ fontFamily: F.mono, fontSize: "0.52rem", color: C.faint, marginBottom: 4, textAlign: "center" }}>{MONTHS[mi].slice(0, 1)}</div>
-              <div style={{ display: "grid", gridTemplateRows: "repeat(7, 10px)", gridAutoFlow: "column", gap: 2 }}>
-                {mCells.map((cell, di) => (
-                  <div key={di} style={{ width: 10, height: 10, borderRadius: 2, background: !cell.active ? C.border : cell.mins > 180 ? C.green : cell.mins > 90 ? C.greenMid : "#A0C0A8" }} />
+      {loading ? (
+        <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div>
+      ) : (
+        <>
+          {/* Heatmap */}
+          <div style={{ overflowX:"auto", paddingBottom:"0.5rem" }}>
+            <div style={{ display:"inline-flex", flexDirection:"column", minWidth:"100%" }}>
+              {/* Month labels */}
+              <div style={{ display:"flex", gap:3, marginBottom:4, marginLeft:20 }}>
+                {weeks.map((_, wi) => (
+                  <div key={wi} style={{ width:13, flexShrink:0, fontFamily:F.mono, fontSize:"0.48rem", color:C.faint, textTransform:"uppercase" }}>
+                    {monthLabels[wi]||''}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display:"flex", gap:3 }}>
+                {/* Day labels */}
+                <div style={{ display:"grid", gridTemplateRows:"repeat(7,13px)", gap:2, marginRight:4 }}>
+                  {['M','','W','','F','',''].map((d,i) => (
+                    <div key={i} style={{ height:13, fontFamily:F.mono, fontSize:"0.45rem", color:C.faint, display:"flex", alignItems:"center" }}>{d}</div>
+                  ))}
+                </div>
+                {/* Weeks */}
+                {weeks.map((week, wi) => (
+                  <div key={wi} style={{ display:"grid", gridTemplateRows:"repeat(7,13px)", gap:2 }}>
+                    {week.map((day, di) => (
+                      <div key={di}
+                        title={day.mins >= 0 ? `${day.date}: ${day.mins > 0 ? day.mins+'min' : 'rest'}` : ''}
+                        style={{ width:13, height:13, borderRadius:2, background:getColor(day.mins), cursor:day.mins>0?'pointer':'default' }}
+                      />
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>
-          );
-        })}
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "2.5rem", fontFamily: F.mono, fontSize: "0.55rem", color: C.faint }}>
-        <span>Less</span>
-        {[C.border, "#A0C0A8", C.greenMid, C.green].map((c, i) => <div key={i} style={{ width: 10, height: 10, borderRadius: 2, background: c }} />)}
-        <span>More</span>
-      </div>
-
-      {/* Weekly volume bar chart */}
-      {weeklyVol.length > 0 && (
-        <div>
-          <Label>Weekly Training Volume</Label>
-          <div style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint, marginBottom: "0.75rem" }}>km/week since 2022</div>
-          <div style={{ height: 140 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyVol.filter((_, i) => i % 2 === 0)} barSize={3}>
-                <XAxis dataKey="week" tick={false} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontFamily: F.mono, fontSize: 9, fill: C.faint }} axisLine={false} tickLine={false} width={30} />
-                <Tooltip content={<Tip />} />
-                <Bar dataKey="km" fill={C.green} radius={[1, 1, 0, 0]} name="km/week" />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
-        </div>
+
+          {/* Stats + legend */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:"0.75rem" }}>
+            <div style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>
+              <span style={{ fontFamily:F.heading, fontSize:"1.4rem", fontWeight:800, color:C.ink }}>{restDaysCount}</span>
+              {' '}<span style={{ color:C.faint }}>rest days / {totalDays} total</span>
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:4, fontFamily:F.mono, fontSize:"0.52rem", color:C.faint }}>
+              <span>Less</span>
+              {[C.border,'#c6dfc9','#8cbf92',C.greenMid||'#4a9a5c',C.green].map((c,i)=>(
+                <div key={i} style={{ width:13, height:13, borderRadius:2, background:c }} />
+              ))}
+              <span>More</span>
+            </div>
+          </div>
+        </>
       )}
     </section>
   );
 }
+
 
 /* ─── ACTIVITY INFO ICON ─── */
 function ActivityInfoIcon() {
