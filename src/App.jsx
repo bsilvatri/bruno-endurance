@@ -663,30 +663,37 @@ function DonutChart({ data, size = 180 }) {
 
 function ActivityIcon({ type, color }) {
   const s = { width:20, height:20, display:"block", flexShrink:0 };
-  const p = { fill:"none", stroke:color||"currentColor", strokeWidth:1.6, strokeLinecap:"round", strokeLinejoin:"round" };
-  if (type === "Swim") return (
-    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M2 12c1.5 0 2.5-1 4-1s2.5 1 4 1 2.5-1 4-1 2.5 1 4 1M2 17c1.5 0 2.5-1 4-1s2.5 1 4 1 2.5-1 4-1 2.5 1 4 1M12 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM7 8l2 2 3-4" /></svg>
+  const p = { fill:"none", stroke:color||"currentColor", strokeWidth:1.8, strokeLinecap:"round", strokeLinejoin:"round" };
+  // Swim — lucide waves (exact from therealroach)
+  if (type === "Swim" || type === "OpenWaterSwim") return (
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path {...p} d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path {...p} d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
   );
+  // Run — lucide footprints (exact from therealroach)
   if (type === "Run") return (
-    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M13 4a1 1 0 1 0 2 0 1 1 0 0 0-2 0M6 20l4-4 2 2 2-6M15 8l-2 4h4l-1 3M9 12l-3 8" /></svg>
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path {...p} d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path {...p} d="M16 17h4"/><path {...p} d="M4 13h4"/></svg>
   );
-  if (type === "Ride" || type === "VirtualRide" || type === "GravelRide" || type === "MountainBikeRide") return (
-    <svg viewBox="0 0 24 24" style={s}><circle {...p} cx="6" cy="15" r="4"/><circle {...p} cx="18" cy="15" r="4"/><path {...p} d="M6 15l4-8h3l2 4h3M10 7l1 4"/></svg>
+  // Ride — lucide bike (exact from therealroach)
+  if (type === "Ride" || type === "VirtualRide" || type === "GravelRide" || type === "MountainBikeRide" || type === "EMountainBikeRide") return (
+    <svg viewBox="0 0 24 24" style={s}><circle {...p} cx="18.5" cy="17.5" r="3.5"/><circle {...p} cx="5.5" cy="17.5" r="3.5"/><circle {...p} cx="15" cy="5" r="1"/><path {...p} d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>
   );
+  // Workout / Weights — lucide dumbbell
   if (type === "Workout" || type === "WeightTraining" || type === "Crossfit") return (
-    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M6.5 6.5h1v11h-1zM16.5 6.5h1v11h-1zM3 9h3.5M17.5 9H21M3 15h3.5M17.5 15H21M8 11h8" /></svg>
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M14.4 14.4 9.6 9.6"/><path {...p} d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"/><path {...p} d="m21.5 21.5-1.4-1.4"/><path {...p} d="M3.9 3.9 2.5 2.5"/><path {...p} d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"/></svg>
   );
-  if (type === "AlpineSki" || type === "BackcountrySki" || type === "NordicSki") return (
-    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M20 4L4 20M7 4h3l3 5-5 4 2 3 4-2M18 14l-2 2-2-1-1 4 5 2" /></svg>
+  // Ski — lucide mountain-snow
+  if (type === "AlpineSki" || type === "BackcountrySki" || type === "NordicSki" || type === "Snowboard") return (
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="m8 3 4 8 5-5 5 15H2L8 3z"/><path {...p} d="M4.14 15.08c2.62-1.57 5.24-1.43 7.86.42 2.74 1.94 5.49 2 8.23.19"/></svg>
   );
+  // Walk / Hike — lucide person-walking  
   if (type === "Walk" || type === "Hike") return (
-    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M13 4a1 1 0 1 0 2 0 1 1 0 0 0-2 0M10 8l2 2-1 4M14 8l2 8-3-1M8 12l-2 8M10 14l4 6" /></svg>
+    <svg viewBox="0 0 24 24" style={s}><circle {...p} cx="13" cy="4" r="1"/><path {...p} d="M7 21l3-6"/><path {...p} d="M13 21v-4l-3-3 4-6"/><path {...p} d="M11.7 10.4 9 12H6"/><path {...p} d="m15 15 2 6"/></svg>
   );
-  // Default: generic activity pulse
+  // Default — activity pulse
   return (
-    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M2 12h4l3-7 4 14 3-9 2 4h4" /></svg>
+    <svg viewBox="0 0 24 24" style={s}><path {...p} d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
   );
 }
+
 
 function RecentSection({ lang }) {
   const [period, setPeriod] = useState("thisweek");
