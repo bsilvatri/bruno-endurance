@@ -196,165 +196,15 @@ const Tip = ({ active, payload, label }) => {
 };
 
 const ChartBox = ({ title, subtitle, children }) => (
-  <div style={{ background: C.bg, padding: "1.25rem" }}>
-    <div style={{ fontFamily: F.mono, fontSize: "0.6rem", letterSpacing: "0.15em", textTransform: "uppercase", color: C.muted, marginBottom: "0.15rem" }}>{title}</div>
-    {subtitle && <div style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint, marginBottom: "1rem" }}>{subtitle}</div>}
-    {children}
+  <div style={{ background: C.bg, padding: "1.25rem", display:"flex", flexDirection:"column", flex:1 }}>
+    <div style={{ textAlign:"center", marginBottom:"1rem" }}>
+      <div style={{ fontFamily:F.mono, fontSize:"0.6rem", letterSpacing:"0.15em", textTransform:"uppercase", color:C.muted, fontWeight:500 }}>{title}</div>
+      {subtitle && <div style={{ fontFamily:F.mono, fontSize:"0.5rem", color:C.faint, marginTop:3, fontStyle:"italic" }}>{subtitle}</div>}
+    </div>
+    <div style={{ flex:1, display:"flex", flexDirection:"column", justifyContent:"center" }}>{children}</div>
   </div>
 );
 
-/* ─── NOTABLE TABLE ─── */
-function NotableTable({ rows, cols, selected, onSelect, sportColor }) {
-  return (
-    <div>
-      <div style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), padding: "0.4rem 0.75rem", borderBottom: `1px solid ${C.border}` }}>
-        {cols.map(c => <div key={c.k} style={{ fontFamily: F.mono, fontSize: "0.52rem", letterSpacing: "0.12em", textTransform: "uppercase", color: C.faint }}>{c.l}</div>)}
-      </div>
-      {rows.map((r, i) => (
-        <div key={i} onClick={() => onSelect(i)}
-          style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), padding: "0.7rem 0.75rem", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selected === i ? C.card : "transparent", transition: "background 0.12s" }}>
-          {cols.map(c => (
-            <div key={c.k} style={{ fontFamily: c.mono ? F.mono : F.body, fontSize: "0.82rem", color: c.accent ? sportColor : C.ink, fontWeight: c.bold ? 600 : 400 }}>
-              {c.k === "#" ? (selected === i ? <span style={{ color: sportColor }}>|</span> : null) : null}
-              {c.k === "#" ? `#${i + 1}` : r[c.k]}
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ─── NOTABLE SECTION ─── */
-function NotableSection() {
-  const [sport, setSport] = useState("run");
-  const [tab, setTab] = useState("pbs");
-  const [rows, setRows] = useState([]);
-  const [selected, setSelected] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
-  const sportType = sport === "run" ? "Run" : sport === "ride" ? "Ride,VirtualRide" : "Swim";
-
-  useEffect(() => {
-    setLoading(true);
-    setSelected(0);
-    let queryUrl = "";
-    if (sport === "run" && tab === "pbs") {
-      queryUrl = `activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,map_summary_polyline&type=eq.Run&distance=gt.1000&order=moving_time.asc&limit=10`;
-    } else if (tab === "longest") {
-      const typeFilter = sport === "ride" ? "type=in.(Ride,VirtualRide)" : sport === "swim" ? "type=eq.Swim" : "type=eq.Run";
-      queryUrl = `activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,average_speed,map_summary_polyline&${typeFilter}&order=distance.desc&limit=10`;
-    } else if (tab === "elevation") {
-      const typeFilter = sport === "ride" ? "type=in.(Ride,VirtualRide)" : "type=eq.Run";
-      queryUrl = `activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,average_speed,map_summary_polyline&${typeFilter}&total_elevation_gain=gt.0&order=total_elevation_gain.desc&limit=10`;
-    }
-    if (!queryUrl) { setLoading(false); return; }
-    q(queryUrl).then(data => {
-      setRows(safe(data));
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, [sport, tab]);
-
-  useEffect(() => {
-    if (sport === "ride" || sport === "swim") setTab("longest");
-    else setTab("pbs");
-  }, [sport]);
-
-  const cur = rows[selected];
-  const fmtTime = s => { if (!s) return "—"; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : `${m}:${String(sec).padStart(2, "0")}`; };
-  const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
-  const fmtDist = m => `${(m / 1000).toFixed(1)} km`;
-  const fmtPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 1000); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`; };
-  const fmtSpeed = s => s ? `${(s * 3.6).toFixed(1)} km/h` : "—";
-  const fmtSwimPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 100); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/100m`; };
-
-  const cols = tab === "pbs"
-    ? [{ k: "#", l: "#", w: "40px" }, { k: "dist", l: "Distance", w: "100px" }, { k: "date", l: "Date", w: "110px" }, { k: "time", l: "Time", w: "1fr", mono: true, accent: true }]
-    : tab === "elevation"
-    ? [{ k: "#", l: "#", w: "40px" }, { k: "date", l: "Date", w: "110px" }, { k: "dist", l: "Dist", w: "80px" }, { k: "elev", l: "Elevation", w: "1fr", accent: true }]
-    : [{ k: "#", l: "#", w: "40px" }, { k: "date", l: "Date", w: "110px" }, { k: "dist", l: "Distance", w: "1fr", accent: true }];
-
-  const tableRows = rows.map(r => ({
-    dist: fmtDist(r.distance),
-    date: fmtDate(r.start_date_local),
-    time: fmtTime(r.moving_time),
-    elev: `${Math.round(r.total_elevation_gain || 0)} m`,
-    name: r.name,
-  }));
-
-  const distBuckets = ["1 km","2 km","3 km","4 km","5 km","10 km","15 km","20 km","Half (21k)","30 km","Marathon","50 km","100 km"];
-
-  return (
-    <section id="notable" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
-      <Divider />
-      <SectionNum n={2} />
-      <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 1.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>
-        NOTABLE <span style={{ color: sportColor }}>{sport.toUpperCase()}S</span>
-      </h2>
-
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem" }}>
-        <SportTab label="RUNS" active={sport === "run"} onClick={() => setSport("run")} color={C.run} />
-        <SportTab label="RIDES" active={sport === "ride"} onClick={() => setSport("ride")} color={C.ride} />
-        <SportTab label="SWIMS" active={sport === "swim"} onClick={() => setSport("swim")} color={C.swim} />
-      </div>
-
-      <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", marginBottom: "0.5rem" }}>
-        {sport === "run" && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
-        <SubTab label="LONGEST" active={tab === "longest"} onClick={() => setTab("longest")} />
-        {sport !== "swim" && <SubTab label="ELEVATION GAIN" active={tab === "elevation"} onClick={() => setTab("elevation")} />}
-      </div>
-
-      <div style={{ fontFamily: F.mono, fontSize: "0.62rem", color: C.faint, marginBottom: "1rem" }}>
-        {tab === "pbs" ? "fastest times across standard running distances" : tab === "longest" ? `my longest ${sport}s on record` : `the most vertical gain in a single ${sport}`}
-      </div>
-
-      {loading ? <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint, padding: "3rem 0" }}>loading...</div> : (
-        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 280px", gap: "0", border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden", background: C.surface }}>
-          <div style={{ borderRight: `1px solid ${C.border}` }}>
-            <NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} />
-          </div>
-          <div>
-            <ActivityMap polyline={cur?.map_summary_polyline} type={sport === "run" ? "Run" : sport === "ride" ? "Ride" : "Swim"} height={380} />
-          </div>
-          <div style={{ padding: "1.25rem", borderLeft: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: "0.1rem" }}>
-            {cur && (<>
-              <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "0.5rem" }}>{fmtDate(cur.start_date_local)}</div>
-              <div style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, color: C.ink, marginBottom: "1rem", lineHeight: 1.2 }}>{cur.name}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", marginBottom: "0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
-                {[
-                  { l: "KILOMETERS", v: `${(cur.distance / 1000).toFixed(1)} km` },
-                  { l: "TIME", v: fmtTime(cur.moving_time) },
-                  { l: sport === "ride" ? "AVG SPEED" : sport === "swim" ? "AVG PACE" : "AVG PACE", v: sport === "ride" ? fmtSpeed(cur.average_speed) : sport === "swim" ? fmtSwimPace(cur.moving_time, cur.distance) : fmtPace(cur.moving_time, cur.distance) },
-                  { l: "ELEVATION", v: `${Math.round(cur.total_elevation_gain || 0)} m` },
-                ].map(({ l, v }) => (
-                  <div key={l}>
-                    <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint, marginBottom: 2 }}>{l}</div>
-                    <div style={{ fontFamily: F.heading, fontSize: "1.3rem", fontWeight: 700, color: C.ink }}>{v}</div>
-                  </div>
-                ))}
-              </div>
-              {cur.average_heartrate && (
-                <div>
-                  <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint, marginBottom: 2 }}>AVG HR (BPM)</div>
-                  <div style={{ fontFamily: F.heading, fontSize: "1.3rem", fontWeight: 700, color: C.ink }}>{Math.round(cur.average_heartrate)}</div>
-                </div>
-              )}
-              <div style={{ marginTop: "auto", paddingTop: "1rem", borderTop: `1px solid ${C.border}` }}>
-                <a href={`https://www.strava.com/activities/${cur.id}`} target="_blank" rel="noopener noreferrer"
-                  style={{ fontFamily: F.mono, fontSize: "0.58rem", letterSpacing: "0.1em", color: C.muted, textDecoration: "none" }}>
-                  VIEW ON STRAVA →
-                </a>
-              </div>
-            </>)}
-          </div>
-        </div>
-      )}
-    </section>
-  );
-}
-
-/* ─── STATS SECTION ─── */
 function StatsSection({ sportFilter }) {
   const [annual, setAnnual] = useState([]);
   const [hrZones, setHrZones] = useState(null);
@@ -378,87 +228,162 @@ function StatsSection({ sportFilter }) {
       setPaceDist(safe(pd));
       setRunDist(safe(rd));
       setIndoorOutdoor(io && !io.code ? io : null);
-      setWeeklyVol(safe(wv).map(r => ({ week: r.week_start?.slice(0, 7), km: +r.total_km || 0 })));
+      setWeeklyVol(safe(wv).map(r => ({ week: r.week_start?.slice(0,7), km: +r.total_km||0 })));
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
 
-  const sportLabel = sportFilter === "all" ? "All" : sportFilter === "run" ? "Run" : sportFilter === "ride" ? "Ride" : "Swim";
+  const isAll = sportFilter === "all";
   const sportColor = sportFilter === "run" ? C.run : sportFilter === "ride" ? C.ride : sportFilter === "swim" ? C.swim : C.green;
 
-  const annData = annual.filter(y => +y.year >= 2019).map(y => ({
+  const annData = annual.filter(y => isAll ? +y.year >= 2014 : +y.year >= 2019).map(y => ({
     year: String(y.year),
-    km: sportFilter === "all" ? +y.total_km || 0 : sportFilter === "swim" ? +y.swim_km || 0 : sportFilter === "ride" ? +y.ride_km || 0 : +y.run_km || 0,
-    run: +y.run_km || 0, ride: +y.ride_km || 0, swim: +y.swim_km || 0,
+    km: isAll ? +y.total_km||0 : sportFilter==="swim" ? +y.swim_km||0 : sportFilter==="ride" ? +y.ride_km||0 : +y.run_km||0,
+    run: +y.run_km||0, ride: +y.ride_km||0, swim: +y.swim_km||0,
   }));
 
   const hrZoneData = hrZones ? [
-    { zone: "Recovery", count: hrZones.recovery || 0 },
-    { zone: "Easy", count: hrZones.easy || 0 },
-    { zone: "Tempo", count: hrZones.tempo || 0 },
-    { zone: "Threshold", count: hrZones.threshold || 0 },
-    { zone: "Max", count: hrZones.max || 0 },
+    { zone:"Recovery", count: hrZones.recovery||0 },
+    { zone:"Easy",     count: hrZones.easy||0 },
+    { zone:"Tempo",    count: hrZones.tempo||0 },
+    { zone:"Threshold",count: hrZones.threshold||0 },
+    { zone:"Max",      count: hrZones.max||0 },
   ] : [];
+  const hrColors = ["#5BA888","#4A8F6A","#C8A84B","#C07840","#C05040"];
 
-  const hrColors = ["#5BA888", "#4A8F6A", "#C8A84B", "#C07840", "#C05040"];
+  // Grid border trick — same as therealroach
+  const outerBorder = { border:`1px solid ${C.border}`, display:"grid", gap:"1px", background:C.border };
 
-  if (loading) return <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint, padding: "3rem 0" }}>loading stats...</div>;
+  if (loading) return <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading stats...</div>;
 
   return (
     <div>
-      {/* Annual distance */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0", marginBottom: "0", border:`1px solid ${C.border}` }}>
-        <ChartBox title="Annual Distance (km)" subtitle="the full picture">
-          <div style={{ height: 200 }}>
+      {/* ROW 0: Annual Distance (1 col) | Time of Day + Avg Dist (2 cols nested) */}
+      <div style={{ ...outerBorder, gridTemplateColumns:"1fr 2fr" }}>
+        {/* Annual Distance */}
+        <div style={{ display:"flex" }}>
+          <ChartBox title="Annual Distance (km)" subtitle={isAll ? "the full picture" : `${sportFilter} only`}>
+            <div style={{ height:200 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={annData} barSize={isAll ? 14 : 20}>
+                  <XAxis dataKey="year" tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} width={34} tickFormatter={v => v>=1000 ? `${Math.round(v/1000)}k` : v} />
+                  <Tooltip content={<Tip />} cursor={{ fill:"rgba(0,0,0,0.04)" }} />
+                  {isAll ? <>
+                    <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim" />
+                    <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride" />
+                    <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name="Run" />
+                  </> : <Bar dataKey="km" fill={sportColor} radius={[2,2,0,0]} name="km" />}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            {isAll && (
+              <div style={{ display:"flex", gap:"1rem", marginTop:"0.5rem", justifyContent:"center" }}>
+                {[["Run",C.run],["Ride",C.ride],["Swim",C.swim]].map(([l,c]) => (
+                  <div key={l} style={{ display:"flex", alignItems:"center", gap:4, fontFamily:F.mono, fontSize:"0.5rem", color:C.faint }}>
+                    <div style={{ width:7, height:7, borderRadius:1, background:c }} />{l}
+                  </div>
+                ))}
+              </div>
+            )}
+          </ChartBox>
+        </div>
+        {/* Activity by Time of Day + Avg Dist by Day — nested 2-col */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1px", background:C.border }}>
+          <ChartBox title="Activity by Time of Day" subtitle="peak: early morning">
+            <div style={{ height:200, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint, fontStyle:"italic" }}>coming soon</div>
+            </div>
+          </ChartBox>
+          <ChartBox title="Avg Dist by Day" subtitle="consistency, they call it">
+            <div style={{ height:200, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint, fontStyle:"italic" }}>coming soon</div>
+            </div>
+          </ChartBox>
+        </div>
+      </div>
+
+      {/* ROW 1: Distance Distribution | Indoor vs Outdoor | Pace Distribution */}
+      <div style={{ ...outerBorder, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none" }}>
+        <ChartBox title="Distance Distribution (km)" subtitle="you can tell what my least favorite sport is">
+          <div style={{ height:220 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={annData} barSize={20}>
-                <XAxis dataKey="year" tick={{ fontFamily: F.mono, fontSize: 10, fill: C.faint }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontFamily: F.mono, fontSize: 9, fill: C.faint }} axisLine={false} tickLine={false} width={36} tickFormatter={v => v >= 1000 ? `${Math.round(v / 1000)}k` : v} />
-                <Tooltip content={<Tip />} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
-                {sportFilter === "all" ? <>
-                  <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim" />
-                  <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride" />
-                  <Bar dataKey="run" stackId="a" fill={C.run} radius={[2, 2, 0, 0]} name="Run" />
-                </> : <Bar dataKey="km" fill={sportColor} radius={[2, 2, 0, 0]} name="km" />}
+              <BarChart data={runDist} layout="vertical" barSize={10}>
+                <XAxis type="number" tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="bucket" tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} width={50} />
+                <Tooltip content={<Tip />} />
+                <Bar dataKey="count" fill={C.run} radius={[0,2,2,0]} name="runs" />
               </BarChart>
             </ResponsiveContainer>
           </div>
-          {sportFilter === "all" && (
-            <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
-              {[["Run", C.run], ["Ride", C.ride], ["Swim", C.swim]].map(([l, c]) => (
-                <div key={l} style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: F.mono, fontSize: "0.55rem", color: C.faint }}>
-                  <div style={{ width: 8, height: 8, borderRadius: 1, background: c }} />{l}
+        </ChartBox>
+        <ChartBox title="Indoor vs Outdoor" subtitle="rain or shine">
+          {indoorOutdoor && (
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem", paddingTop:"0.5rem" }}>
+              {[
+                { l:"Outdoor Run",  v:indoorOutdoor.outdoor_run||0,   c:C.run },
+                { l:"Treadmill",    v:indoorOutdoor.indoor_run||0,    c:C.muted },
+                { l:"Outdoor Ride", v:indoorOutdoor.outdoor_ride||0,  c:C.ride },
+                { l:"Virtual Ride", v:indoorOutdoor.virtual_ride||0,  c:"#8B6030" },
+                { l:"Open Water",   v:indoorOutdoor.outdoor_swim||0,  c:C.swim },
+                { l:"Pool Swim",    v:indoorOutdoor.indoor_swim||0,   c:"#4A80C0" },
+              ].map(s => (
+                <div key={s.l}>
+                  <div style={{ fontFamily:F.mono, fontSize:"0.5rem", color:C.faint, marginBottom:2 }}>{s.l}</div>
+                  <div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:s.c }}>{s.v}</div>
                 </div>
               ))}
             </div>
           )}
         </ChartBox>
-
-        <ChartBox title="Activity by Time of Day" subtitle="not very meaningful lol">
-          <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ fontFamily: F.mono, fontSize: "0.6rem", color: C.faint }}>polar chart</div>
-          </div>
-        </ChartBox>
-
-        <ChartBox title="Avg Dist by Day" subtitle="so f*ckin consistent">
-          <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ fontFamily: F.mono, fontSize: "0.6rem", color: C.faint }}>radar chart</div>
+        <ChartBox title="Pace Distribution (min/km)" subtitle="a near-perfect bell curve">
+          <div style={{ height:220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={paceDist} barSize={22}>
+                <XAxis dataKey="bucket" tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} width={28} />
+                <Tooltip content={<Tip />} />
+                <Bar dataKey="count" fill={C.run} radius={[2,2,0,0]} name="runs" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </ChartBox>
       </div>
 
-      {/* Second row */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "0", marginBottom: "0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
-        <ChartBox title="Activity Mix Over Time" subtitle="time spent per sport (hours)">
-          <div style={{ height: 180 }}>
+      {/* ROW 2: Heart Rate Zones | Activity Mix Over Time */}
+      <div style={{ ...outerBorder, gridTemplateColumns:"1fr 1fr", borderTop:"none" }}>
+        <ChartBox title="Heart Rate Zones" subtitle="~50% easy, the rest is tempo and pain">
+          <div style={{ height:200 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weeklyVol.filter((_, i) => i % 4 === 0)}>
+              <BarChart data={hrZoneData} barSize={28}>
+                <XAxis dataKey="zone" tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} width={30} />
+                <Tooltip content={<Tip />} />
+                <Bar dataKey="count" radius={[2,2,0,0]}>
+                  {hrZoneData.map((_,i) => <Cell key={i} fill={hrColors[i]} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ display:"flex", gap:"0.75rem", marginTop:"0.5rem", flexWrap:"wrap" }}>
+            {["Recovery","Easy","Tempo","Threshold","Max"].map((l,i) => (
+              <div key={l} style={{ display:"flex", alignItems:"center", gap:3, fontFamily:F.mono, fontSize:"0.5rem", color:C.faint }}>
+                <div style={{ width:6, height:6, borderRadius:1, background:hrColors[i] }} />
+                {l}
+              </div>
+            ))}
+          </div>
+        </ChartBox>
+        <ChartBox title="Activity Mix Over Time" subtitle="km/week rolling average">
+          <div style={{ height:200 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={weeklyVol.filter((_,i) => i%4===0)}>
                 <XAxis dataKey="week" tick={false} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontFamily: F.mono, fontSize: 9, fill: C.faint }} axisLine={false} tickLine={false} width={30} />
+                <YAxis tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} width={30} />
                 <Tooltip content={<Tip />} />
                 <defs>
                   <linearGradient id="vg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={C.run} stopOpacity={0.3} />
+                    <stop offset="5%"  stopColor={C.run} stopOpacity={0.3} />
                     <stop offset="95%" stopColor={C.run} stopOpacity={0} />
                   </linearGradient>
                 </defs>
@@ -467,102 +392,36 @@ function StatsSection({ sportFilter }) {
             </ResponsiveContainer>
           </div>
         </ChartBox>
+      </div>
 
+      {/* ROW 3: All-Time Activities (donut) | placeholder */}
+      <div style={{ ...outerBorder, gridTemplateColumns:"1fr 1fr", borderTop:"none" }}>
         <ChartBox title="All-Time Activities" subtitle="i love running">
           {indoorOutdoor && (
-            <div style={{ height: 180 }}>
+            <div style={{ height:180 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={[
-                    { name: "Run", value: (indoorOutdoor.outdoor_run || 0) + (indoorOutdoor.indoor_run || 0), fill: C.run },
-                    { name: "Ride", value: (indoorOutdoor.outdoor_ride || 0) + (indoorOutdoor.virtual_ride || 0), fill: C.ride },
-                    { name: "Swim", value: (indoorOutdoor.outdoor_swim || 0) + (indoorOutdoor.indoor_swim || 0), fill: C.swim },
-                  ].filter(d => d.value > 0)} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" strokeWidth={0} />
+                    { name:"Run",  value:(indoorOutdoor.outdoor_run||0)+(indoorOutdoor.indoor_run||0),   fill:C.run },
+                    { name:"Ride", value:(indoorOutdoor.outdoor_ride||0)+(indoorOutdoor.virtual_ride||0), fill:C.ride },
+                    { name:"Swim", value:(indoorOutdoor.outdoor_swim||0)+(indoorOutdoor.indoor_swim||0),  fill:C.swim },
+                  ].filter(d=>d.value>0)} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" strokeWidth={0} />
                   <Tooltip content={<Tip />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           )}
         </ChartBox>
-      </div>
-
-      {/* Third row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", marginBottom: "1px", background: C.border }}>
-        <ChartBox title="Distance Distribution (km)" subtitle="you can tell what my least favorite sport is">
-          <div style={{ height: 220 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={runDist} layout="vertical" barSize={10}>
-                <XAxis type="number" tick={{ fontFamily: F.mono, fontSize: 9, fill: C.faint }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="bucket" tick={{ fontFamily: F.mono, fontSize: 9, fill: C.faint }} axisLine={false} tickLine={false} width={50} />
-                <Tooltip content={<Tip />} />
-                <Bar dataKey="count" fill={C.run} radius={[0, 2, 2, 0]} name="runs" />
-              </BarChart>
-            </ResponsiveContainer>
+        <ChartBox title="Pace vs Heart Rate" subtitle="faster = harder, no surprises here">
+          <div style={{ height:180, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint, fontStyle:"italic" }}>coming soon</div>
           </div>
-        </ChartBox>
-
-        <ChartBox title="Heart Rate Zones" subtitle="the full <3 picture">
-          <div style={{ height: 220 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={hrZoneData} barSize={24}>
-                <XAxis dataKey="zone" tick={{ fontFamily: F.mono, fontSize: 9, fill: C.faint }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontFamily: F.mono, fontSize: 9, fill: C.faint }} axisLine={false} tickLine={false} width={30} />
-                <Tooltip content={<Tip />} />
-                <Bar dataKey="count" radius={[2, 2, 0, 0]}>
-                  {hrZoneData.map((_, i) => <Cell key={i} fill={hrColors[i]} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
-            {["Recovery","Easy","Tempo","Threshold","Max"].map((l, i) => (
-              <div key={l} style={{ display: "flex", alignItems: "center", gap: 3, fontFamily: F.mono, fontSize: "0.5rem", color: C.faint }}>
-                <div style={{ width: 6, height: 6, borderRadius: 1, background: hrColors[i] }} />
-                {l} &lt; {[120, 140, 160, 180, 999][i]}
-              </div>
-            ))}
-          </div>
-        </ChartBox>
-      </div>
-
-      {/* Fourth row - pace dist */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
-        <ChartBox title="Pace Distribution (min/km)" subtitle="a near-perfect bell curve">
-          <div style={{ height: 180 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={paceDist} barSize={22}>
-                <XAxis dataKey="bucket" tick={{ fontFamily: F.mono, fontSize: 9, fill: C.faint }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontFamily: F.mono, fontSize: 9, fill: C.faint }} axisLine={false} tickLine={false} width={28} />
-                <Tooltip content={<Tip />} />
-                <Bar dataKey="count" fill={C.run} radius={[2, 2, 0, 0]} name="runs" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </ChartBox>
-
-        <ChartBox title="Indoor vs Outdoor" subtitle="rain or shine">
-          {indoorOutdoor && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", paddingTop: "0.5rem" }}>
-              {[
-                { l: "Outdoor Run", v: indoorOutdoor.outdoor_run || 0, c: C.run },
-                { l: "Treadmill", v: indoorOutdoor.indoor_run || 0, c: C.muted },
-                { l: "Outdoor Ride", v: indoorOutdoor.outdoor_ride || 0, c: C.ride },
-                { l: "Virtual Ride", v: indoorOutdoor.virtual_ride || 0, c: "#8B6030" },
-                { l: "Open Water", v: indoorOutdoor.outdoor_swim || 0, c: C.swim },
-                { l: "Pool Swim", v: indoorOutdoor.indoor_swim || 0, c: "#4A80C0" },
-              ].map(s => (
-                <div key={s.l}>
-                  <div style={{ fontFamily: F.mono, fontSize: "0.5rem", color: C.faint, marginBottom: 2 }}>{s.l}</div>
-                  <div style={{ fontFamily: F.heading, fontSize: "1.4rem", fontWeight: 800, color: s.c }}>{s.v}</div>
-                </div>
-              ))}
-            </div>
-          )}
         </ChartBox>
       </div>
     </div>
   );
 }
+
 
 /* ─── GEOGRAPHY ─── */
 function GeoSection() {
