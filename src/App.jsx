@@ -977,7 +977,6 @@ function ProgressionSection() {
 
   useEffect(() => {
     setLoading(true);
-    // Fetch all activities in pages of 1000 to get past Supabase row limit
     async function fetchAll() {
       const map = {};
       let offset = 0;
@@ -989,7 +988,6 @@ function ProgressionSection() {
         ).then(r => r.json());
         if(!Array.isArray(res) || res.length === 0) break;
         res.forEach(a => {
-          // Convert UTC timestamp to Rio local date (UTC-3)
           const utcDate = new Date(a.start_date_local);
           const localDate = new Date(utcDate.getTime() - 3 * 60 * 60 * 1000);
           const day = localDate.toISOString().slice(0, 10);
@@ -1005,47 +1003,36 @@ function ProgressionSection() {
     fetchAll();
   }, []);
 
-  const getRange = () => {
+  const ALL_YEARS = ["2026","2025","2024","2023","2022","2021","2020","2019"];
+
+  const getRange = (yr) => {
     const today = new Date();
-    if(period === "Last 365") {
+    if(yr === "Last 365") {
       const s = new Date(today); s.setDate(s.getDate() - 364);
       return { start: s, end: today };
     }
-    if(period === "All time") return { start: new Date("2019-01-01"), end: today };
-    const yr = parseInt(period);
-    return { start: new Date(yr, 0, 1), end: yr === today.getFullYear() ? today : new Date(yr, 11, 31) };
+    const y = parseInt(yr);
+    return { start: new Date(y, 0, 1), end: y === today.getFullYear() ? today : new Date(y, 11, 31) };
   };
 
-  const { start: rangeStart, end: rangeEnd } = getRange();
-  const startMonday = new Date(rangeStart);
-  startMonday.setDate(startMonday.getDate() - ((startMonday.getDay()+6)%7));
-  const weeks = [];
-  let cur = new Date(startMonday);
-  while(cur <= rangeEnd) {
-    const week = [];
-    for(let i=0;i<7;i++) {
-      const d = new Date(cur);
-      const str = d.toISOString().slice(0,10);
-      const inRange = d >= rangeStart && d <= rangeEnd;
-      week.push({ date: str, mins: inRange ? Math.round((actDays[str]||0)/60) : -1 });
-      cur.setDate(cur.getDate()+1);
+  const buildWeeks = (rangeStart, rangeEnd) => {
+    const startMonday = new Date(rangeStart);
+    startMonday.setDate(startMonday.getDate() - ((startMonday.getDay()+6)%7));
+    const weeks = [];
+    let cur = new Date(startMonday);
+    while(cur <= rangeEnd) {
+      const week = [];
+      for(let i=0;i<7;i++) {
+        const d = new Date(cur);
+        const str = d.toISOString().slice(0,10);
+        const inRange = d >= rangeStart && d <= rangeEnd;
+        week.push({ date: str, mins: inRange ? Math.round((actDays[str]||0)/60) : -1 });
+        cur.setDate(cur.getDate()+1);
+      }
+      weeks.push(week);
     }
-    weeks.push(week);
-  }
-
-  const monthLabels = [];
-  let lastMonth = -1;
-  weeks.forEach((week, wi) => {
-    const m = new Date(week[0].date).getMonth();
-    if(m !== lastMonth) { monthLabels[wi] = new Date(week[0].date).toLocaleString('en',{month:'short'}); lastMonth = m; }
-    else monthLabels[wi] = '';
-  });
-
-  const rangeStartStr = rangeStart.toISOString().slice(0,10);
-  const rangeEndStr = rangeEnd.toISOString().slice(0,10);
-  const activeDays = Object.keys(actDays).filter(d => d >= rangeStartStr && d <= rangeEndStr).length;
-  const totalDays = Math.round((rangeEnd - rangeStart) / 86400000) + 1;
-  const restDaysCount = totalDays - activeDays;
+    return weeks;
+  };
 
   const getColor = (mins) => {
     if(mins < 0) return 'transparent';
@@ -1056,22 +1043,31 @@ function ProgressionSection() {
     return C.green;
   };
 
-  return (
-    <section id="progression" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
-      <Divider />
-      <SectionNum n={4} />
-      <h2 style={{ fontFamily:F.heading, fontSize:"clamp(2rem,5vw,3.5rem)", fontWeight:800, color:C.ink, margin:"0 0 0.5rem", lineHeight:0.9, letterSpacing:"-1px" }}>
-        PROGRESSION
-      </h2>
-      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>i take rest days, but not often..</div>
-      <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap" }}>
-        {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
-      </div>
-      {loading ? (
-        <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div>
-      ) : (
-        <>
-          <div style={{ overflowX:"auto", paddingBottom:"0.5rem" }}>
+  const getStats = (rangeStart, rangeEnd) => {
+    const s = rangeStart.toISOString().slice(0,10);
+    const e = rangeEnd.toISOString().slice(0,10);
+    const totalDays = Math.round((rangeEnd - rangeStart) / 86400000) + 1;
+    const activeDays = Object.keys(actDays).filter(d => d >= s && d <= e).length;
+    const restDays = totalDays - activeDays;
+    const pct = Math.round(activeDays / totalDays * 100);
+    return { totalDays, activeDays, restDays, pct };
+  };
+
+  const Heatmap = ({ rangeStart, rangeEnd, label }) => {
+    const weeks = buildWeeks(rangeStart, rangeEnd);
+    const { totalDays, activeDays, restDays, pct } = getStats(rangeStart, rangeEnd);
+    const monthLabels = [];
+    let lastMonth = -1;
+    weeks.forEach((week, wi) => {
+      const m = new Date(week[0].date).getMonth();
+      if(m !== lastMonth) { monthLabels[wi] = new Date(week[0].date).toLocaleString('en',{month:'short'}); lastMonth = m; }
+      else monthLabels[wi] = '';
+    });
+    return (
+      <div style={{ marginBottom:"1.5rem" }}>
+        <div style={{ display:"flex", alignItems:"flex-start", gap:"1rem" }}>
+          {/* Heatmap */}
+          <div style={{ overflowX:"auto", flex:1 }}>
             <div style={{ display:"inline-flex", flexDirection:"column" }}>
               <div style={{ display:"flex", gap:3, marginBottom:4, marginLeft:18 }}>
                 {weeks.map((_, wi) => (
@@ -1090,7 +1086,7 @@ function ProgressionSection() {
                   <div key={wi} style={{ display:"grid", gridTemplateRows:"repeat(7,13px)", gap:2 }}>
                     {week.map((day, di) => (
                       <div key={di}
-                        onMouseEnter={e => { if(day.mins>=0) { const r=e.target.getBoundingClientRect(); window._heatTip={text: day.mins>0?`${day.date}: ${String(Math.floor(day.mins/60)).padStart(2,"0")}:${String(day.mins%60).padStart(2,"0")}`:`${day.date}: rest`,x:r.left,y:r.top}; document.getElementById('heat-tip').style.display='block'; document.getElementById('heat-tip').style.left=(r.left+16)+'px'; document.getElementById('heat-tip').style.top=(r.top-28)+'px'; document.getElementById('heat-tip').textContent=window._heatTip.text; }}}
+                        onMouseEnter={e => { if(day.mins>=0) { const r=e.target.getBoundingClientRect(); document.getElementById('heat-tip').style.display='block'; document.getElementById('heat-tip').style.left=(r.left+16)+'px'; document.getElementById('heat-tip').style.top=(r.top-28)+'px'; document.getElementById('heat-tip').textContent=day.mins>0?`${day.date}: ${String(Math.floor(day.mins/60)).padStart(2,"0")}:${String(day.mins%60).padStart(2,"0")}`:`${day.date}: rest`; }}}
                         onMouseLeave={() => { document.getElementById('heat-tip').style.display='none'; }}
                         style={{ width:13, height:13, borderRadius:2, background:getColor(day.mins), cursor:day.mins>0?'pointer':'default' }}
                       />
@@ -1100,21 +1096,68 @@ function ProgressionSection() {
               </div>
             </div>
           </div>
-          <div id="heat-tip" style={{ position:"fixed", display:"none", background:"rgba(20,20,20,0.92)", color:"#fff", padding:"4px 10px", fontFamily:"monospace", fontSize:"0.62rem", borderRadius:3, pointerEvents:"none", zIndex:9999, border:"1px solid rgba(255,255,255,0.15)" }} />
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:"0.75rem" }}>
-            <div style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>
-              <span style={{ fontFamily:F.heading, fontSize:"1.4rem", fontWeight:800, color:C.ink }}>{restDaysCount}</span>
-              {' '}<span style={{ color:C.faint }}>rest days / {totalDays} total</span>
-            </div>
-            <div style={{ display:"flex", alignItems:"center", gap:4, fontFamily:F.mono, fontSize:"0.52rem", color:C.faint }}>
-              <span>Less</span>
-              {[C.border,'#c6dfc9','#8cbf92','#4a9a5c',C.green].map((c,i)=>(
-                <div key={i} style={{ width:13, height:13, borderRadius:2, background:c }} />
-              ))}
-              <span>More</span>
-            </div>
+          {/* Stats */}
+          <div style={{ flexShrink:0, textAlign:"right", paddingTop:"1rem" }}>
+            <div style={{ fontFamily:F.heading, fontSize:"1.6rem", fontWeight:800, color:C.green, lineHeight:1 }}>{pct}%</div>
+            <div style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.faint, marginTop:"0.2rem" }}>{activeDays}/{totalDays}</div>
+            <div style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.faint }}>{restDays} rest</div>
           </div>
-        </>
+        </div>
+        <div style={{ height:"1px", background:C.border, marginTop:"0.5rem" }} />
+      </div>
+    );
+  };
+
+  const singleYears = period !== "All time" ? [period === "Last 365" ? "Last 365" : period] : null;
+  const yearsToShow = period === "All time" ? ALL_YEARS : [period];
+
+  return (
+    <section id="progression" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
+      <Divider />
+      <SectionNum n={4} />
+      <h2 style={{ fontFamily:F.heading, fontSize:"clamp(2rem,5vw,3.5rem)", fontWeight:800, color:C.ink, margin:"0 0 0.5rem", lineHeight:0.9, letterSpacing:"-1px" }}>
+        PROGRESSION
+      </h2>
+      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>i take rest days, but not often..</div>
+      <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap" }}>
+        {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
+      </div>
+      <div id="heat-tip" style={{ position:"fixed", display:"none", background:"rgba(20,20,20,0.92)", color:"#fff", padding:"4px 10px", fontFamily:"monospace", fontSize:"0.62rem", borderRadius:3, pointerEvents:"none", zIndex:9999, border:"1px solid rgba(255,255,255,0.15)" }} />
+      {loading ? (
+        <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div>
+      ) : (
+        <div>
+          {yearsToShow.map(yr => {
+            const { start, end } = getRange(yr);
+            return (
+              <div key={yr}>
+                {period === "All time" && (
+                  <div style={{ fontFamily:F.mono, fontSize:"0.55rem", letterSpacing:"0.1em", color:C.muted, marginBottom:"0.4rem", textTransform:"uppercase" }}>{yr}</div>
+                )}
+                <Heatmap rangeStart={start} rangeEnd={end} label={yr} />
+              </div>
+            );
+          })}
+          {period !== "All time" && (() => {
+            const { start, end } = getRange(period);
+            const { totalDays, activeDays, restDays } = getStats(start, end);
+            return (
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:"0.75rem" }}>
+                <div style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>
+                  <span style={{ fontFamily:F.heading, fontSize:"1.4rem", fontWeight:800, color:C.ink }}>{restDays}</span>
+                  {' '}<span style={{ color:C.faint }}>rest days / {totalDays} total</span>
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:4, fontFamily:F.mono, fontSize:"0.52rem", color:C.faint }}>
+                  <span>Less</span>
+                  {[C.border,'#c6dfc9','#8cbf92','#4a9a5c',C.green].map((c,i)=>(
+                    <div key={i} style={{ width:13, height:13, borderRadius:2, background:c }} />
+                  ))}
+                  <span>More</span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
       )}
     </section>
   );
