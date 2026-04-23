@@ -1071,24 +1071,24 @@ function ProgressionSection() {
             <div style={{ display:"inline-flex", flexDirection:"column" }}>
               <div style={{ display:"flex", gap:3, marginBottom:4, marginLeft:18 }}>
                 {weeks.map((_, wi) => (
-                  <div key={wi} style={{ width:13, flexShrink:0, fontFamily:F.mono, fontSize:"0.45rem", color:C.faint, textTransform:"uppercase", overflow:"hidden" }}>
+                  <div key={wi} style={{ width:8, flexShrink:0, fontFamily:F.mono, fontSize:"0.38rem", color:C.faint, textTransform:"uppercase", overflow:"hidden" }}>
                     {monthLabels[wi]||''}
                   </div>
                 ))}
               </div>
               <div style={{ display:"flex", gap:3 }}>
-                <div style={{ display:"grid", gridTemplateRows:"repeat(7,13px)", gap:2, marginRight:2 }}>
+                <div style={{ display:"grid", gridTemplateRows:"repeat(7,8px)", gap:1, marginRight:2 }}>
                   {['M','','W','','F','',''].map((lbl,i) => (
-                    <div key={i} style={{ height:13, fontFamily:F.mono, fontSize:"0.45rem", color:C.faint, display:"flex", alignItems:"center" }}>{lbl}</div>
+                    <div key={i} style={{ height:8, fontFamily:F.mono, fontSize:"0.38rem", color:C.faint, display:"flex", alignItems:"center" }}>{lbl}</div>
                   ))}
                 </div>
                 {weeks.map((week, wi) => (
-                  <div key={wi} style={{ display:"grid", gridTemplateRows:"repeat(7,13px)", gap:2 }}>
+                  <div key={wi} style={{ display:"grid", gridTemplateRows:"repeat(7,8px)", gap:1 }}>
                     {week.map((day, di) => (
                       <div key={di}
                         onMouseEnter={e => { if(day.mins>=0) { const r=e.target.getBoundingClientRect(); document.getElementById('heat-tip').style.display='block'; document.getElementById('heat-tip').style.left=(r.left+16)+'px'; document.getElementById('heat-tip').style.top=(r.top-28)+'px'; document.getElementById('heat-tip').textContent=day.mins>0?`${day.date}: ${String(Math.floor(day.mins/60)).padStart(2,"0")}:${String(day.mins%60).padStart(2,"0")}`:`${day.date}: rest`; }}}
                         onMouseLeave={() => { document.getElementById('heat-tip').style.display='none'; }}
-                        style={{ width:13, height:13, borderRadius:2, background:getColor(day.mins), cursor:day.mins>0?'pointer':'default' }}
+                        style={{ width:8, height:8, borderRadius:1, background:getColor(day.mins), cursor:day.mins>0?'pointer':'default' }}
                       />
                     ))}
                   </div>
