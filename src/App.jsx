@@ -321,7 +321,7 @@ function NotableSection() {
             {cur && (<>
               <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "0.5rem" }}>{fmtDate(cur.start_date_local)}</div>
               <div style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, color: C.ink, marginBottom: "1rem", lineHeight: 1.2 }}>{cur.name}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", marginBottom: "0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
                 {[
                   { l: "KILOMETERS", v: `${(cur.distance / 1000).toFixed(1)} km` },
                   { l: "TIME", v: fmtTime(cur.moving_time) },
@@ -407,7 +407,7 @@ function StatsSection({ sportFilter }) {
   return (
     <div>
       {/* Annual distance */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0", marginBottom: "0", border:`1px solid ${C.border}` }}>
         <ChartBox title="Annual Distance (km)" subtitle="the full picture">
           <div style={{ height: 200 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -448,7 +448,7 @@ function StatsSection({ sportFilter }) {
       </div>
 
       {/* Second row */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "0", marginBottom: "0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
         <ChartBox title="Activity Mix Over Time" subtitle="time spent per sport (hours)">
           <div style={{ height: 180 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -526,7 +526,7 @@ function StatsSection({ sportFilter }) {
       </div>
 
       {/* Fourth row - pace dist */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
         <ChartBox title="Pace Distribution (min/km)" subtitle="a near-perfect bell curve">
           <div style={{ height: 180 }}>
             <ResponsiveContainer width="100%" height="100%">
