@@ -1124,7 +1124,7 @@ function ProgressionSection() {
       <h2 style={{ fontFamily:F.heading, fontSize:"clamp(2rem,5vw,3.5rem)", fontWeight:800, color:C.ink, margin:"0 0 0.5rem", lineHeight:0.9, letterSpacing:"-1px" }}>
         PROGRESSION
       </h2>
-      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>i take rest days, but not often..</div>
+      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>i take rest days, but not by choice.</div>
       <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap" }}>
         {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
       </div>
@@ -1138,7 +1138,7 @@ function ProgressionSection() {
             return (
               <div key={yr} style={{ display:"flex", alignItems:"flex-start", gap:"0.75rem" }}>
                 {period === "All time" && (
-                  <div style={{ fontFamily:F.mono, fontSize:"0.85rem", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600, color:C.muted, width:44, textAlign:"right", flexShrink:0, alignSelf:"center" }}>{yr}</div>
+                  <div style={{ fontFamily:F.mono, fontSize:"0.85rem", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600, color:C.ink, width:44, textAlign:"right", flexShrink:0, alignSelf:"center" }}>{yr}</div>
                 )}
                 <div style={{ flex:1 }}>
                   <Heatmap rangeStart={start} rangeEnd={end} label={yr} maxMins={globalMax} />
