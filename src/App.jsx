@@ -1103,7 +1103,7 @@ function ProgressionSection() {
             <div style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.faint }}>{restDays} rest</div>
           </div>
         </div>
-        <div style={{ height:"1px", background:C.border, marginTop:"0.5rem" }} />
+        
       </div>
     );
   };
