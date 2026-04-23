@@ -1136,11 +1136,13 @@ function ProgressionSection() {
           {yearsToShow.map(yr => {
             const { start, end } = getRange(yr);
             return (
-              <div key={yr}>
+              <div key={yr} style={{ display:"flex", alignItems:"flex-start", gap:"0.75rem" }}>
                 {period === "All time" && (
-                  <div style={{ fontFamily:F.mono, fontSize:"0.55rem", letterSpacing:"0.1em", color:C.muted, marginBottom:"0.4rem", textTransform:"uppercase" }}>{yr}</div>
+                  <div style={{ fontFamily:F.heading, fontSize:"1.1rem", fontWeight:800, color:C.muted, width:36, textAlign:"right", paddingTop:"1.2rem", flexShrink:0 }}>{yr}</div>
                 )}
-                <Heatmap rangeStart={start} rangeEnd={end} label={yr} maxMins={globalMax} />
+                <div style={{ flex:1 }}>
+                  <Heatmap rangeStart={start} rangeEnd={end} label={yr} maxMins={globalMax} />
+                </div>
               </div>
             );
           })}
