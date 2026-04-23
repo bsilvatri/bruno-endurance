@@ -1104,7 +1104,7 @@ function ProgressionSection() {
           </div>
           {/* Stats */}
           <div style={{ flexShrink:0, textAlign:"right", paddingTop:"1rem" }}>
-            <div style={{ fontFamily:F.mono, fontSize:"0.75rem", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600, color:C.green, lineHeight:1 }}>{pct}%</div>
+            <div style={{ fontFamily:F.mono, fontSize:"0.85rem", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600, color:C.green, lineHeight:1 }}>{pct}%</div>
             <div style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.faint, marginTop:"0.2rem" }}>{activeDays}/{totalDays}</div>
             <div style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.faint }}>{restDays} rest</div>
           </div>
@@ -1138,7 +1138,7 @@ function ProgressionSection() {
             return (
               <div key={yr} style={{ display:"flex", alignItems:"flex-start", gap:"0.75rem" }}>
                 {period === "All time" && (
-                  <div style={{ fontFamily:F.mono, fontSize:"0.75rem", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600, color:C.muted, width:40, textAlign:"right", paddingTop:"1.1rem", flexShrink:0 }}>{yr}</div>
+                  <div style={{ fontFamily:F.mono, fontSize:"0.85rem", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600, color:C.muted, width:44, textAlign:"right", flexShrink:0, alignSelf:"center" }}>{yr}</div>
                 )}
                 <div style={{ flex:1 }}>
                   <Heatmap rangeStart={start} rangeEnd={end} label={yr} maxMins={globalMax} />
