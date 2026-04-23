@@ -1063,7 +1063,7 @@ function ProgressionSection() {
       <h2 style={{ fontFamily:F.heading, fontSize:"clamp(2rem,5vw,3.5rem)", fontWeight:800, color:C.ink, margin:"0 0 0.5rem", lineHeight:0.9, letterSpacing:"-1px" }}>
         PROGRESSION
       </h2>
-      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>i take rest days, but not often.</div>
+      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>i take rest days, but not often..</div>
       <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap" }}>
         {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
       </div>
