@@ -196,7 +196,7 @@ const Tip = ({ active, payload, label }) => {
 };
 
 const ChartBox = ({ title, subtitle, children }) => (
-  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "1.25rem" }}>
+  <div style={{ background: C.bg, padding: "1.25rem" }}>
     <div style={{ fontFamily: F.mono, fontSize: "0.6rem", letterSpacing: "0.15em", textTransform: "uppercase", color: C.muted, marginBottom: "0.15rem" }}>{title}</div>
     {subtitle && <div style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint, marginBottom: "1rem" }}>{subtitle}</div>}
     {children}
