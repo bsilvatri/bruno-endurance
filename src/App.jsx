@@ -1090,8 +1090,9 @@ function ProgressionSection() {
                   <div key={wi} style={{ display:"grid", gridTemplateRows:"repeat(7,13px)", gap:2 }}>
                     {week.map((day, di) => (
                       <div key={di}
-                        title={day.mins > 0 ? `${day.date}: ${String(Math.floor(day.mins/60)).padStart(2,"0")}:${String(day.mins%60).padStart(2,"0")}` : day.mins===0 ? `${day.date}: rest` : ""}
-                        style={{ width:13, height:13, borderRadius:2, background:getColor(day.mins) }}
+                        onMouseEnter={e => { if(day.mins>=0) { const r=e.target.getBoundingClientRect(); window._heatTip={text: day.mins>0?`${day.date}: ${String(Math.floor(day.mins/60)).padStart(2,"0")}:${String(day.mins%60).padStart(2,"0")}`:`${day.date}: rest`,x:r.left,y:r.top}; document.getElementById('heat-tip').style.display='block'; document.getElementById('heat-tip').style.left=(r.left+16)+'px'; document.getElementById('heat-tip').style.top=(r.top-28)+'px'; document.getElementById('heat-tip').textContent=window._heatTip.text; }}}
+                        onMouseLeave={() => { document.getElementById('heat-tip').style.display='none'; }}
+                        style={{ width:13, height:13, borderRadius:2, background:getColor(day.mins), cursor:day.mins>0?'pointer':'default' }}
                       />
                     ))}
                   </div>
@@ -1099,6 +1100,7 @@ function ProgressionSection() {
               </div>
             </div>
           </div>
+          <div id="heat-tip" style={{ position:"fixed", display:"none", background:"rgba(20,20,20,0.92)", color:"#fff", padding:"4px 10px", fontFamily:"monospace", fontSize:"0.62rem", borderRadius:3, pointerEvents:"none", zIndex:9999, border:"1px solid rgba(255,255,255,0.15)" }} />
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:"0.75rem" }}>
             <div style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>
               <span style={{ fontFamily:F.heading, fontSize:"1.4rem", fontWeight:800, color:C.ink }}>{restDaysCount}</span>
