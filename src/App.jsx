@@ -487,7 +487,7 @@ function StatsSection({ sportFilter }) {
       </div>
 
       {/* Third row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", marginBottom: "1px", background: C.border }}>
         <ChartBox title="Distance Distribution (km)" subtitle="you can tell what my least favorite sport is">
           <div style={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
