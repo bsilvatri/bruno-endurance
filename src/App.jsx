@@ -1152,7 +1152,7 @@ function ProgressionSection() {
             return (
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:"0.75rem" }}>
                 <div style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>
-                  <span style={{ fontFamily:F.heading, fontSize:"1.4rem", fontWeight:800, color:C.ink }}>{restDays}</span>
+                  <span style={{ fontFamily:F.mono, fontSize:"0.85rem", letterSpacing:"0.1em", fontWeight:600, color:C.ink, textTransform:"uppercase" }}>{restDays}</span>
                   {' '}<span style={{ color:C.faint }}>rest days / {totalDays} total</span>
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:4, fontFamily:F.mono, fontSize:"0.52rem", color:C.faint }}>
