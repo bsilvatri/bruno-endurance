@@ -1034,14 +1034,20 @@ function ProgressionSection() {
     return weeks;
   };
 
-  const getColor = (mins) => {
+  const getColor = (mins, maxMins) => {
     if(mins < 0) return 'transparent';
     if(mins === 0) return C.border;
-    if(mins < 45) return '#c6dfc9';
-    if(mins < 90) return '#8cbf92';
-    if(mins < 150) return '#4a9a5c';
+    const m = maxMins || 150;
+    if(mins < m * 0.25) return '#c6dfc9';
+    if(mins < m * 0.5) return '#8cbf92';
+    if(mins < m * 0.75) return '#4a9a5c';
     return C.green;
   };
+
+  // Global max for All time view
+  const globalMax = period === "All time"
+    ? Math.max(...Object.values(actDays).map(s => Math.round(s/60)), 1)
+    : 150;
 
   const getStats = (rangeStart, rangeEnd) => {
     const s = rangeStart.toISOString().slice(0,10);
@@ -1053,7 +1059,7 @@ function ProgressionSection() {
     return { totalDays, activeDays, restDays, pct };
   };
 
-  const Heatmap = ({ rangeStart, rangeEnd, label }) => {
+  const Heatmap = ({ rangeStart, rangeEnd, label, maxMins }) => {
     const weeks = buildWeeks(rangeStart, rangeEnd);
     const { totalDays, activeDays, restDays, pct } = getStats(rangeStart, rangeEnd);
     const monthLabels = [];
@@ -1088,7 +1094,7 @@ function ProgressionSection() {
                       <div key={di}
                         onMouseEnter={e => { if(day.mins>=0) { const r=e.target.getBoundingClientRect(); document.getElementById('heat-tip').style.display='block'; document.getElementById('heat-tip').style.left=(r.left+16)+'px'; document.getElementById('heat-tip').style.top=(r.top-28)+'px'; document.getElementById('heat-tip').textContent=day.mins>0?`${day.date}: ${String(Math.floor(day.mins/60)).padStart(2,"0")}:${String(day.mins%60).padStart(2,"0")}`:`${day.date}: rest`; }}}
                         onMouseLeave={() => { document.getElementById('heat-tip').style.display='none'; }}
-                        style={{ width:8, height:8, borderRadius:1, background:getColor(day.mins), cursor:day.mins>0?'pointer':'default' }}
+                        style={{ width:8, height:8, borderRadius:1, background:getColor(day.mins, maxMins), cursor:day.mins>0?'pointer':'default' }}
                       />
                     ))}
                   </div>
@@ -1134,7 +1140,7 @@ function ProgressionSection() {
                 {period === "All time" && (
                   <div style={{ fontFamily:F.mono, fontSize:"0.55rem", letterSpacing:"0.1em", color:C.muted, marginBottom:"0.4rem", textTransform:"uppercase" }}>{yr}</div>
                 )}
-                <Heatmap rangeStart={start} rangeEnd={end} label={yr} />
+                <Heatmap rangeStart={start} rangeEnd={end} label={yr} maxMins={globalMax} />
               </div>
             );
           })}
