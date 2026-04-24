@@ -523,11 +523,12 @@ function StatsSection({ sportFilter }) {
     });
     return Object.values(yrMap).sort((a,b)=>a.year-b.year).map(y => {
       const total = y.run+y.ride+y.swim||1;
+      const runPct  = Math.round(y.run/total*100);
+      const ridePct = Math.round(y.ride/total*100);
+      const swimPct = 100 - runPct - ridePct; // ensure exact 100%
       return {
         year: y.year,
-        run:  Math.round(y.run/total*100),
-        ride: Math.round(y.ride/total*100),
-        swim: Math.round(y.swim/total*100),
+        run:  runPct, ride: ridePct, swim: swimPct,
         runH: y.run.toFixed(1), rideH: y.ride.toFixed(1), swimH: y.swim.toFixed(1),
       };
     });
