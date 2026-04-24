@@ -258,13 +258,15 @@ function NotableSection({ unitSystem="metric" }) {
   const fmtSwimPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 100); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/100m`; };
 
   const cols = tab === "pbs"
-    ? [{ k: "#", l: "#", w: "40px" }, { k: "dist", l: "Distance", w: "100px" }, { k: "date", l: "Date", w: "110px" }, { k: "time", l: "Time", w: "1fr", mono: true, accent: true }]
+    ? [{ k: "#", l: "#", w: "40px" }, { k: "date", l: "Date", w: "110px" }, { k: "dist", l: "Distance", w: "100px" }, { k: "time", l: "Time", w: "1fr", mono: true, accent: true }]
     : tab === "elevation"
     ? [{ k: "#", l: "#", w: "40px" }, { k: "date", l: "Date", w: "110px" }, { k: "dist", l: "Dist", w: "80px" }, { k: "elev", l: "Elevation", w: "1fr", accent: true }]
     : [{ k: "#", l: "#", w: "40px" }, { k: "date", l: "Date", w: "110px" }, { k: "dist", l: "Distance", w: "1fr", accent: true }];
 
   const tableRows = rows.map(r => ({
-    dist: r.distance,
+    dist: sport === "swim"
+      ? (unitSystem === "imperial" ? Math.round(r.distance * 1.09361) + " yd" : Math.round(r.distance) + " m")
+      : (unitSystem === "imperial" ? (r.distance / 1609.34).toFixed(1) + " mi" : (r.distance / 1000).toFixed(1) + " km"),
     date: fmtDate(r.start_date_local),
     time: fmtTime(r.moving_time),
     elev: unitSystem==="imperial" ? `${Math.round((r.total_elevation_gain||0)*3.28084)} ft` : `${Math.round(r.total_elevation_gain||0)} m`,
