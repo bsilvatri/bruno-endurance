@@ -312,7 +312,7 @@ function NotableSection() {
               <div style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, color: C.ink, marginBottom: "1rem", lineHeight: 1.2 }}>{cur.name}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", marginBottom: "0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
                 {[
-                  { l: "KILOMETERS", v: `${(cur.distance / 1000).toFixed(1)} km` },
+                  { l: unitSystem==="imperial" ? "MILES" : "KILOMETERS", v: unitSystem==="imperial" ? `${(cur.distance/1609.34).toFixed(1)} mi` : `${(cur.distance/1000).toFixed(1)} km` },
                   { l: "TIME", v: fmtTime(cur.moving_time) },
                   { l: sport === "ride" ? "AVG SPEED" : sport === "swim" ? "AVG PACE" : "AVG PACE", v: sport === "ride" ? fmtSpeed(cur.average_speed) : sport === "swim" ? fmtSwimPace(cur.moving_time, cur.distance) : fmtPace(cur.moving_time, cur.distance) },
                   { l: "ELEVATION", v: `${Math.round(cur.total_elevation_gain || 0)} m` },
