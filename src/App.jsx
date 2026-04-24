@@ -523,13 +523,9 @@ function StatsSection({ sportFilter }) {
     });
     return Object.values(yrMap).sort((a,b)=>a.year-b.year).map(y => {
       const total = y.run+y.ride+y.swim||1;
-      const runPct  = Math.round(y.run/total*100);
-      const ridePct = Math.round(y.ride/total*100);
-      const swimPct = 100 - runPct - ridePct; // ensure exact 100%
       return {
         year: y.year,
-        run:  runPct, ride: ridePct, swim: swimPct,
-        runH: y.run.toFixed(1), rideH: y.ride.toFixed(1), swimH: y.swim.toFixed(1),
+        run:  +y.run.toFixed(1), ride: +y.ride.toFixed(1), swim: +y.swim.toFixed(1),
       };
     });
   })();
@@ -727,33 +723,31 @@ function StatsSection({ sportFilter }) {
         <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
           <ChartBox title="Activity Mix Over Time" subtitle="% of training hours per sport per year" minH={280}>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={actMixData} barSize={28}>
+              <AreaChart data={actMixData} stackOffset="expand">
                 <CartesianGrid vertical={false} stroke={C.border} />
                 <XAxis dataKey="year" tick={tickStyle} axisLine={false} tickLine={false} />
-                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={32}
-                  domain={[0,100]} ticks={[0,25,50,75,100]}
-                  tickFormatter={v=>v+'%'} />
+                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36}
+                  ticks={[0,0.25,0.5,0.75,1]}
+                  tickFormatter={v=>Math.round(v*100)+'%'} />
                 <Tooltip content={({ active, payload, label }) => {
                   if(!active||!payload?.length) return null;
+                  const row = actMixData.find(d=>d.year===label)||{};
+                  const total = (row.run||0)+(row.ride||0)+(row.swim||0)||1;
                   return (
                     <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:4,padding:"8px 12px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink}}>
                       <div style={{color:C.faint,marginBottom:4}}>{label}</div>
-                      {payload.map(p => {
-                        const hrKey = p.dataKey+'H';
-                        const hrs = actMixData.find(d=>d.year===label)?.[hrKey]||'';
-                        return (
-                          <div key={p.dataKey} style={{color:p.fill}}>
-                            {p.name}: <strong>{p.value}%</strong> ({hrs}h)
-                          </div>
-                        );
-                      })}
+                      {[["Run",C.run,row.run],["Ride",C.ride,row.ride],["Swim",C.swim,row.swim]].map(([name,color,hrs])=>(
+                        <div key={name} style={{color:color}}>
+                          {name}: <strong>{Math.round((hrs||0)/total*100)}%</strong> ({(hrs||0).toFixed(1)}h)
+                        </div>
+                      ))}
                     </div>
                   );
-                }} cursor={{fill:"rgba(0,0,0,0.03)"}} />
-                <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim" />
-                <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride" />
-                <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name="Run" />
-              </BarChart>
+                }} cursor={{stroke:C.border}} />
+                <Area type="monotone" dataKey="swim" stackId="1" stroke={C.swim} fill={C.swim} fillOpacity={0.85} name="Swim" dot={false} />
+                <Area type="monotone" dataKey="ride" stackId="1" stroke={C.ride} fill={C.ride} fillOpacity={0.85} name="Ride" dot={false} />
+                <Area type="monotone" dataKey="run"  stackId="1" stroke={C.run}  fill={C.run}  fillOpacity={0.85} name="Run"  dot={false} />
+              </AreaChart>
             </ResponsiveContainer>
             <div style={{display:"flex",gap:"0.75rem",justifyContent:"center",marginTop:"0.5rem"}}>
               {[["Run",C.run],["Ride",C.ride],["Swim",C.swim]].map(([l,c])=>(
