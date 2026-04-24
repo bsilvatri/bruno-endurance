@@ -549,13 +549,7 @@ function StatsSection({ sportFilter }) {
       <div style={{...G.outer, gridTemplateColumns:"1fr 1fr", borderTop:"none"}}>
         <ChartBox title="Heart Rate Zones" subtitle="~50% easy, the rest is pain" minH={310}>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={[
-              {zone:"Z1",count:hrData[0]?.minutes||hrData[0]?.count||0},
-              {zone:"Z2",count:hrData[1]?.minutes||hrData[1]?.count||0},
-              {zone:"Z3",count:hrData[2]?.minutes||hrData[2]?.count||0},
-              {zone:"Z4",count:hrData[3]?.minutes||hrData[3]?.count||0},
-              {zone:"Z5",count:hrData[4]?.minutes||hrData[4]?.count||0},
-            ]} barSize={32}>
+            <BarChart data={hrData} barSize={32}>
               <CartesianGrid vertical={false} stroke={C.border} />
               <XAxis dataKey="zone" tick={tickStyle} axisLine={false} tickLine={false} />
               <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
