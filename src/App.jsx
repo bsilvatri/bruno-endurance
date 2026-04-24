@@ -509,6 +509,30 @@ function StatsSection({ sportFilter }) {
   const dowSwim   = isAll ? buildDow(acts.filter(a=>isSwim(a.sport_type))) : null;
   const dowMerged = isAll ? days.map((d,i)=>({day:d, run:dowRun[i].avg, ride:dowRide[i].avg, swim:dowSwim[i].avg})) : dowData;
 
+  // Activity Mix Over Time — % of hours per sport per year (ALL tab only)
+  const actMixData = (() => {
+    const yrMap = {};
+    acts.filter(a=>isRun(a.sport_type)||isRide(a.sport_type)||isSwim(a.sport_type)).forEach(a => {
+      const yr = a.start_date_local?.slice(0,4);
+      if(!yr||+yr<2019) return;
+      if(!yrMap[yr]) yrMap[yr]={year:yr,run:0,ride:0,swim:0};
+      const hrs = (+a.moving_time||0)/3600;
+      if(isRun(a.sport_type))  yrMap[yr].run  += hrs;
+      if(isRide(a.sport_type)) yrMap[yr].ride += hrs;
+      if(isSwim(a.sport_type)) yrMap[yr].swim += hrs;
+    });
+    return Object.values(yrMap).sort((a,b)=>a.year-b.year).map(y => {
+      const total = y.run+y.ride+y.swim||1;
+      return {
+        year: y.year,
+        run:  Math.round(y.run/total*100),
+        ride: Math.round(y.ride/total*100),
+        swim: Math.round(y.swim/total*100),
+        runH: y.run.toFixed(1), rideH: y.ride.toFixed(1), swimH: y.swim.toFixed(1),
+      };
+    });
+  })();
+
   const G = { display:"grid", gap:"1px", background:C.border, border:`1px solid ${C.border}` };
   const tickStyle = { fontFamily:F.mono, fontSize:9, fill:C.faint };
 
@@ -696,6 +720,50 @@ function StatsSection({ sportFilter }) {
           </ResponsiveContainer>
         </ChartBox>
       </div>
+
+      {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
+      {isAll && (
+        <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
+          <ChartBox title="Activity Mix Over Time" subtitle="% of training hours per sport per year" minH={280}>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={actMixData} barSize={28}>
+                <CartesianGrid vertical={false} stroke={C.border} />
+                <XAxis dataKey="year" tick={tickStyle} axisLine={false} tickLine={false} />
+                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={32}
+                  domain={[0,100]} ticks={[0,25,50,75,100]}
+                  tickFormatter={v=>v+'%'} />
+                <Tooltip content={({ active, payload, label }) => {
+                  if(!active||!payload?.length) return null;
+                  return (
+                    <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:4,padding:"8px 12px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink}}>
+                      <div style={{color:C.faint,marginBottom:4}}>{label}</div>
+                      {payload.map(p => {
+                        const hrKey = p.dataKey+'H';
+                        const hrs = actMixData.find(d=>d.year===label)?.[hrKey]||'';
+                        return (
+                          <div key={p.dataKey} style={{color:p.fill}}>
+                            {p.name}: <strong>{p.value}%</strong> ({hrs}h)
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }} cursor={{fill:"rgba(0,0,0,0.03)"}} />
+                <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim" />
+                <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride" />
+                <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name="Run" />
+              </BarChart>
+            </ResponsiveContainer>
+            <div style={{display:"flex",gap:"0.75rem",justifyContent:"center",marginTop:"0.5rem"}}>
+              {[["Run",C.run],["Ride",C.ride],["Swim",C.swim]].map(([l,c])=>(
+                <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.5rem",color:C.faint}}>
+                  <div style={{width:7,height:7,borderRadius:1,background:c}}/>{l}
+                </div>
+              ))}
+            </div>
+          </ChartBox>
+        </div>
+      )}
     </div>
   );
 }
