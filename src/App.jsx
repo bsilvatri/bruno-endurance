@@ -357,7 +357,7 @@ const ChartBox = ({ title, subtitle, children, minH }) => (
 
 function StatsSection({ sportFilter }) {
   const [annual, setAnnual]           = useState([]);
-  const [hrZones, setHrZones]         = useState([]);
+  const [hrZones, setHrZones]         = useState({recovery:0,easy:0,tempo:0,threshold:0,max:0});
   const [paceDist, setPaceDist]       = useState([]);
   const [runDist, setRunDist]         = useState([]);
   const [indoorOutdoor, setIO]        = useState(null);
@@ -375,23 +375,14 @@ function StatsSection({ sportFilter }) {
       rpc("get_weekly_volume"),
     ]).then(([ann, hrz, pd, rd, io, wv]) => {
       setAnnual(safe(ann));
-      // HR zones: array of {zone, minutes}
-      const hrArr = Array.isArray(hrz) ? hrz : [];
-      setHrZones(hrArr.length ? hrArr : [
-        {zone:"Z1 Recovery", minutes:0, color:"#2d8a7e"},
-        {zone:"Z2 Easy",     minutes:0, color:"#4a7c59"},
-        {zone:"Z3 Tempo",    minutes:0, color:"#9a7e5a"},
-        {zone:"Z4 Threshold",minutes:0, color:"#c47a2a"},
-        {zone:"Z5 Max",      minutes:0, color:"#b85a3a"},
-      ]);
+      // hr_zones returns a single object {recovery, easy, tempo, threshold, max}
+      setHrZones(hrz && !hrz.code ? hrz : {recovery:0,easy:0,tempo:0,threshold:0,max:0});
       setPaceDist(safe(pd));
       setRunDist(safe(rd));
+      // indoor_outdoor returns a single object
       setIO(io && !io.code ? io : null);
       const wvSafe = safe(wv).map(r => ({ week:r.week_start?.slice(0,7)||"", km:Math.round(+r.total_km||0) }));
       setWeekly(wvSafe);
-      // Build time of day from activities — use weekly vol as proxy hours
-      const hours = Array.from({length:24},(_,h) => ({ hour: h<10?'0'+h+':00':h+':00', count:0 }));
-      setTimeOfDay(hours);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -410,8 +401,12 @@ function StatsSection({ sportFilter }) {
     }));
 
   // HR zone data with colors
-  const hrData = hrZones.length ? hrZones : [
-    {zone:"Z1",minutes:0},{zone:"Z2",minutes:0},{zone:"Z3",minutes:0},{zone:"Z4",minutes:0},{zone:"Z5",minutes:0}
+  const hrData = [
+    {zone:"Recovery", count: hrZones.recovery||0},
+    {zone:"Easy",     count: hrZones.easy||0},
+    {zone:"Tempo",    count: hrZones.tempo||0},
+    {zone:"Threshold",count: hrZones.threshold||0},
+    {zone:"Max",      count: hrZones.max||0},
   ];
 
   // Indoor/outdoor pie data
