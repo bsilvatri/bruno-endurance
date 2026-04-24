@@ -265,7 +265,7 @@ function NotableSection({ unitSystem="metric" }) {
     : [{ k: "#", l: "#", w: "40px" }, { k: "date", l: "Date", w: "110px" }, { k: "dist", l: "Distance", w: "1fr", accent: true }];
 
   const tableRows = rows.map(r => ({
-    dist: fmtDist(r.distance),
+    dist: r.distance,
     date: fmtDate(r.start_date_local),
     time: fmtTime(r.moving_time),
     elev: `${Math.round(r.total_elevation_gain || 0)} m`,
