@@ -524,7 +524,26 @@ function StatsSection({ sportFilter }) {
               <CartesianGrid vertical={false} stroke={C.border} />
               <XAxis dataKey="year" tick={tickStyle} axisLine={false} tickLine={false} />
               <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} tickFormatter={v=>v>=1000?Math.round(v/1000)+'k':v} />
-              <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
+              <Tooltip content={({ active, payload, label }) => {
+                if(!active||!payload?.length) return null;
+                const yearTotal = payload.reduce((s,p)=>s+(+p.value||0),0);
+                return (
+                  <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:4,padding:"8px 12px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink}}>
+                    <div style={{color:C.faint,marginBottom:4}}>{label}</div>
+                    {payload.map(p=>(
+                      <div key={p.dataKey} style={{color:p.color||C.ink}}>
+                        {p.name}: <strong>{p.value.toFixed(1)}</strong>{p.unit||""}
+                      </div>
+                    ))}
+                    {isAll && payload.length>1 && (
+                      <>
+                        <div style={{borderTop:`1px solid ${C.border}`,marginTop:4,paddingTop:4}}/>
+                        <div style={{color:C.ink}}>Total: <strong>{Math.round(yearTotal).toLocaleString()}</strong> km</div>
+                      </>
+                    )}
+                  </div>
+                );
+              }} cursor={{fill:"rgba(0,0,0,0.03)"}} />
               {isAll ? <>
                 <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim" unit=" km" />
                 <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride" unit=" km" />
@@ -545,10 +564,7 @@ function StatsSection({ sportFilter }) {
                     ))}
                   </div>
                 )}
-                <div style={{borderTop:`1px solid ${C.border}`,marginTop:"0.75rem",paddingTop:"0.5rem",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={{fontFamily:F.mono,fontSize:"0.5rem",color:C.faint,textTransform:"uppercase",letterSpacing:"0.1em"}}>Total</span>
-                  <span style={{fontFamily:F.mono,fontSize:"0.75rem",fontWeight:700,color:C.ink}}>{totalKm.toLocaleString()} km</span>
-                </div>
+
               </>
             );
           })()}
