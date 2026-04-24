@@ -253,8 +253,8 @@ function NotableSection({ unitSystem="metric" }) {
   const cur = rows[selected];
   const fmtTime = s => { if (!s) return "—"; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : `${m}:${String(sec).padStart(2, "0")}`; };
   const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
-  const fmtPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 1000); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`; };
-  const fmtSpeed = s => s ? `${(s * 3.6).toFixed(1)} km/h` : "—";
+  const fmtPace = (t, d) => { if (!t || !d) return "—"; const s = unitSystem==="imperial" ? t / (d / 1609.34) : t / (d / 1000); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/${unitSystem==="imperial"?"mi":"km"}`; };
+  const fmtSpeed = s => s ? `${unitSystem==="imperial" ? (s*2.237).toFixed(1) : (s*3.6).toFixed(1)} ${unitSystem==="imperial"?"mi/h":"km/h"}` : "—";
   const fmtSwimPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 100); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/100m`; };
 
   const cols = tab === "pbs"
@@ -267,7 +267,7 @@ function NotableSection({ unitSystem="metric" }) {
     dist: r.distance,
     date: fmtDate(r.start_date_local),
     time: fmtTime(r.moving_time),
-    elev: `${Math.round(r.total_elevation_gain || 0)} m`,
+    elev: unitSystem==="imperial" ? `${Math.round((r.total_elevation_gain||0)*3.28084)} ft` : `${Math.round(r.total_elevation_gain||0)} m`,
     name: r.name,
   }));
 
