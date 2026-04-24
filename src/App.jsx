@@ -309,7 +309,7 @@ function NotableSection({ unitSystem="metric" }) {
           <div style={{ padding: "1.25rem", borderLeft: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: "0.1rem" }}>
             {cur && (<>
               <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "0.5rem" }}>{fmtDate(cur.start_date_local)}</div>
-              <div style={{ fontFamily: F.mono, fontSize: "0.9rem", fontWeight: 700, color: C.ink, marginBottom: "1rem", lineHeight: 1.3 }}>{cur.name}</div>
+              <div style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, color: C.ink, marginBottom: "1rem", lineHeight: 1.2 }}>{cur.name}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", marginBottom: "0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
                 {[
                   { l: unitSystem==="imperial" ? "MILES" : "KILOMETERS", v: unitSystem==="imperial" ? `${(cur.distance/1609.34).toFixed(1)} mi` : `${(cur.distance/1000).toFixed(1)} km` },
@@ -319,14 +319,14 @@ function NotableSection({ unitSystem="metric" }) {
                 ].map(({ l, v }) => (
                   <div key={l}>
                     <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint, marginBottom: 2 }}>{l}</div>
-                    <div style={{ fontFamily: F.mono, fontSize: "1.1rem", fontWeight: 700, color: C.ink }}>{v}</div>
+                    <div style={{ fontFamily: F.mono, fontSize: "0.85rem", fontWeight: 700, color: C.ink }}>{v}</div>
                   </div>
                 ))}
               </div>
               {cur.average_heartrate && (
                 <div>
                   <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint, marginBottom: 2 }}>AVG HR (BPM)</div>
-                  <div style={{ fontFamily: F.mono, fontSize: "1.1rem", fontWeight: 700, color: C.ink }}>{Math.round(cur.average_heartrate)}</div>
+                  <div style={{ fontFamily: F.mono, fontSize: "0.85rem", fontWeight: 700, color: C.ink }}>{Math.round(cur.average_heartrate)}</div>
                 </div>
               )}
               <div style={{ marginTop: "auto", paddingTop: "1rem", borderTop: `1px solid ${C.border}` }}>
