@@ -482,11 +482,10 @@ function StatsSection({ sportFilter }) {
     subset.forEach(a => { if(a.start_date_local) m[a.start_date_local.slice(11,13)] = (m[a.start_date_local.slice(11,13)]||0)+1; });
     return Object.entries(m).map(([hour,count])=>({hour,count}));
   };
-  const todData = buildTod(filtered);
-  const todRun  = isAll ? buildTod(acts.filter(a=>isRun(a.sport_type)))  : null;
-  const todRide = isAll ? buildTod(acts.filter(a=>isRide(a.sport_type))) : null;
-  const todSwim = isAll ? buildTod(acts.filter(a=>isSwim(a.sport_type))) : null;
-  // Merge into single array for multi-line
+  const todData = buildTod(filtered).sort((a,b)=>parseInt(a.hour)-parseInt(b.hour));
+  const todRun  = isAll ? buildTod(acts.filter(a=>isRun(a.sport_type))).sort((a,b)=>parseInt(a.hour)-parseInt(b.hour))  : null;
+  const todRide = isAll ? buildTod(acts.filter(a=>isRide(a.sport_type))).sort((a,b)=>parseInt(a.hour)-parseInt(b.hour)) : null;
+  const todSwim = isAll ? buildTod(acts.filter(a=>isSwim(a.sport_type))).sort((a,b)=>parseInt(a.hour)-parseInt(b.hour)) : null;
   const todMerged = isAll ? todData.map((d,i)=>({hour:d.hour, run:todRun[i].count, ride:todRide[i].count, swim:todSwim[i].count})) : todData;
 
   // Day of week radar
@@ -540,7 +539,7 @@ function StatsSection({ sportFilter }) {
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1px",background:C.border}}>
           <ChartBox title="Activity by Time of Day" subtitle="peak: early morning" minH={310}>
             <ResponsiveContainer width="100%" height={220}>
-              <RadarChart data={isAll?todMerged:todData} startAngle={90} endAngle={-270}>
+              <RadarChart data={isAll?todMerged:todData} cx="50%" cy="50%">
                 <PolarGrid stroke={C.border} />
                 <PolarAngleAxis dataKey="hour" tick={{fontFamily:F.mono,fontSize:8,fill:C.faint}} />
                 {isAll ? <>
