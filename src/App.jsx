@@ -253,7 +253,7 @@ function NotableSection() {
   const cur = rows[selected];
   const fmtTime = s => { if (!s) return "—"; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : `${m}:${String(sec).padStart(2, "0")}`; };
   const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
-  const fmtDist = m => `${(m / 1000).toFixed(1)} km`;
+  const fmtDist = m => unitSystem==="imperial" ? `${(m/1609.34).toFixed(1)} mi` : `${(m/1000).toFixed(1)} km`;
   const fmtPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 1000); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`; };
   const fmtSpeed = s => s ? `${(s * 3.6).toFixed(1)} km/h` : "—";
   const fmtSwimPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 100); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/100m`; };
@@ -1570,11 +1570,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>measured, not guessed.</div>
-          <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.5rem" }}>
-            {["metric","imperial"].map(u=>(
-              <span key={u} onClick={()=>setUnitSystem(u)} style={{ fontFamily:F.mono, fontSize:"0.55rem", color:unitSystem===u?C.ink:C.faint, padding:"4px 8px", border:unitSystem===u?`1px solid ${C.border}`:"1px solid transparent", borderRadius:2, background:unitSystem===u?C.surface:"transparent", cursor:"pointer" }}>{u.toUpperCase()}</span>
-            ))}
-          </div>
+          
           <StatsSection sportFilter={statsTab} unitSystem={unitSystem} />
         </section>
 
@@ -1593,12 +1589,19 @@ export default function App() {
         </section>
 
         {/* RECENT */}
-        <RecentSection />
+        <RecentSection unitSystem={unitSystem} />
 
         <footer style={{ borderTop: `1px solid ${C.border}`, padding: "2rem 0", fontFamily: F.mono, fontSize: "0.55rem", color: C.faint, display: "flex", justifyContent: "space-between" }}>
           <span>Data synced live from Strava. Not affiliated with Strava, Inc.</span>
           <span>Built by Bruno Silva © 2026</span>
         </footer>
+      </div>
+
+      {/* Floating unit toggle */}
+      <div style={{ position:"fixed", bottom:"1.5rem", right:"1.5rem", zIndex:1000, display:"flex", gap:0, boxShadow:"0 2px 12px rgba(0,0,0,0.12)", borderRadius:4, overflow:"hidden", border:`1px solid ${C.border}` }}>
+        {["metric","imperial"].map(u=>(
+          <button key={u} onClick={()=>setUnitSystem(u)} style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.1em", textTransform:"uppercase", padding:"6px 10px", background:unitSystem===u?C.ink:C.surface, color:unitSystem===u?"#fff":C.faint, border:"none", cursor:"pointer", transition:"all 0.15s" }}>{u==="metric"?"km":"mi"}</button>
+        ))}
       </div>
     </div>
   );
