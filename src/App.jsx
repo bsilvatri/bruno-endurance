@@ -354,7 +354,11 @@ const ChartBox = ({ title, subtitle, children, minH }) => (
   </div>
 );
 
-function StatsSection({ sportFilter }) {
+function StatsSection({ sportFilter, unitSystem="metric" }) {
+  const isMetric = unitSystem === "metric";
+  const distUnit = isMetric ? "km" : "mi";
+  const toUnit = (km) => isMetric ? km : +(km * 0.621371).toFixed(1);
+  const toUnitRound = (km) => Math.round(isMetric ? km : km * 0.621371);
   const [acts, setActs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -415,17 +419,16 @@ function StatsSection({ sportFilter }) {
   }));
 
   // ── Distance Distribution ──
-  const distBuckets = isAll
-    ? [["0-5km",0,5],["5-10km",5,10],["10-21km",10,21],["21-42km",21,42],["42km+",42,999]]
+  const _kmBuckets = isAll||sportFilter==='run'
+    ? [[0,5],[5,10],[10,21],[21,42],[42,999]]
     : sportFilter==='swim'
-    ? [["<1km",0,1],["1-2km",1,2],["2-3km",2,3],["3-5km",3,5],["5km+",5,999]]
-    : sportFilter==='ride'
-    ? [["0-30km",0,30],["30-60km",30,60],["60-100km",60,100],["100-150km",100,150],["150km+",150,999]]
-    : [["0-5km",0,5],["5-10km",5,10],["10-21km",10,21],["21-42km",21,42],["42km+",42,999]];
-  const distData = distBuckets.map(([label,lo,hi]) => ({
-    bucket: label,
-    count: filtered.filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length
-  }));
+    ? [[0,1],[1,2],[2,3],[3,5],[5,999]]
+    : [[0,30],[30,60],[60,100],[100,150],[150,999]];
+  const distData = _kmBuckets.map(([lo,hi]) => {
+    const loU = toUnit(lo), hiU = hi===999?999:toUnit(hi);
+    const label = hi===999?`${toUnitRound(lo)}+${distUnit}`:`${toUnitRound(lo)}-${toUnitRound(hi)}${distUnit}`;
+    return { bucket:label, count:filtered.filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length };
+  });
 
   // ── Pace Distribution (run only, or all running for "all") ──
   const runActs = acts.filter(a=>isRun(a.sport_type));
@@ -473,7 +476,7 @@ function StatsSection({ sportFilter }) {
     if(!wkMap[wk]) wkMap[wk]=0;
     wkMap[wk] += (+a.distance||0)/1000;
   });
-  const wvData = Object.entries(wkMap).sort(([a],[b])=>a.localeCompare(b)).map(([w,km])=>({week:w,km:Math.round(km)})).filter((_,i)=>i%2===0);
+  const wvData = Object.entries(wkMap).sort(([a],[b])=>a.localeCompare(b)).map(([w,km])=>({week:w,km:toUnitRound(km)})).filter((_,i)=>i%2===0);
 
   // Time of day radar — 24 hours
   const buildTod = (subset) => {
@@ -539,12 +542,12 @@ function StatsSection({ sportFilter }) {
     <div>
       {/* ROW 0 — Annual Distance | Time of Day + Avg Dist */}
       <div style={{ ...G, gridTemplateColumns:"1fr 2fr" }}>
-        <ChartBox title="Annual Distance (km)" subtitle={isAll?"all sports by year":sportFilter+" distance"} minH={310}>
+        <ChartBox title={`Annual Distance (${distUnit})`} subtitle={isAll?"all sports by year":sportFilter+" distance"} minH={310}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={annData} barSize={isAll?16:22}>
               <CartesianGrid vertical={false} stroke={C.border} />
               <XAxis dataKey="year" tick={tickStyle} axisLine={false} tickLine={false} />
-              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} tickFormatter={v=>v>=1000?Math.round(v/1000)+'k':v} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} tickFormatter={v=>v>=1000?(Math.round(v/100)/10)+'k':v} />
               <Tooltip content={({ active, payload, label }) => {
                 if(!active||!payload?.length) return null;
                 const yearTotal = payload.reduce((s,p)=>s+(+p.value||0),0);
@@ -624,7 +627,7 @@ function StatsSection({ sportFilter }) {
 
       {/* ROW 1 — Distance Dist | Indoor/Outdoor | Pace Dist */}
       <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
-        <ChartBox title="Distance Distribution" subtitle="activity counts by distance" minH={331}>
+        <ChartBox title={`Distance Distribution (${distUnit})`} subtitle="activity counts by distance" minH={331}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={distData} layout="vertical" barSize={14}>
               <CartesianGrid horizontal={false} stroke={C.border} />
@@ -699,7 +702,7 @@ function StatsSection({ sportFilter }) {
             ))}
           </div>
         </ChartBox>
-        <ChartBox title="Weekly Volume (km)" subtitle="km per week over time" minH={310}>
+        <ChartBox title={`Weekly Volume (${distUnit})`} subtitle="km per week over time" minH={310}>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={wvData}>
               <CartesianGrid vertical={false} stroke={C.border} />
@@ -1417,6 +1420,7 @@ export default function App() {
   const [mounted, setMounted] = useState(false);
   const [sportFilter, setSportFilter] = useState("all");
   const [statsTab, setStatsTab] = useState("all");
+  const [unitSystem, setUnitSystem] = useState("metric");
   const NAV_IDS = ["about", "notable", "stats", "progression", "geography", "recent"];
   const [active, setActive] = useScrollSpy(NAV_IDS);
 
@@ -1567,10 +1571,11 @@ export default function App() {
           </div>
           <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>measured, not guessed.</div>
           <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.5rem" }}>
-            <span style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint, padding: "4px 8px", border: `1px solid ${C.border}`, borderRadius: 2, background: C.surface }}>METRIC</span>
-            <span style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint, padding: "4px 8px" }}>IMPERIAL</span>
+            {["metric","imperial"].map(u=>(
+              <span key={u} onClick={()=>setUnitSystem(u)} style={{ fontFamily:F.mono, fontSize:"0.55rem", color:unitSystem===u?C.ink:C.faint, padding:"4px 8px", border:unitSystem===u?`1px solid ${C.border}`:"1px solid transparent", borderRadius:2, background:unitSystem===u?C.surface:"transparent", cursor:"pointer" }}>{u.toUpperCase()}</span>
+            ))}
           </div>
-          <StatsSection sportFilter={statsTab} />
+          <StatsSection sportFilter={statsTab} unitSystem={unitSystem} />
         </section>
 
         {/* PROGRESSION */}
