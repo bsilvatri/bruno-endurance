@@ -1142,7 +1142,7 @@ function RecentSection({ lang, unitSystem="metric" }) {
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", fontFamily:F.mono, fontSize:"0.6rem" }}>
                 <span style={{ color:C.faint, textTransform:"uppercase", letterSpacing:"0.1em" }}>Total Distance</span>
-                <span style={{ color:C.ink, fontWeight:600 }}>{totalDist.toFixed(1)} km</span>
+                <span style={{ color:C.ink, fontWeight:600 }}>{unitSystem==="imperial" ? (totalDist*0.621371).toFixed(1) : totalDist.toFixed(1)} {unitSystem==="imperial"?"mi":"km"}</span>
               </div>
             </div>
 
