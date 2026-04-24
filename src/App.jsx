@@ -1095,7 +1095,7 @@ function RecentSection({ lang, unitSystem="metric" }) {
                         <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint }}>{fmtDate(act.start_date_local)}</div>
                       </div>
                       <div style={{ display:"flex", gap:"1rem", alignItems:"center", flexShrink:0 }}>
-                        {act.distance > 0 && <span style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:400, color:C.ink }}>{(act.distance/1000).toFixed(1)} km</span>}
+                        {act.distance > 0 && <span style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:400, color:C.ink }}>{fmtDist(act.distance)}</span>}
                         <span style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.muted }}>{fmtTime(act.moving_time)}</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:isExp?C.green:C.faint }}>{isExp?"▲":"▼"}</span>
                       </div>
@@ -1107,7 +1107,7 @@ function RecentSection({ lang, unitSystem="metric" }) {
                           <div>
                             <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"0.75rem" }}>{fmtDate(act.start_date_local)}</div>
                             {[
-                              act.distance>0 && { l:"Distance", v:`${(act.distance/1000).toFixed(1)} km` },
+                              act.distance>0 && { l:"Distance", v:fmtDist(act.distance) },
                               { l:"Time", v:fmtTime(act.moving_time) },
                               act.total_elevation_gain && { l:"Elevation", v:`${Math.round(act.total_elevation_gain)} m` },
                               act.average_heartrate && { l:"Avg HR", v:`${Math.round(act.average_heartrate)} bpm` },
