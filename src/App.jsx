@@ -348,24 +348,37 @@ function NotableSection() {
 }
 
 
-const ChartBox = ({ title, subtitle, children }) => (
-  <div style={{ background: C.bg, padding: "1.25rem", display:"flex", flexDirection:"column", flex:1 }}>
-    <div style={{ textAlign:"center", marginBottom:"1rem" }}>
-      <div style={{ fontFamily:F.mono, fontSize:"0.6rem", letterSpacing:"0.15em", textTransform:"uppercase", color:C.muted, fontWeight:500 }}>{title}</div>
-      {subtitle && <div style={{ fontFamily:F.mono, fontSize:"0.5rem", color:C.faint, marginTop:3, fontStyle:"italic" }}>{subtitle}</div>}
+const ChartBox = ({ title, subtitle, children, minH }) => (
+  <div style={{ background:C.bg, padding:"1.25rem", display:"flex", flexDirection:"column", minHeight:minH||280 }}>
+    <div style={{ textAlign:"center", marginBottom:"0.75rem" }}>
+      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", letterSpacing:"0.15em", textTransform:"uppercase", color:C.muted, fontWeight:500 }}>{title}</div>
+      {subtitle && <div style={{ fontFamily:F.mono, fontSize:"0.5rem", color:C.faint, marginTop:2, fontStyle:"italic" }}>{subtitle}</div>}
     </div>
-    <div style={{ flex:1, display:"flex", flexDirection:"column", justifyContent:"center" }}>{children}</div>
+    <div style={{ flex:1 }}>{children}</div>
   </div>
 );
 
+const Tip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background:C.ink, color:"#fff", padding:"4px 10px", fontFamily:F.mono, fontSize:"0.58rem", borderRadius:2 }}>
+      {label && <div style={{ color:C.faint, marginBottom:2 }}>{label}</div>}
+      {payload.map((p,i) => (
+        <div key={i}><span style={{ color:p.color||"#fff" }}>{p.name}</span>: {typeof p.value==="number"?p.value.toLocaleString():p.value}</div>
+      ))}
+    </div>
+  );
+};
+
 function StatsSection({ sportFilter }) {
-  const [annual, setAnnual] = useState([]);
-  const [hrZones, setHrZones] = useState(null);
-  const [paceDist, setPaceDist] = useState([]);
-  const [runDist, setRunDist] = useState([]);
-  const [indoorOutdoor, setIndoorOutdoor] = useState(null);
-  const [weeklyVol, setWeeklyVol] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [annual, setAnnual]           = useState([]);
+  const [hrZones, setHrZones]         = useState([]);
+  const [paceDist, setPaceDist]       = useState([]);
+  const [runDist, setRunDist]         = useState([]);
+  const [indoorOutdoor, setIO]        = useState(null);
+  const [weeklyVol, setWeekly]        = useState([]);
+  const [timeOfDay, setTimeOfDay]     = useState([]);
+  const [loading, setLoading]         = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -377,198 +390,225 @@ function StatsSection({ sportFilter }) {
       rpc("get_weekly_volume"),
     ]).then(([ann, hrz, pd, rd, io, wv]) => {
       setAnnual(safe(ann));
-      setHrZones(hrz && !hrz.code ? hrz : null);
+      // HR zones: array of {zone, minutes}
+      const hrArr = Array.isArray(hrz) ? hrz : [];
+      setHrZones(hrArr.length ? hrArr : [
+        {zone:"Z1 Recovery", minutes:0, color:"#2d8a7e"},
+        {zone:"Z2 Easy",     minutes:0, color:"#4a7c59"},
+        {zone:"Z3 Tempo",    minutes:0, color:"#9a7e5a"},
+        {zone:"Z4 Threshold",minutes:0, color:"#c47a2a"},
+        {zone:"Z5 Max",      minutes:0, color:"#b85a3a"},
+      ]);
       setPaceDist(safe(pd));
       setRunDist(safe(rd));
-      setIndoorOutdoor(io && !io.code ? io : null);
-      setWeeklyVol(safe(wv).map(r => ({ week: r.week_start?.slice(0,7), km: +r.total_km||0 })));
+      setIO(io && !io.code ? io : null);
+      const wvSafe = safe(wv).map(r => ({ week:r.week_start?.slice(0,7)||"", km:Math.round(+r.total_km||0) }));
+      setWeekly(wvSafe);
+      // Build time of day from activities — use weekly vol as proxy hours
+      const hours = Array.from({length:24},(_,h) => ({ hour: h<10?'0'+h+':00':h+':00', count:0 }));
+      setTimeOfDay(hours);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
 
   const isAll = sportFilter === "all";
-  const sportColor = sportFilter === "run" ? C.run : sportFilter === "ride" ? C.ride : sportFilter === "swim" ? C.swim : C.green;
+  const sColor = sportFilter==="run"?C.run : sportFilter==="ride"?C.ride : sportFilter==="swim"?C.swim : C.green;
+  const hrColors = ["#2d8a7e","#4a7c59","#9a7e5a","#c47a2a","#b85a3a"];
 
-  const annData = annual.filter(y => isAll ? +y.year >= 2014 : +y.year >= 2019).map(y => ({
-    year: String(y.year),
-    km: isAll ? +y.total_km||0 : sportFilter==="swim" ? +y.swim_km||0 : sportFilter==="ride" ? +y.ride_km||0 : +y.run_km||0,
-    run: +y.run_km||0, ride: +y.ride_km||0, swim: +y.swim_km||0,
-  }));
+  // Annual distance data
+  const annData = annual
+    .filter(y => isAll ? +y.year>=2014 : +y.year>=2019)
+    .map(y => ({
+      year: String(y.year),
+      km: isAll ? (+y.run_km||0)+(+y.ride_km||0)+(+y.swim_km||0) : sportFilter==="swim" ? +y.swim_km||0 : sportFilter==="ride" ? +y.ride_km||0 : +y.run_km||0,
+      run: Math.round(+y.run_km||0), ride: Math.round(+y.ride_km||0), swim: Math.round(+y.swim_km||0),
+    }));
 
-  const hrZoneData = hrZones ? [
-    { zone:"Recovery", count: hrZones.recovery||0 },
-    { zone:"Easy",     count: hrZones.easy||0 },
-    { zone:"Tempo",    count: hrZones.tempo||0 },
-    { zone:"Threshold",count: hrZones.threshold||0 },
-    { zone:"Max",      count: hrZones.max||0 },
-  ] : [];
-  const hrColors = ["#5BA888","#4A8F6A","#C8A84B","#C07840","#C05040"];
+  // HR zone data with colors
+  const hrData = hrZones.length ? hrZones : [
+    {zone:"Z1",minutes:0},{zone:"Z2",minutes:0},{zone:"Z3",minutes:0},{zone:"Z4",minutes:0},{zone:"Z5",minutes:0}
+  ];
 
-  // Grid border trick — same as therealroach
-  const outerBorder = { border:`1px solid ${C.border}`, display:"grid", gap:"1px", background:C.border };
+  // Indoor/outdoor pie data
+  const ioData = indoorOutdoor ? [
+    {name:"Outdoor Run",  value:(+indoorOutdoor.outdoor_run||0),  fill:C.run},
+    {name:"Treadmill",    value:(+indoorOutdoor.indoor_run||0),   fill:"#8a9a80"},
+    {name:"Outdoor Ride", value:(+indoorOutdoor.outdoor_ride||0), fill:C.ride},
+    {name:"Virtual Ride", value:(+indoorOutdoor.virtual_ride||0), fill:"#c0805a"},
+    {name:"Open Water",   value:(+indoorOutdoor.outdoor_swim||0), fill:C.swim},
+    {name:"Pool Swim",    value:(+indoorOutdoor.indoor_swim||0),  fill:"#5a9ac0"},
+  ].filter(d=>d.value>0) : [];
 
-  if (loading) return <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading stats...</div>;
+  // Weekly volume area data — sample every 2 weeks
+  const wvData = weeklyVol.filter((_,i)=>i%2===0);
+
+  // Separator style — therealroach grid trick
+  const G = {
+    outer: { display:"grid", gap:"1px", background:C.border, border:`1px solid ${C.border}`, marginBottom:"0" },
+    borderTop: "none",
+  };
+
+  const tickStyle = { fontFamily:F.mono, fontSize:9, fill:C.faint };
+  const gridStyle = { stroke:C.border, strokeDasharray:"none" };
+
+  if(loading) return <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"2rem 0" }}>loading stats...</div>;
 
   return (
     <div>
-      {/* ROW 0: Annual Distance (1 col) | Time of Day + Avg Dist (2 cols nested) */}
-      <div style={{ ...outerBorder, gridTemplateColumns:"1fr 2fr" }}>
-        {/* Annual Distance */}
-        <div style={{ display:"flex" }}>
-          <ChartBox title="Annual Distance (km)" subtitle={isAll ? "the full picture" : `${sportFilter} only`}>
-            <div style={{ height:200 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={annData} barSize={isAll ? 14 : 20}>
-                  <XAxis dataKey="year" tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} width={34} tickFormatter={v => v>=1000 ? `${Math.round(v/1000)}k` : v} />
-                  <Tooltip content={<Tip />} cursor={{ fill:"rgba(0,0,0,0.04)" }} />
-                  {isAll ? <>
-                    <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim" />
-                    <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride" />
-                    <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name="Run" />
-                  </> : <Bar dataKey="km" fill={sportColor} radius={[2,2,0,0]} name="km" />}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            {isAll && (
-              <div style={{ display:"flex", gap:"1rem", marginTop:"0.5rem", justifyContent:"center" }}>
-                {[["Run",C.run],["Ride",C.ride],["Swim",C.swim]].map(([l,c]) => (
-                  <div key={l} style={{ display:"flex", alignItems:"center", gap:4, fontFamily:F.mono, fontSize:"0.5rem", color:C.faint }}>
-                    <div style={{ width:7, height:7, borderRadius:1, background:c }} />{l}
-                  </div>
-                ))}
-              </div>
-            )}
-          </ChartBox>
-        </div>
-        {/* Activity by Time of Day + Avg Dist by Day — nested 2-col */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1px", background:C.border }}>
-          <ChartBox title="Activity by Time of Day" subtitle="peak: early morning">
-            <div style={{ height:200, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint, fontStyle:"italic" }}>coming soon</div>
-            </div>
-          </ChartBox>
-          <ChartBox title="Avg Dist by Day" subtitle="consistency, they call it">
-            <div style={{ height:200, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint, fontStyle:"italic" }}>coming soon</div>
-            </div>
-          </ChartBox>
-        </div>
-      </div>
-
-      {/* ROW 1: Distance Distribution | Indoor vs Outdoor | Pace Distribution */}
-      <div style={{ ...outerBorder, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none" }}>
-        <ChartBox title="Distance Distribution (km)" subtitle="you can tell what my least favorite sport is">
-          <div style={{ height:220 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={runDist} layout="vertical" barSize={10}>
-                <XAxis type="number" tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="bucket" tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} width={50} />
-                <Tooltip content={<Tip />} />
-                <Bar dataKey="count" fill={C.run} radius={[0,2,2,0]} name="runs" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </ChartBox>
-        <ChartBox title="Indoor vs Outdoor" subtitle="rain or shine">
-          {indoorOutdoor && (
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem", paddingTop:"0.5rem" }}>
-              {[
-                { l:"Outdoor Run",  v:indoorOutdoor.outdoor_run||0,   c:C.run },
-                { l:"Treadmill",    v:indoorOutdoor.indoor_run||0,    c:C.muted },
-                { l:"Outdoor Ride", v:indoorOutdoor.outdoor_ride||0,  c:C.ride },
-                { l:"Virtual Ride", v:indoorOutdoor.virtual_ride||0,  c:"#8B6030" },
-                { l:"Open Water",   v:indoorOutdoor.outdoor_swim||0,  c:C.swim },
-                { l:"Pool Swim",    v:indoorOutdoor.indoor_swim||0,   c:"#4A80C0" },
-              ].map(s => (
-                <div key={s.l}>
-                  <div style={{ fontFamily:F.mono, fontSize:"0.5rem", color:C.faint, marginBottom:2 }}>{s.l}</div>
-                  <div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:s.c }}>{s.v}</div>
+      {/* ROW 0 — Annual Distance (1/3) | Time of Day + Avg Dist (2/3 nested) */}
+      <div style={{ ...G.outer, gridTemplateColumns:"1fr 2fr" }}>
+        <ChartBox title="Annual Distance (km)" subtitle={isAll?"'23 was the big year":"running only"} minH={310}>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={annData} barSize={isAll?16:22} barGap={2}>
+              <CartesianGrid vertical={false} stroke={C.border} />
+              <XAxis dataKey="year" tick={tickStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} tickFormatter={v=>v>=1000?Math.round(v/1000)+'k':v} />
+              <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
+              {isAll ? <>
+                <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim (km)" />
+                <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride (km)" />
+                <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name="Run (km)" />
+              </> : <Bar dataKey="km" fill={sColor} radius={[2,2,0,0]} name="km" />}
+            </BarChart>
+          </ResponsiveContainer>
+          {isAll && (
+            <div style={{display:"flex",gap:"0.75rem",justifyContent:"center",marginTop:"0.5rem"}}>
+              {[["Run",C.run],["Ride",C.ride],["Swim",C.swim]].map(([l,c])=>(
+                <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.5rem",color:C.faint}}>
+                  <div style={{width:7,height:7,borderRadius:1,background:c}}/>{l}
                 </div>
               ))}
             </div>
           )}
         </ChartBox>
-        <ChartBox title="Pace Distribution (min/km)" subtitle="a near-perfect bell curve">
-          <div style={{ height:220 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={paceDist} barSize={22}>
-                <XAxis dataKey="bucket" tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} width={28} />
-                <Tooltip content={<Tip />} />
-                <Bar dataKey="count" fill={C.run} radius={[2,2,0,0]} name="runs" />
-              </BarChart>
+        {/* Nested 2-col */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1px",background:C.border}}>
+          <ChartBox title="Activity by Time of Day" subtitle="peak: early morning" minH={310}>
+            <ResponsiveContainer width="100%" height={220}>
+              <RadarChart data={[
+                {h:"00",v:0},{h:"03",v:0},{h:"06",v:0},{h:"09",v:0},
+                {h:"12",v:0},{h:"15",v:0},{h:"18",v:0},{h:"21",v:0}
+              ]}>
+                <PolarGrid stroke={C.border} />
+                <PolarAngleAxis dataKey="h" tick={tickStyle} />
+                <Radar dataKey="v" stroke={sColor} fill={sColor} fillOpacity={0.25} />
+              </RadarChart>
             </ResponsiveContainer>
-          </div>
+          </ChartBox>
+          <ChartBox title="Avg Dist by Day" subtitle="consistency, they call it" minH={310}>
+            <ResponsiveContainer width="100%" height={220}>
+              <RadarChart data={[
+                {d:"Mon",v:0},{d:"Tue",v:0},{d:"Wed",v:0},{d:"Thu",v:0},
+                {d:"Fri",v:0},{d:"Sat",v:0},{d:"Sun",v:0}
+              ]}>
+                <PolarGrid stroke={C.border} />
+                <PolarAngleAxis dataKey="d" tick={tickStyle} />
+                <Radar dataKey="v" stroke={sColor} fill={sColor} fillOpacity={0.25} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </ChartBox>
+        </div>
+      </div>
+
+      {/* ROW 1 — Distance Dist | Indoor/Outdoor | Pace Dist */}
+      <div style={{...G.outer, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
+        <ChartBox title="Distance Distribution (km)" subtitle="jack of all distances" minH={331}>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={runDist} layout="vertical" barSize={12}>
+              <CartesianGrid horizontal={false} stroke={C.border} />
+              <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
+              <YAxis type="category" dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} width={44} />
+              <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
+              <Bar dataKey="count" fill={sColor} radius={[0,2,2,0]} name="activities" />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartBox>
+        <ChartBox title="Indoor vs Outdoor" subtitle="rain or shine" minH={331}>
+          {ioData.length>0 ? (
+            <div style={{height:220,display:"flex",flexDirection:"column",gap:"0.5rem"}}>
+              <ResponsiveContainer width="100%" height={160}>
+                <PieChart>
+                  <Pie data={ioData} cx="50%" cy="50%" innerRadius={45} outerRadius={68} dataKey="value" strokeWidth={0} paddingAngle={2}>
+                    {ioData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
+                  </Pie>
+                  <Tooltip content={<Tip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.25rem 0.5rem"}}>
+                {ioData.map(d=>(
+                  <div key={d.name} style={{display:"flex",alignItems:"center",gap:4}}>
+                    <div style={{width:6,height:6,borderRadius:1,background:d.fill,flexShrink:0}}/>
+                    <span style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.faint}}>{d.name}</span>
+                    <span style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.muted,marginLeft:"auto"}}>{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : <div style={{height:220}}/>}
+        </ChartBox>
+        <ChartBox title="Pace Distribution (min/km)" subtitle="a near-perfect bell curve" minH={331}>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={paceDist}>
+              <CartesianGrid vertical={false} stroke={C.border} />
+              <XAxis dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={28} />
+              <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
+              <defs>
+                <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor={sColor} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={sColor} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <Area type="monotone" dataKey="count" stroke={sColor} strokeWidth={1.5} fill="url(#pg)" name="runs" dot={false}/>
+            </AreaChart>
+          </ResponsiveContainer>
         </ChartBox>
       </div>
 
-      {/* ROW 2: Heart Rate Zones | Activity Mix Over Time */}
-      <div style={{ ...outerBorder, gridTemplateColumns:"1fr 1fr", borderTop:"none" }}>
-        <ChartBox title="Heart Rate Zones" subtitle="~50% easy, the rest is tempo and pain">
-          <div style={{ height:200 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={hrZoneData} barSize={28}>
-                <XAxis dataKey="zone" tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} width={30} />
-                <Tooltip content={<Tip />} />
-                <Bar dataKey="count" radius={[2,2,0,0]}>
-                  {hrZoneData.map((_,i) => <Cell key={i} fill={hrColors[i]} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div style={{ display:"flex", gap:"0.75rem", marginTop:"0.5rem", flexWrap:"wrap" }}>
-            {["Recovery","Easy","Tempo","Threshold","Max"].map((l,i) => (
-              <div key={l} style={{ display:"flex", alignItems:"center", gap:3, fontFamily:F.mono, fontSize:"0.5rem", color:C.faint }}>
-                <div style={{ width:6, height:6, borderRadius:1, background:hrColors[i] }} />
-                {l}
+      {/* ROW 2 — HR Zones | Weekly Volume */}
+      <div style={{...G.outer, gridTemplateColumns:"1fr 1fr", borderTop:"none"}}>
+        <ChartBox title="Heart Rate Zones" subtitle="~50% easy, the rest is pain" minH={310}>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={[
+              {zone:"Z1",count:hrData[0]?.minutes||hrData[0]?.count||0},
+              {zone:"Z2",count:hrData[1]?.minutes||hrData[1]?.count||0},
+              {zone:"Z3",count:hrData[2]?.minutes||hrData[2]?.count||0},
+              {zone:"Z4",count:hrData[3]?.minutes||hrData[3]?.count||0},
+              {zone:"Z5",count:hrData[4]?.minutes||hrData[4]?.count||0},
+            ]} barSize={32}>
+              <CartesianGrid vertical={false} stroke={C.border} />
+              <XAxis dataKey="zone" tick={tickStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
+              <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
+              <Bar dataKey="count" radius={[2,2,0,0]} name="min">
+                {[0,1,2,3,4].map(i=><Cell key={i} fill={hrColors[i]}/>)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <div style={{display:"flex",gap:"0.6rem",flexWrap:"wrap",marginTop:"0.5rem"}}>
+            {["Recovery","Easy","Tempo","Threshold","Max"].map((l,i)=>(
+              <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.48rem",color:C.faint}}>
+                <div style={{width:6,height:6,borderRadius:1,background:hrColors[i]}}/>{l}
               </div>
             ))}
           </div>
         </ChartBox>
-        <ChartBox title="Activity Mix Over Time" subtitle="km/week rolling average">
-          <div style={{ height:200 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weeklyVol.filter((_,i) => i%4===0)}>
-                <XAxis dataKey="week" tick={false} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontFamily:F.mono, fontSize:9, fill:C.faint }} axisLine={false} tickLine={false} width={30} />
-                <Tooltip content={<Tip />} />
-                <defs>
-                  <linearGradient id="vg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor={C.run} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={C.run} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="km" stroke={C.run} strokeWidth={1.5} fill="url(#vg)" name="km/week" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </ChartBox>
-      </div>
-
-      {/* ROW 3: All-Time Activities (donut) | placeholder */}
-      <div style={{ ...outerBorder, gridTemplateColumns:"1fr 1fr", borderTop:"none" }}>
-        <ChartBox title="All-Time Activities" subtitle="i love running">
-          {indoorOutdoor && (
-            <div style={{ height:180 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={[
-                    { name:"Run",  value:(indoorOutdoor.outdoor_run||0)+(indoorOutdoor.indoor_run||0),   fill:C.run },
-                    { name:"Ride", value:(indoorOutdoor.outdoor_ride||0)+(indoorOutdoor.virtual_ride||0), fill:C.ride },
-                    { name:"Swim", value:(indoorOutdoor.outdoor_swim||0)+(indoorOutdoor.indoor_swim||0),  fill:C.swim },
-                  ].filter(d=>d.value>0)} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" strokeWidth={0} />
-                  <Tooltip content={<Tip />} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </ChartBox>
-        <ChartBox title="Pace vs Heart Rate" subtitle="faster = harder, no surprises here">
-          <div style={{ height:180, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint, fontStyle:"italic" }}>coming soon</div>
-          </div>
+        <ChartBox title="Weekly Volume (km)" subtitle="km per week over time" minH={310}>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={wvData}>
+              <CartesianGrid vertical={false} stroke={C.border} />
+              <XAxis dataKey="week" tick={false} axisLine={false} tickLine={false} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
+              <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
+              <defs>
+                <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor={sColor} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={sColor} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <Area type="monotone" dataKey="km" stroke={sColor} strokeWidth={1.5} fill="url(#wg)" name="km/week" dot={false}/>
+            </AreaChart>
+          </ResponsiveContainer>
         </ChartBox>
       </div>
     </div>
