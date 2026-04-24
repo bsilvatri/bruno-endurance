@@ -504,7 +504,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
       cnt[day]++;
       dist[day] += (+a.distance||0)/1000;
     });
-    return days.map(d=>({day:d, avg:cnt[d]>0?Math.round(dist[d]/cnt[d]*10)/10:0}));
+    return days.map(d=>({day:d, avg:cnt[d]>0?Math.round(toUnit(dist[d]/cnt[d])*10)/10:0}));
   };
   const dowData   = buildDow(filtered);
   const dowRun    = isAll ? buildDow(acts.filter(a=>isRun(a.sport_type)))  : null;
@@ -562,17 +562,17 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
                     {isAll && payload.length>1 && (
                       <>
                         <div style={{borderTop:`1px solid ${C.border}`,marginTop:4,paddingTop:4}}/>
-                        <div style={{color:C.ink}}>Total: <strong>{Math.round(yearTotal).toLocaleString()}</strong> km</div>
+                        <div style={{color:C.ink}}>Total: <strong>{Math.round(yearTotal).toLocaleString()}</strong> {distUnit}</div>
                       </>
                     )}
                   </div>
                 );
               }} cursor={{fill:"rgba(0,0,0,0.03)"}} />
               {isAll ? <>
-                <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim" unit=" km" />
-                <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride" unit=" km" />
-                <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name="Run" unit=" km" />
-              </> : <Bar dataKey="km" fill={sColor} radius={[2,2,0,0]} name={sportFilter==="run"?"Run":sportFilter==="ride"?"Ride":"Swim"} unit=" km" />}
+                <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim" unit={" "+distUnit} />
+                <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride" unit={" "+distUnit} />
+                <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name="Run"  unit={" "+distUnit} />
+              </> : <Bar dataKey="km" fill={sColor} radius={[2,2,0,0]} name={sportFilter==="run"?"Run":sportFilter==="ride"?"Ride":"Swim"} unit={" "+distUnit} />}
             </BarChart>
           </ResponsiveContainer>
           {(() => {
@@ -614,9 +614,9 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
                 <PolarGrid stroke={C.border} />
                 <PolarAngleAxis dataKey="day" tick={{fontFamily:F.mono,fontSize:8,fill:C.faint}} />
                 {isAll ? <>
-                  <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name="Run" unit=" km" />
-                  <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name="Ride" unit=" km" />
-                  <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name="Swim" unit=" km" />
+                  <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name="Run"  unit={" "+distUnit} />
+                  <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name="Ride" unit={" "+distUnit} />
+                  <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name="Swim" unit={" "+distUnit} />
                 </> : <Radar dataKey="avg" stroke={sColor} fill={sColor} fillOpacity={0.2} dot={false} name={sportFilter==="all"?"Avg":"Avg"} unit=" km" />}
                 <Tooltip content={<Tip />} />
               </RadarChart>
