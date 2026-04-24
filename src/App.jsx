@@ -526,15 +526,19 @@ function StatsSection({ sportFilter }) {
               <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} tickFormatter={v=>v>=1000?Math.round(v/1000)+'k':v} />
               <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
               {isAll ? <>
-                <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim (km)" />
-                <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride (km)" />
-                <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name="Run (km)" />
-              </> : <Bar dataKey="km" fill={sColor} radius={[2,2,0,0]} name="km" />}
+                <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim" unit=" km" />
+                <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride" unit=" km" />
+                <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name="Run" unit=" km" />
+              </> : <Bar dataKey="km" fill={sColor} radius={[2,2,0,0]} name={sportFilter==="run"?"Run":sportFilter==="ride"?"Ride":"Swim"} unit=" km" />}
             </BarChart>
           </ResponsiveContainer>
-          {isAll && (
-            <div style={{display:"flex",gap:"0.75rem",justifyContent:"center",marginTop:"0.5rem"}}>
-              {[["Run",C.run],["Ride",C.ride],["Swim",C.swim]].map(([l,c])=>(
+          {(() => {
+            const totalKm = Math.round(annData.reduce((s,y)=>s+(isAll?y.run+y.ride+y.swim:y.km),0));
+            return (
+              <>
+                {isAll && (
+                  <div style={{display:"flex",gap:"0.75rem",justifyContent:"center",marginTop:"0.5rem"}}>
+                    {[["Run",C.run],["Ride",C.ride],["Swim",C.swim]].map(([l,c])=>(
                 <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.5rem",color:C.faint}}>
                   <div style={{width:7,height:7,borderRadius:1,background:c}}/>{l}
                 </div>
