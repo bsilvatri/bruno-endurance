@@ -319,14 +319,14 @@ function NotableSection({ unitSystem="metric" }) {
                 ].map(({ l, v }) => (
                   <div key={l}>
                     <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint, marginBottom: 2 }}>{l}</div>
-                    <div style={{ fontFamily: F.mono, fontSize: "1.3rem", fontWeight: 700, color: C.ink }}>{v}</div>
+                    <div style={{ fontFamily: F.mono, fontSize: "1.1rem", fontWeight: 700, color: C.ink }}>{v}</div>
                   </div>
                 ))}
               </div>
               {cur.average_heartrate && (
                 <div>
                   <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint, marginBottom: 2 }}>AVG HR (BPM)</div>
-                  <div style={{ fontFamily: F.mono, fontSize: "1.3rem", fontWeight: 700, color: C.ink }}>{Math.round(cur.average_heartrate)}</div>
+                  <div style={{ fontFamily: F.mono, fontSize: "1.1rem", fontWeight: 700, color: C.ink }}>{Math.round(cur.average_heartrate)}</div>
                 </div>
               )}
               <div style={{ marginTop: "auto", paddingTop: "1rem", borderTop: `1px solid ${C.border}` }}>
