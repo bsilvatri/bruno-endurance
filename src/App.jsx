@@ -617,7 +617,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
                   <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name="Run"  unit={" "+distUnit} />
                   <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name="Ride" unit={" "+distUnit} />
                   <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name="Swim" unit={" "+distUnit} />
-                </> : <Radar dataKey="avg" stroke={sColor} fill={sColor} fillOpacity={0.2} dot={false} name={sportFilter==="all"?"Avg":"Avg"} unit=" km" />}
+                </> : <Radar dataKey="avg" stroke={sColor} fill={sColor} fillOpacity={0.2} dot={false} name="Avg" unit={" "+distUnit} />}
                 <Tooltip content={<Tip />} />
               </RadarChart>
             </ResponsiveContainer>
@@ -715,7 +715,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
                   <stop offset="95%" stopColor={sColor} stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <Area type="monotone" dataKey="km" stroke={sColor} strokeWidth={1.5} fill="url(#wg)" name="km/week" dot={false}/>
+              <Area type="monotone" dataKey="km" stroke={sColor} strokeWidth={1.5} fill="url(#wg)" name={distUnit+"/week"} unit={" "+distUnit} dot={false}/>
             </AreaChart>
           </ResponsiveContainer>
         </ChartBox>
@@ -1159,7 +1159,7 @@ function RecentSection({ lang }) {
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{d.label}</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.ink, textAlign:"right" }}>{pct}%</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{fmtTime(d.value)}</span>
-                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{d.dist>0 ? (d.dist/1000).toFixed(1)+'km' : '—'}</span>
+                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{d.dist>0 ? unitSystem==="imperial" ? (d.dist/1609.34).toFixed(1)+'mi' : (d.dist/1000).toFixed(1)+'km' : '—'}</span>
                       </div>
                     );
                   })}
@@ -1491,7 +1491,7 @@ export default function App() {
               { val: acts, label: "ACTIVITIES", sub: restDays !== null ? `${restDays} rest day${restDays !== 1 ? 's' : ''} in ${new Date().getFullYear()}` : null, showInfo: true },
               { val: unitSystem==="imperial" ? Math.round(km*0.621371) : km, label: unitSystem==="imperial" ? "MILES" : "KILOMETERS", sub: hero ? `${(hero.total_km / 40075).toFixed(2)} laps around the Earth` : null },
               { val: hrs, label: "HOURS", sub: hero ? `${(hero.total_hours / 24).toFixed(0)} full days` : null },
-              { val: elev, label: "M CLIMBED", sub: hero ? `${(hero.total_elevation / 3500).toFixed(1)} Everests base camp to summit` : null, last: true },
+              { val: unitSystem==="imperial" ? Math.round(elev*3.28084) : elev, label: unitSystem==="imperial" ? "FT CLIMBED" : "M CLIMBED", sub: hero ? `${(hero.total_elevation / 3500).toFixed(1)} Everests base camp to summit` : null, last: true },
             ].map(({ val, label, sub, last }) => (
               <div key={label} style={{ padding: "1.25rem 1rem", textAlign: "center", borderRight: last ? "none" : `1px solid ${C.border}` }}>
                 <div style={{ fontFamily: F.heading, fontSize: "clamp(1.6rem,2.5vw,2.2rem)", fontWeight: 800, color: C.green, letterSpacing: "-1px", lineHeight: 1 }}>
@@ -1544,7 +1544,7 @@ export default function App() {
                   <div style={{ fontFamily: F.mono, fontSize: "0.55rem", letterSpacing: "0.15em", color: s.col, marginBottom: "0.3rem" }}>{s.l}</div>
                   <div style={{ fontFamily: F.heading, fontSize: "2rem", fontWeight: 800, color: C.ink, letterSpacing: "-1px" }}>{(s.c || 0).toLocaleString()}</div>
                   <div style={{ fontFamily: F.mono, fontSize: "0.6rem", color: C.faint }}>
-                    {Math.round(s.km || 0).toLocaleString()} km · {Math.round(s.h || 0)}h
+                    {unitSystem==="imperial" ? Math.round((s.km||0)*0.621371).toLocaleString() : Math.round(s.km||0).toLocaleString()} {unitSystem==="imperial"?"mi":"km"} · {Math.round(s.h||0)}h
                   </div>
                 </div>
               ))}
