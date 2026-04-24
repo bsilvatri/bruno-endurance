@@ -532,7 +532,7 @@ function StatsSection({ sportFilter }) {
                     <div style={{color:C.faint,marginBottom:4}}>{label}</div>
                     {payload.map(p=>(
                       <div key={p.dataKey} style={{color:p.color||C.ink}}>
-                        {p.name}: <strong>{p.value.toFixed(1)}</strong>{p.unit||""}
+                        {p.name}: <strong>{Math.round(p.value).toLocaleString()}</strong>{p.unit||""}
                       </div>
                     ))}
                     {isAll && payload.length>1 && (
