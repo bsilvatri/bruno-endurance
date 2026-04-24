@@ -203,7 +203,7 @@ function NotableTable({ rows, cols, selected, onSelect, sportColor }) {
         <div key={i} onClick={() => onSelect(i)}
           style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), padding: "0.7rem 0.75rem", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selected === i ? C.card : "transparent", transition: "background 0.12s" }}>
           {cols.map(c => (
-            <div key={c.k} style={{ fontFamily: c.mono ? F.mono : F.body, fontSize: "0.82rem", color: c.accent ? sportColor : C.ink, fontWeight: c.bold ? 600 : 400 }}>
+            <div key={c.k} style={{ fontFamily: F.mono, fontSize: "0.82rem", color: c.accent ? sportColor : C.ink, fontWeight: c.bold ? 600 : 400 }}>
               {c.k === "#" ? `#${i + 1}` : r[c.k]}
             </div>
           ))}
@@ -1096,7 +1096,7 @@ function RecentSection({ lang, unitSystem="metric" }) {
                         <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint }}>{fmtDate(act.start_date_local)}</div>
                       </div>
                       <div style={{ display:"flex", gap:"1rem", alignItems:"center", flexShrink:0 }}>
-                        {act.distance > 0 && <span style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:400, color:C.ink }}>{fmtDist(act.distance)}</span>}
+                        {act.distance > 0 && <span style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:500, color:C.ink, fontFamily:F.mono }}>{fmtDist(act.distance)}</span>}
                         <span style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.muted }}>{fmtTime(act.moving_time)}</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:isExp?C.green:C.faint }}>{isExp?"▲":"▼"}</span>
                       </div>
@@ -1495,7 +1495,7 @@ export default function App() {
               { val: unitSystem==="imperial" ? Math.round(elev*3.28084) : elev, label: unitSystem==="imperial" ? "FT CLIMBED" : "M CLIMBED", sub: hero ? `${(hero.total_elevation / 3500).toFixed(1)} Everests base camp to summit` : null, last: true },
             ].map(({ val, label, sub, last }) => (
               <div key={label} style={{ padding: "1.25rem 1rem", textAlign: "center", borderRight: last ? "none" : `1px solid ${C.border}` }}>
-                <div style={{ fontFamily: F.heading, fontSize: "clamp(1.6rem,2.5vw,2.2rem)", fontWeight: 800, color: C.green, letterSpacing: "-1px", lineHeight: 1 }}>
+                <div style={{ fontFamily: F.mono, fontSize: "clamp(1.6rem,2.5vw,2.2rem)", fontWeight: 800, color: C.green, letterSpacing: "-1px", lineHeight: 1 }}>
                   {val.toLocaleString()}
                 </div>
                 <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.15em", color: C.muted, margin: "0.35rem 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
@@ -1543,7 +1543,7 @@ export default function App() {
               ].map(s => (
                 <div key={s.l} style={{ borderTop: `2px solid ${s.col}`, paddingTop: "0.75rem" }}>
                   <div style={{ fontFamily: F.mono, fontSize: "0.55rem", letterSpacing: "0.15em", color: s.col, marginBottom: "0.3rem" }}>{s.l}</div>
-                  <div style={{ fontFamily: F.heading, fontSize: "2rem", fontWeight: 800, color: C.ink, letterSpacing: "-1px" }}>{(s.c || 0).toLocaleString()}</div>
+                  <div style={{ fontFamily: F.mono, fontSize: "2rem", fontWeight: 800, color: C.ink }}>{(s.c || 0).toLocaleString()}</div>
                   <div style={{ fontFamily: F.mono, fontSize: "0.6rem", color: C.faint }}>
                     {unitSystem==="imperial" ? Math.round((s.km||0)*0.621371).toLocaleString() : Math.round(s.km||0).toLocaleString()} {unitSystem==="imperial"?"mi":"km"} · {Math.round(s.h||0)}h
                   </div>
