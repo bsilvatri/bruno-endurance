@@ -204,7 +204,6 @@ function NotableTable({ rows, cols, selected, onSelect, sportColor }) {
           style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), padding: "0.7rem 0.75rem", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selected === i ? C.card : "transparent", transition: "background 0.12s" }}>
           {cols.map(c => (
             <div key={c.k} style={{ fontFamily: c.mono ? F.mono : F.body, fontSize: "0.82rem", color: c.accent ? sportColor : C.ink, fontWeight: c.bold ? 600 : 400 }}>
-              {c.k === "#" ? (selected === i ? <span style={{ color: sportColor }}>|</span> : null) : null}
               {c.k === "#" ? `#${i + 1}` : r[c.k]}
             </div>
           ))}
