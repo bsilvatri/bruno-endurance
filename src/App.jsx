@@ -475,16 +475,13 @@ function StatsSection({ sportFilter }) {
   });
   const wvData = Object.entries(wkMap).sort(([a],[b])=>a.localeCompare(b)).map(([w,km])=>({week:w,km:Math.round(km)})).filter((_,i)=>i%2===0);
 
-  // Time of day radar — 8 buckets: 00,03,06,09,12,15,18,21
-  const todBuckets = [0,3,6,9,12,15,18,21];
+  // Time of day radar — 24 hours
   const todMap = {};
-  todBuckets.forEach(h => todMap[h<10?'0'+h+':00':h+':00'] = 0);
+  for(let h=0;h<24;h++) todMap[h<10?'0'+h:String(h)] = 0;
   filtered.forEach(a => {
     if(!a.start_date_local) return;
-    const h = parseInt(a.start_date_local.slice(11,13));  // parse hour directly from local string
-    const bucket = todBuckets.reduce((prev,cur) => Math.abs(cur-h)<Math.abs(prev-h)?cur:prev);
-    const key = bucket<10?'0'+bucket+':00':bucket+':00';
-    todMap[key] = (todMap[key]||0)+1;
+    const h = a.start_date_local.slice(11,13);
+    todMap[h] = (todMap[h]||0)+1;
   });
   const todData = Object.entries(todMap).map(([hour,count])=>({hour,count}));
 
