@@ -358,17 +358,6 @@ const ChartBox = ({ title, subtitle, children, minH }) => (
   </div>
 );
 
-const Tip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div style={{ background:C.ink, color:"#fff", padding:"4px 10px", fontFamily:F.mono, fontSize:"0.58rem", borderRadius:2 }}>
-      {label && <div style={{ color:C.faint, marginBottom:2 }}>{label}</div>}
-      {payload.map((p,i) => (
-        <div key={i}><span style={{ color:p.color||"#fff" }}>{p.name}</span>: {typeof p.value==="number"?p.value.toLocaleString():p.value}</div>
-      ))}
-    </div>
-  );
-};
 
 function StatsSection({ sportFilter }) {
   const [annual, setAnnual]           = useState([]);
