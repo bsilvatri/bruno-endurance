@@ -481,7 +481,7 @@ function StatsSection({ sportFilter }) {
   todBuckets.forEach(h => todMap[h<10?'0'+h+':00':h+':00'] = 0);
   filtered.forEach(a => {
     if(!a.start_date_local) return;
-    const h = new Date(a.start_date_local).getHours();
+    const h = parseInt(a.start_date_local.slice(11,13));  // parse hour directly from local string
     const bucket = todBuckets.reduce((prev,cur) => Math.abs(cur-h)<Math.abs(prev-h)?cur:prev);
     const key = bucket<10?'0'+bucket+':00':bucket+':00';
     todMap[key] = (todMap[key]||0)+1;
@@ -494,7 +494,9 @@ function StatsSection({ sportFilter }) {
   days.forEach(d=>{dowCount[d]=0;dowDist[d]=0;});
   filtered.forEach(a => {
     if(!a.start_date_local) return;
-    const d = new Date(a.start_date_local);
+    // Parse date parts directly to avoid timezone shift
+    const [yr,mo,dy] = a.start_date_local.slice(0,10).split('-').map(Number);
+    const d = new Date(yr,mo-1,dy);  // local constructor, no timezone conversion
     const day = days[(d.getDay()+6)%7];
     dowCount[day]++;
     dowDist[day] += (+a.distance||0)/1000;
