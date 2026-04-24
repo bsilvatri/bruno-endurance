@@ -414,8 +414,8 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
   });
   const annData = Object.values(annMap).sort((a,b)=>a.year-b.year).map(y=>({
     ...y,
-    run:Math.round(y.run), ride:Math.round(y.ride), swim:Math.round(y.swim),
-    km: Math.round(isAll ? y.run+y.ride+y.swim : sportFilter==='run'?y.run:sportFilter==='ride'?y.ride:y.swim),
+    run:toUnitRound(y.run), ride:toUnitRound(y.ride), swim:toUnitRound(y.swim),
+    km: toUnitRound(isAll ? y.run+y.ride+y.swim : sportFilter==='run'?y.run:sportFilter==='ride'?y.ride:y.swim),
   }));
 
   // ── Distance Distribution ──
