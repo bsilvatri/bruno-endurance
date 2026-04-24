@@ -490,18 +490,24 @@ function StatsSection({ sportFilter }) {
 
   // Day of week radar
   const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const dowCount = {}; const dowDist = {};
-  days.forEach(d=>{dowCount[d]=0;dowDist[d]=0;});
-  filtered.forEach(a => {
-    if(!a.start_date_local) return;
-    // Parse date parts directly to avoid timezone shift
-    const [yr,mo,dy] = a.start_date_local.slice(0,10).split('-').map(Number);
-    const d = new Date(yr,mo-1,dy);  // local constructor, no timezone conversion
-    const day = days[(d.getDay()+6)%7];
-    dowCount[day]++;
-    dowDist[day] += (+a.distance||0)/1000;
-  });
-  const dowData = days.map(d=>({day:d, avg:dowCount[d]>0?Math.round(dowDist[d]/dowCount[d]*10)/10:0}));
+  const buildDow = (subset) => {
+    const cnt = {}; const dist = {};
+    days.forEach(d=>{cnt[d]=0;dist[d]=0;});
+    subset.forEach(a => {
+      if(!a.start_date_local) return;
+      const [yr,mo,dy] = a.start_date_local.slice(0,10).split('-').map(Number);
+      const d = new Date(yr,mo-1,dy);
+      const day = days[(d.getDay()+6)%7];
+      cnt[day]++;
+      dist[day] += (+a.distance||0)/1000;
+    });
+    return days.map(d=>({day:d, avg:cnt[d]>0?Math.round(dist[d]/cnt[d]*10)/10:0}));
+  };
+  const dowData   = buildDow(filtered);
+  const dowRun    = isAll ? buildDow(acts.filter(a=>isRun(a.sport_type)))  : null;
+  const dowRide   = isAll ? buildDow(acts.filter(a=>isRide(a.sport_type))) : null;
+  const dowSwim   = isAll ? buildDow(acts.filter(a=>isSwim(a.sport_type))) : null;
+  const dowMerged = isAll ? days.map((d,i)=>({day:d, run:dowRun[i].avg, ride:dowRide[i].avg, swim:dowSwim[i].avg})) : dowData;
 
   const G = { display:"grid", gap:"1px", background:C.border, border:`1px solid ${C.border}` };
   const tickStyle = { fontFamily:F.mono, fontSize:9, fill:C.faint };
