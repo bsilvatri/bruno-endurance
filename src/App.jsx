@@ -354,92 +354,139 @@ const ChartBox = ({ title, subtitle, children, minH }) => (
   </div>
 );
 
-
 function StatsSection({ sportFilter }) {
-  const [annual, setAnnual]           = useState([]);
-  const [hrZones, setHrZones]         = useState({recovery:0,easy:0,tempo:0,threshold:0,max:0});
-  const [paceDist, setPaceDist]       = useState([]);
-  const [runDist, setRunDist]         = useState([]);
-  const [indoorOutdoor, setIO]        = useState(null);
-  const [weeklyVol, setWeekly]        = useState([]);
-  const [timeOfDay, setTimeOfDay]     = useState([]);
-  const [loading, setLoading]         = useState(true);
+  const [acts, setActs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      rpc("get_annual_stats"),
-      rpc("get_hr_zones"),
-      rpc("get_pace_dist"),
-      rpc("get_run_dist_buckets"),
-      rpc("get_indoor_outdoor"),
-      rpc("get_weekly_volume"),
-    ]).then(([ann, hrz, pd, rd, io, wv]) => {
-      setAnnual(safe(ann));
-      // hr_zones returns a single object {recovery, easy, tempo, threshold, max}
-      setHrZones(hrz && !hrz.code ? hrz : {recovery:0,easy:0,tempo:0,threshold:0,max:0});
-      setPaceDist(safe(pd));
-      setRunDist(safe(rd));
-      // indoor_outdoor returns a single object
-      setIO(io && !io.code ? io : null);
-      const wvSafe = safe(wv).map(r => ({ week:r.week_start?.slice(0,7)||"", km:Math.round(+r.total_km||0) }));
-      setWeekly(wvSafe);
+    // Fetch all activities with all fields needed for charts
+    async function fetchAll() {
+      const map = [];
+      let offset = 0;
+      const pageSize = 1000;
+      while(true) {
+        const res = await fetch(
+          `${SB_URL}/rest/v1/activities?select=sport_type,distance,moving_time,average_heartrate,average_speed,start_date_local,trainer&order=start_date_local.asc&limit=${pageSize}&offset=${offset}`,
+          { headers: SBH }
+        ).then(r=>r.json());
+        if(!Array.isArray(res)||res.length===0) break;
+        map.push(...res);
+        if(res.length<pageSize) break;
+        offset+=pageSize;
+      }
+      setActs(map);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }
+    fetchAll();
   }, []);
 
-  const isAll = sportFilter === "all";
-  const sColor = sportFilter==="run"?C.run : sportFilter==="ride"?C.ride : sportFilter==="swim"?C.swim : C.green;
-  const hrColors = ["#2d8a7e","#4a7c59","#9a7e5a","#c47a2a","#b85a3a"];
-
-  // Annual distance data
-  const annData = annual
-    .filter(y => isAll ? +y.year>=2014 : +y.year>=2019)
-    .map(y => ({
-      year: String(y.year),
-      km: isAll ? (+y.run_km||0)+(+y.ride_km||0)+(+y.swim_km||0) : sportFilter==="swim" ? +y.swim_km||0 : sportFilter==="ride" ? +y.ride_km||0 : +y.run_km||0,
-      run: Math.round(+y.run_km||0), ride: Math.round(+y.ride_km||0), swim: Math.round(+y.swim_km||0),
-    }));
-
-  // HR zone data with colors
-  const hrData = [
-    {zone:"Recovery", count: hrZones.recovery||0},
-    {zone:"Easy",     count: hrZones.easy||0},
-    {zone:"Tempo",    count: hrZones.tempo||0},
-    {zone:"Threshold",count: hrZones.threshold||0},
-    {zone:"Max",      count: hrZones.max||0},
-  ];
-
-  // Indoor/outdoor pie data
-  const ioData = indoorOutdoor ? [
-    {name:"Outdoor Run",  value:(+indoorOutdoor.outdoor_run||0),  fill:C.run},
-    {name:"Treadmill",    value:(+indoorOutdoor.indoor_run||0),   fill:"#8a9a80"},
-    {name:"Outdoor Ride", value:(+indoorOutdoor.outdoor_ride||0), fill:C.ride},
-    {name:"Virtual Ride", value:(+indoorOutdoor.virtual_ride||0), fill:"#c0805a"},
-    {name:"Open Water",   value:(+indoorOutdoor.outdoor_swim||0), fill:C.swim},
-    {name:"Pool Swim",    value:(+indoorOutdoor.indoor_swim||0),  fill:"#5a9ac0"},
-  ].filter(d=>d.value>0) : [];
-
-  // Weekly volume area data — sample every 2 weeks
-  const wvData = weeklyVol.filter((_,i)=>i%2===0);
-
-  // Separator style — therealroach grid trick
-  const G = {
-    outer: { display:"grid", gap:"1px", background:C.border, border:`1px solid ${C.border}`, marginBottom:"0" },
-    borderTop: "none",
+  // Sport filter helpers
+  const isRun  = t => t==='Run'||t==='TrailRun';
+  const isRide = t => t==='Ride'||t==='VirtualRide';
+  const isSwim = t => t==='Swim';
+  const matchesSport = (a) => {
+    if(sportFilter==='all') return isRun(a.sport_type)||isRide(a.sport_type)||isSwim(a.sport_type);
+    if(sportFilter==='run')  return isRun(a.sport_type);
+    if(sportFilter==='ride') return isRide(a.sport_type);
+    if(sportFilter==='swim') return isSwim(a.sport_type);
+    return true;
   };
 
+  const filtered = acts.filter(matchesSport);
+  const isAll = sportFilter==='all';
+  const sColor = sportFilter==='run'?C.run:sportFilter==='ride'?C.ride:sportFilter==='swim'?C.swim:C.green;
+  const hrColors = ["#2d8a7e","#4a7c59","#9a7e5a","#c47a2a","#b85a3a"];
+
+  // ── Annual Distance ──
+  const annMap = {};
+  acts.filter(a=>isRun(a.sport_type)||isRide(a.sport_type)||isSwim(a.sport_type)).forEach(a => {
+    const yr = a.start_date_local?.slice(0,4);
+    if(!yr||+yr<2019) return;
+    if(!annMap[yr]) annMap[yr]={year:yr,run:0,ride:0,swim:0};
+    const km = (+a.distance||0)/1000;
+    if(isRun(a.sport_type))  annMap[yr].run  += km;
+    if(isRide(a.sport_type)) annMap[yr].ride += km;
+    if(isSwim(a.sport_type)) annMap[yr].swim += km;
+  });
+  const annData = Object.values(annMap).sort((a,b)=>a.year-b.year).map(y=>({
+    ...y,
+    run:Math.round(y.run), ride:Math.round(y.ride), swim:Math.round(y.swim),
+    km: Math.round(isAll ? y.run+y.ride+y.swim : sportFilter==='run'?y.run:sportFilter==='ride'?y.ride:y.swim),
+  }));
+
+  // ── Distance Distribution ──
+  const distBuckets = isAll
+    ? [["0-5km",0,5],["5-10km",5,10],["10-21km",10,21],["21-42km",21,42],["42km+",42,999]]
+    : sportFilter==='swim'
+    ? [["<1km",0,1],["1-2km",1,2],["2-3km",2,3],["3-5km",3,5],["5km+",5,999]]
+    : sportFilter==='ride'
+    ? [["0-30km",0,30],["30-60km",30,60],["60-100km",60,100],["100-150km",100,150],["150km+",150,999]]
+    : [["0-5km",0,5],["5-10km",5,10],["10-21km",10,21],["21-42km",21,42],["42km+",42,999]];
+  const distData = distBuckets.map(([label,lo,hi]) => ({
+    bucket: label,
+    count: filtered.filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length
+  }));
+
+  // ── Pace Distribution (run only, or all running for "all") ──
+  const runActs = acts.filter(a=>isRun(a.sport_type));
+  const paceActsToUse = isAll||sportFilter==='run' ? runActs : [];
+  const paceBuckets = [
+    {bucket:"<3:30",lo:0,hi:3.5},{bucket:"3:30-4:00",lo:3.5,hi:4},{bucket:"4:00-4:30",lo:4,hi:4.5},
+    {bucket:"4:30-5:00",lo:4.5,hi:5},{bucket:"5:00-5:30",lo:5,hi:5.5},{bucket:"5:30+",lo:5.5,hi:999}
+  ];
+  const paceData = paceBuckets.map(b => ({
+    bucket: b.bucket,
+    count: paceActsToUse.filter(a=>{
+      if(!a.average_speed||+a.average_speed===0) return false;
+      const minKm = 1000/(+a.average_speed*60);
+      return minKm>=b.lo&&minKm<b.hi;
+    }).length
+  }));
+
+  // ── HR Zones ──
+  const hrBounds = [[0,100],[100,120],[120,140],[140,160],[160,999]];
+  const hrData = [
+    {zone:"Recovery"},{zone:"Easy"},{zone:"Tempo"},{zone:"Threshold"},{zone:"Max"}
+  ].map((z,i)=>({
+    ...z,
+    count: filtered.filter(a=>a.average_heartrate&&+a.average_heartrate>=hrBounds[i][0]&&+a.average_heartrate<hrBounds[i][1]).length
+  }));
+
+  // ── Indoor vs Outdoor ──
+  const ioData = [
+    {name:"Outdoor Run",  value:acts.filter(a=>isRun(a.sport_type)&&!a.trainer).length,  fill:C.run},
+    {name:"Treadmill",    value:acts.filter(a=>isRun(a.sport_type)&&a.trainer).length,    fill:"#8a9a80"},
+    {name:"Outdoor Ride", value:acts.filter(a=>a.sport_type==='Ride').length,             fill:C.ride},
+    {name:"Virtual Ride", value:acts.filter(a=>a.sport_type==='VirtualRide').length,      fill:"#c0805a"},
+    {name:"Open Water",   value:acts.filter(a=>isSwim(a.sport_type)&&!a.trainer).length,  fill:C.swim},
+    {name:"Pool Swim",    value:acts.filter(a=>isSwim(a.sport_type)&&a.trainer).length,   fill:"#5a9ac0"},
+  ].filter(d=>d.value>0);
+
+  // ── Weekly Volume ──
+  const wkMap = {};
+  filtered.forEach(a => {
+    if(!a.start_date_local) return;
+    const d = new Date(a.start_date_local);
+    const day = d.getDay();
+    const monday = new Date(d); monday.setDate(d.getDate()-((day+6)%7));
+    const wk = monday.toISOString().slice(0,10);
+    if(!wkMap[wk]) wkMap[wk]=0;
+    wkMap[wk] += (+a.distance||0)/1000;
+  });
+  const wvData = Object.entries(wkMap).sort(([a],[b])=>a.localeCompare(b)).map(([w,km])=>({week:w,km:Math.round(km)})).filter((_,i)=>i%2===0);
+
+  const G = { display:"grid", gap:"1px", background:C.border, border:`1px solid ${C.border}` };
   const tickStyle = { fontFamily:F.mono, fontSize:9, fill:C.faint };
-  const gridStyle = { stroke:C.border, strokeDasharray:"none" };
 
   if(loading) return <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"2rem 0" }}>loading stats...</div>;
 
   return (
     <div>
-      {/* ROW 0 — Annual Distance (1/3) | Time of Day + Avg Dist (2/3 nested) */}
-      <div style={{ ...G.outer, gridTemplateColumns:"1fr 2fr" }}>
-        <ChartBox title="Annual Distance (km)" subtitle={isAll?"'23 was the big year":"running only"} minH={310}>
+      {/* ROW 0 — Annual Distance | Time of Day + Avg Dist */}
+      <div style={{ ...G, gridTemplateColumns:"1fr 2fr" }}>
+        <ChartBox title="Annual Distance (km)" subtitle={isAll?"all sports by year":sportFilter+" distance"} minH={310}>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={annData} barSize={isAll?16:22} barGap={2}>
+            <BarChart data={annData} barSize={isAll?16:22}>
               <CartesianGrid vertical={false} stroke={C.border} />
               <XAxis dataKey="year" tick={tickStyle} axisLine={false} tickLine={false} />
               <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} tickFormatter={v=>v>=1000?Math.round(v/1000)+'k':v} />
@@ -461,126 +508,97 @@ function StatsSection({ sportFilter }) {
             </div>
           )}
         </ChartBox>
-        {/* Nested 2-col */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1px",background:C.border}}>
-          <ChartBox title="Activity by Time of Day" subtitle="peak: early morning" minH={310}>
+          <ChartBox title="HR Zone Distribution" subtitle="time in each zone" minH={310}>
             <ResponsiveContainer width="100%" height={220}>
-              <RadarChart data={[
-                {h:"00",v:0},{h:"03",v:0},{h:"06",v:0},{h:"09",v:0},
-                {h:"12",v:0},{h:"15",v:0},{h:"18",v:0},{h:"21",v:0}
-              ]}>
-                <PolarGrid stroke={C.border} />
-                <PolarAngleAxis dataKey="h" tick={tickStyle} />
-                <Radar dataKey="v" stroke={sColor} fill={sColor} fillOpacity={0.25} />
-              </RadarChart>
+              <BarChart data={hrData} barSize={32}>
+                <CartesianGrid vertical={false} stroke={C.border} />
+                <XAxis dataKey="zone" tick={tickStyle} axisLine={false} tickLine={false} />
+                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
+                <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
+                <Bar dataKey="count" radius={[2,2,0,0]} name="activities">
+                  {hrData.map((_,i)=><Cell key={i} fill={hrColors[i]}/>)}
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
+            <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap",marginTop:"0.5rem"}}>
+              {["Recovery","Easy","Tempo","Threshold","Max"].map((l,i)=>(
+                <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.48rem",color:C.faint}}>
+                  <div style={{width:6,height:6,borderRadius:1,background:hrColors[i]}}/>{l}
+                </div>
+              ))}
+            </div>
           </ChartBox>
-          <ChartBox title="Avg Dist by Day" subtitle="consistency, they call it" minH={310}>
+          <ChartBox title="Weekly Volume (km)" subtitle="km per week over time" minH={310}>
             <ResponsiveContainer width="100%" height={220}>
-              <RadarChart data={[
-                {d:"Mon",v:0},{d:"Tue",v:0},{d:"Wed",v:0},{d:"Thu",v:0},
-                {d:"Fri",v:0},{d:"Sat",v:0},{d:"Sun",v:0}
-              ]}>
-                <PolarGrid stroke={C.border} />
-                <PolarAngleAxis dataKey="d" tick={tickStyle} />
-                <Radar dataKey="v" stroke={sColor} fill={sColor} fillOpacity={0.25} />
-              </RadarChart>
+              <AreaChart data={wvData}>
+                <CartesianGrid vertical={false} stroke={C.border} />
+                <XAxis dataKey="week" tick={false} axisLine={false} tickLine={false} />
+                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
+                <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
+                <defs>
+                  <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={sColor} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={sColor} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="km" stroke={sColor} strokeWidth={1.5} fill="url(#wg)" name="km/week" dot={false}/>
+              </AreaChart>
             </ResponsiveContainer>
           </ChartBox>
         </div>
       </div>
 
       {/* ROW 1 — Distance Dist | Indoor/Outdoor | Pace Dist */}
-      <div style={{...G.outer, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
-        <ChartBox title="Distance Distribution (km)" subtitle="jack of all distances" minH={331}>
+      <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
+        <ChartBox title="Distance Distribution" subtitle="activity counts by distance" minH={331}>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={runDist} layout="vertical" barSize={12}>
+            <BarChart data={distData} layout="vertical" barSize={14}>
               <CartesianGrid horizontal={false} stroke={C.border} />
               <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} width={44} />
+              <YAxis type="category" dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} width={52} />
               <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
               <Bar dataKey="count" fill={sColor} radius={[0,2,2,0]} name="activities" />
             </BarChart>
           </ResponsiveContainer>
         </ChartBox>
         <ChartBox title="Indoor vs Outdoor" subtitle="rain or shine" minH={331}>
-          {ioData.length>0 ? (
+          {ioData.length>0 && (
             <div style={{height:220,display:"flex",flexDirection:"column",gap:"0.5rem"}}>
-              <ResponsiveContainer width="100%" height={160}>
+              <ResponsiveContainer width="100%" height={155}>
                 <PieChart>
-                  <Pie data={ioData} cx="50%" cy="50%" innerRadius={45} outerRadius={68} dataKey="value" strokeWidth={0} paddingAngle={2}>
+                  <Pie data={ioData} cx="50%" cy="50%" innerRadius={42} outerRadius={65} dataKey="value" strokeWidth={0} paddingAngle={2}>
                     {ioData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
                   </Pie>
                   <Tooltip content={<Tip />} />
                 </PieChart>
               </ResponsiveContainer>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.25rem 0.5rem"}}>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.2rem 0.5rem"}}>
                 {ioData.map(d=>(
                   <div key={d.name} style={{display:"flex",alignItems:"center",gap:4}}>
                     <div style={{width:6,height:6,borderRadius:1,background:d.fill,flexShrink:0}}/>
-                    <span style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.faint}}>{d.name}</span>
-                    <span style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.muted,marginLeft:"auto"}}>{d.value}</span>
+                    <span style={{fontFamily:F.mono,fontSize:"0.45rem",color:C.faint}}>{d.name}</span>
+                    <span style={{fontFamily:F.mono,fontSize:"0.45rem",color:C.muted,marginLeft:"auto"}}>{d.value}</span>
                   </div>
                 ))}
               </div>
             </div>
-          ) : <div style={{height:220}}/>}
+          )}
         </ChartBox>
-        <ChartBox title="Pace Distribution (min/km)" subtitle="a near-perfect bell curve" minH={331}>
+        <ChartBox title="Pace Distribution (min/km)" subtitle="running pace buckets" minH={331}>
           <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={paceDist}>
+            <AreaChart data={paceData}>
               <CartesianGrid vertical={false} stroke={C.border} />
               <XAxis dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} />
               <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={28} />
               <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
               <defs>
                 <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={sColor} stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor={sColor} stopOpacity={0}/>
+                  <stop offset="5%"  stopColor={C.run} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={C.run} stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <Area type="monotone" dataKey="count" stroke={sColor} strokeWidth={1.5} fill="url(#pg)" name="runs" dot={false}/>
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartBox>
-      </div>
-
-      {/* ROW 2 — HR Zones | Weekly Volume */}
-      <div style={{...G.outer, gridTemplateColumns:"1fr 1fr", borderTop:"none"}}>
-        <ChartBox title="Heart Rate Zones" subtitle="~50% easy, the rest is pain" minH={310}>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={hrData} barSize={32}>
-              <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="zone" tick={tickStyle} axisLine={false} tickLine={false} />
-              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
-              <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
-              <Bar dataKey="count" radius={[2,2,0,0]} name="min">
-                {[0,1,2,3,4].map(i=><Cell key={i} fill={hrColors[i]}/>)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <div style={{display:"flex",gap:"0.6rem",flexWrap:"wrap",marginTop:"0.5rem"}}>
-            {["Recovery","Easy","Tempo","Threshold","Max"].map((l,i)=>(
-              <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.48rem",color:C.faint}}>
-                <div style={{width:6,height:6,borderRadius:1,background:hrColors[i]}}/>{l}
-              </div>
-            ))}
-          </div>
-        </ChartBox>
-        <ChartBox title="Weekly Volume (km)" subtitle="km per week over time" minH={310}>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={wvData}>
-              <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="week" tick={false} axisLine={false} tickLine={false} />
-              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
-              <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
-              <defs>
-                <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={sColor} stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor={sColor} stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="km" stroke={sColor} strokeWidth={1.5} fill="url(#wg)" name="km/week" dot={false}/>
+              <Area type="monotone" dataKey="count" stroke={C.run} strokeWidth={1.5} fill="url(#pg)" name="runs" dot={false}/>
             </AreaChart>
           </ResponsiveContainer>
         </ChartBox>
