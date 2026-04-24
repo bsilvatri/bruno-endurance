@@ -563,10 +563,10 @@ function StatsSection({ sportFilter }) {
                 <PolarGrid stroke={C.border} />
                 <PolarAngleAxis dataKey="day" tick={{fontFamily:F.mono,fontSize:8,fill:C.faint}} />
                 {isAll ? <>
-                  <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name="Run avg km" />
-                  <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name="Ride avg km" />
-                  <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name="Swim avg km" />
-                </> : <Radar dataKey="avg" stroke={sColor} fill={sColor} fillOpacity={0.2} dot={false} name="avg km" />}
+                  <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name="Run" unit=" km" />
+                  <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name="Ride" unit=" km" />
+                  <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name="Swim" unit=" km" />
+                </> : <Radar dataKey="avg" stroke={sColor} fill={sColor} fillOpacity={0.2} dot={false} name={sportFilter==="all"?"Avg":"Avg"} unit=" km" />}
                 <Tooltip content={<Tip />} />
               </RadarChart>
             </ResponsiveContainer>
