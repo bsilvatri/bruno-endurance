@@ -184,7 +184,7 @@ const Tip = ({ active, payload, label }) => {
       {label && <div style={{ color: C.faint, marginBottom: 4 }}>{label}</div>}
       {payload.map(p => (
         <div key={p.dataKey} style={{ color: p.color || C.white }}>
-          {p.name || p.dataKey}: <strong>{typeof p.value === "number" ? Math.round(p.value).toLocaleString() : p.value}</strong>{p.unit||""}
+          {p.name || p.dataKey}: <strong>{typeof p.value === "number" ? (Number.isInteger(p.value) ? p.value.toLocaleString() : p.value.toFixed(1)) : p.value}</strong>{p.unit||""}
         </div>
       ))}
     </div>
