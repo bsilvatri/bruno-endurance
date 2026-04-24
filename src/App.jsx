@@ -738,9 +738,12 @@ function StatsSection({ sportFilter }) {
                       <div style={{color:C.faint,marginBottom:4}}>{label}</div>
                       {[["Run",C.run,row.run],["Ride",C.ride,row.ride],["Swim",C.swim,row.swim]].map(([name,color,hrs])=>(
                         <div key={name} style={{color:color}}>
-                          {name}: <strong>{Math.round((hrs||0)/total*100)}%</strong> ({(hrs||0).toFixed(1)}h)
+                          {name}: <strong>{Math.round((hrs||0)/total*100)}%</strong> — {(hrs||0).toFixed(1)}h
                         </div>
                       ))}
+                      <div style={{borderTop:`1px solid ${C.border}`,marginTop:4,paddingTop:4,color:C.ink}}>
+                        Total: <strong>{total.toFixed(1)}h</strong>
+                      </div>
                     </div>
                   );
                 }} cursor={{stroke:C.border}} />
