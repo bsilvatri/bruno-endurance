@@ -475,6 +475,32 @@ function StatsSection({ sportFilter }) {
   });
   const wvData = Object.entries(wkMap).sort(([a],[b])=>a.localeCompare(b)).map(([w,km])=>({week:w,km:Math.round(km)})).filter((_,i)=>i%2===0);
 
+  // Time of day radar — 8 buckets: 00,03,06,09,12,15,18,21
+  const todBuckets = [0,3,6,9,12,15,18,21];
+  const todMap = {};
+  todBuckets.forEach(h => todMap[h<10?'0'+h+':00':h+':00'] = 0);
+  filtered.forEach(a => {
+    if(!a.start_date_local) return;
+    const h = new Date(a.start_date_local).getHours();
+    const bucket = todBuckets.reduce((prev,cur) => Math.abs(cur-h)<Math.abs(prev-h)?cur:prev);
+    const key = bucket<10?'0'+bucket+':00':bucket+':00';
+    todMap[key] = (todMap[key]||0)+1;
+  });
+  const todData = Object.entries(todMap).map(([hour,count])=>({hour,count}));
+
+  // Day of week radar
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dowCount = {}; const dowDist = {};
+  days.forEach(d=>{dowCount[d]=0;dowDist[d]=0;});
+  filtered.forEach(a => {
+    if(!a.start_date_local) return;
+    const d = new Date(a.start_date_local);
+    const day = days[(d.getDay()+6)%7];
+    dowCount[day]++;
+    dowDist[day] += (+a.distance||0)/1000;
+  });
+  const dowData = days.map(d=>({day:d, avg:dowCount[d]>0?Math.round(dowDist[d]/dowCount[d]*10)/10:0}));
+
   const G = { display:"grid", gap:"1px", background:C.border, border:`1px solid ${C.border}` };
   const tickStyle = { fontFamily:F.mono, fontSize:9, fill:C.faint };
 
@@ -509,41 +535,24 @@ function StatsSection({ sportFilter }) {
           )}
         </ChartBox>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1px",background:C.border}}>
-          <ChartBox title="HR Zone Distribution" subtitle="time in each zone" minH={310}>
+          <ChartBox title="Activity by Time of Day" subtitle="peak: early morning" minH={310}>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={hrData} barSize={32}>
-                <CartesianGrid vertical={false} stroke={C.border} />
-                <XAxis dataKey="zone" tick={tickStyle} axisLine={false} tickLine={false} />
-                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
-                <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
-                <Bar dataKey="count" radius={[2,2,0,0]} name="activities">
-                  {hrData.map((_,i)=><Cell key={i} fill={hrColors[i]}/>)}
-                </Bar>
-              </BarChart>
+              <RadarChart data={todData}>
+                <PolarGrid stroke={C.border} />
+                <PolarAngleAxis dataKey="hour" tick={{fontFamily:F.mono,fontSize:8,fill:C.faint}} />
+                <Radar dataKey="count" stroke={sColor} fill={sColor} fillOpacity={0.25} dot={false} />
+                <Tooltip content={<Tip />} />
+              </RadarChart>
             </ResponsiveContainer>
-            <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap",marginTop:"0.5rem"}}>
-              {["Recovery","Easy","Tempo","Threshold","Max"].map((l,i)=>(
-                <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.48rem",color:C.faint}}>
-                  <div style={{width:6,height:6,borderRadius:1,background:hrColors[i]}}/>{l}
-                </div>
-              ))}
-            </div>
           </ChartBox>
-          <ChartBox title="Weekly Volume (km)" subtitle="km per week over time" minH={310}>
+          <ChartBox title="Avg Distance by Day" subtitle="consistency, they call it" minH={310}>
             <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={wvData}>
-                <CartesianGrid vertical={false} stroke={C.border} />
-                <XAxis dataKey="week" tick={false} axisLine={false} tickLine={false} />
-                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
-                <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
-                <defs>
-                  <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor={sColor} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={sColor} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="km" stroke={sColor} strokeWidth={1.5} fill="url(#wg)" name="km/week" dot={false}/>
-              </AreaChart>
+              <RadarChart data={dowData}>
+                <PolarGrid stroke={C.border} />
+                <PolarAngleAxis dataKey="day" tick={{fontFamily:F.mono,fontSize:8,fill:C.faint}} />
+                <Radar dataKey="avg" stroke={sColor} fill={sColor} fillOpacity={0.25} dot={false} />
+                <Tooltip content={<Tip />} />
+              </RadarChart>
             </ResponsiveContainer>
           </ChartBox>
         </div>
@@ -599,6 +608,47 @@ function StatsSection({ sportFilter }) {
                 </linearGradient>
               </defs>
               <Area type="monotone" dataKey="count" stroke={C.run} strokeWidth={1.5} fill="url(#pg)" name="runs" dot={false}/>
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartBox>
+      </div>
+
+      {/* ROW 2 — HR Zones | Weekly Volume */}
+      <div style={{...G, gridTemplateColumns:"1fr 1fr", borderTop:"none"}}>
+        <ChartBox title="Heart Rate Zones" subtitle="~50% easy, the rest is pain" minH={310}>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={hrData} barSize={32}>
+              <CartesianGrid vertical={false} stroke={C.border} />
+              <XAxis dataKey="zone" tick={tickStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
+              <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
+              <Bar dataKey="count" radius={[2,2,0,0]} name="activities">
+                {hrData.map((_,i)=><Cell key={i} fill={hrColors[i]}/>)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap",marginTop:"0.5rem"}}>
+            {["Recovery","Easy","Tempo","Threshold","Max"].map((l,i)=>(
+              <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.48rem",color:C.faint}}>
+                <div style={{width:6,height:6,borderRadius:1,background:hrColors[i]}}/>{l}
+              </div>
+            ))}
+          </div>
+        </ChartBox>
+        <ChartBox title="Weekly Volume (km)" subtitle="km per week over time" minH={310}>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={wvData}>
+              <CartesianGrid vertical={false} stroke={C.border} />
+              <XAxis dataKey="week" tick={false} axisLine={false} tickLine={false} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
+              <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
+              <defs>
+                <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor={sColor} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={sColor} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <Area type="monotone" dataKey="km" stroke={sColor} strokeWidth={1.5} fill="url(#wg)" name="km/week" dot={false}/>
             </AreaChart>
           </ResponsiveContainer>
         </ChartBox>
