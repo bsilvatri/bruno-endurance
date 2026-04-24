@@ -180,7 +180,7 @@ const SubTab = ({ label, active, onClick }) => (
 const Tip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: C.ink, border: "none", borderRadius: 4, padding: "8px 12px", fontFamily: F.mono, fontSize: "0.65rem", color: C.white }}>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "8px 12px", fontFamily: F.mono, fontSize: "0.65rem", color: C.ink }}>
       {label && <div style={{ color: C.faint, marginBottom: 4 }}>{label}</div>}
       {payload.map(p => (
         <div key={p.dataKey} style={{ color: p.color || C.white }}>
