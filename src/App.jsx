@@ -553,10 +553,14 @@ function StatsSection({ sportFilter }) {
           </ChartBox>
           <ChartBox title="Avg Distance by Day" subtitle="consistency, they call it" minH={310}>
             <ResponsiveContainer width="100%" height={220}>
-              <RadarChart data={dowData}>
+              <RadarChart data={isAll?dowMerged:dowData}>
                 <PolarGrid stroke={C.border} />
                 <PolarAngleAxis dataKey="day" tick={{fontFamily:F.mono,fontSize:8,fill:C.faint}} />
-                <Radar dataKey="avg" stroke={sColor} fill={sColor} fillOpacity={0.25} dot={false} />
+                {isAll ? <>
+                  <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name="Run avg km" />
+                  <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name="Ride avg km" />
+                  <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name="Swim avg km" />
+                </> : <Radar dataKey="avg" stroke={sColor} fill={sColor} fillOpacity={0.2} dot={false} name="avg km" />}
                 <Tooltip content={<Tip />} />
               </RadarChart>
             </ResponsiveContainer>
