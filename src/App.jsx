@@ -539,12 +539,19 @@ function StatsSection({ sportFilter }) {
                 {isAll && (
                   <div style={{display:"flex",gap:"0.75rem",justifyContent:"center",marginTop:"0.5rem"}}>
                     {[["Run",C.run],["Ride",C.ride],["Swim",C.swim]].map(([l,c])=>(
-                <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.5rem",color:C.faint}}>
-                  <div style={{width:7,height:7,borderRadius:1,background:c}}/>{l}
+                      <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.5rem",color:C.faint}}>
+                        <div style={{width:7,height:7,borderRadius:1,background:c}}/>{l}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{borderTop:`1px solid ${C.border}`,marginTop:"0.75rem",paddingTop:"0.5rem",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontFamily:F.mono,fontSize:"0.5rem",color:C.faint,textTransform:"uppercase",letterSpacing:"0.1em"}}>Total</span>
+                  <span style={{fontFamily:F.mono,fontSize:"0.75rem",fontWeight:700,color:C.ink}}>{totalKm.toLocaleString()} km</span>
                 </div>
-              ))}
-            </div>
-          )}
+              </>
+            );
+          })()}
         </ChartBox>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1px",background:C.border}}>
           <ChartBox title="Activity by Time of Day" subtitle="peak: early morning" minH={310}>
