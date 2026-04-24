@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-  AreaChart, Area, PieChart, Pie, RadarChart, Radar, PolarGrid,
-  PolarAngleAxis, LineChart, Line, ScatterChart, Scatter, ZAxis
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
 
 /* ─── TOKENS ─── */
 const SB_URL = import.meta.env.VITE_SB_URL;
