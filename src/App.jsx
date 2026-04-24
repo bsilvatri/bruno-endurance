@@ -999,7 +999,7 @@ function ActivityIcon({ type, color }) {
 }
 
 
-function RecentSection({ lang }) {
+function RecentSection({ lang, unitSystem="metric" }) {
   const [period, setPeriod] = useState("thisweek");
   const [acts, setActs] = useState([]);
   const [expanded, setExpanded] = useState(null);
