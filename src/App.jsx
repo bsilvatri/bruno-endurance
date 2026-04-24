@@ -1489,7 +1489,7 @@ export default function App() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", border: `1px solid ${C.border}` }}>
             {[
               { val: acts, label: "ACTIVITIES", sub: restDays !== null ? `${restDays} rest day${restDays !== 1 ? 's' : ''} in ${new Date().getFullYear()}` : null, showInfo: true },
-              { val: km, label: "KILOMETERS", sub: hero ? `${(hero.total_km / 40075).toFixed(2)} laps around the Earth` : null },
+              { val: unitSystem==="imperial" ? Math.round(km*0.621371) : km, label: unitSystem==="imperial" ? "MILES" : "KILOMETERS", sub: hero ? `${(hero.total_km / 40075).toFixed(2)} laps around the Earth` : null },
               { val: hrs, label: "HOURS", sub: hero ? `${(hero.total_hours / 24).toFixed(0)} full days` : null },
               { val: elev, label: "M CLIMBED", sub: hero ? `${(hero.total_elevation / 3500).toFixed(1)} Everests base camp to summit` : null, last: true },
             ].map(({ val, label, sub, last }) => (
