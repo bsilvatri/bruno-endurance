@@ -253,7 +253,6 @@ function NotableSection({ unitSystem="metric" }) {
   const cur = rows[selected];
   const fmtTime = s => { if (!s) return "—"; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : `${m}:${String(sec).padStart(2, "0")}`; };
   const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
-  const fmtDist = m => unitSystem==="imperial" ? `${(m/1609.34).toFixed(1)} mi` : `${(m/1000).toFixed(1)} km`;
   const fmtPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 1000); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`; };
   const fmtSpeed = s => s ? `${(s * 3.6).toFixed(1)} km/h` : "—";
   const fmtSwimPace = (t, d) => { if (!t || !d) return "—"; const s = t / (d / 100); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/100m`; };
@@ -1000,6 +999,7 @@ function ActivityIcon({ type, color }) {
 
 
 function RecentSection({ lang, unitSystem="metric" }) {
+  const fmtDist = m => unitSystem==="imperial" ? `${(m/1609.34).toFixed(1)} mi` : `${(m/1000).toFixed(1)} km`;
   const [period, setPeriod] = useState("thisweek");
   const [acts, setActs] = useState([]);
   const [expanded, setExpanded] = useState(null);
