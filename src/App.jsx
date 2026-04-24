@@ -476,14 +476,18 @@ function StatsSection({ sportFilter }) {
   const wvData = Object.entries(wkMap).sort(([a],[b])=>a.localeCompare(b)).map(([w,km])=>({week:w,km:Math.round(km)})).filter((_,i)=>i%2===0);
 
   // Time of day radar — 24 hours
-  const todMap = {};
-  for(let h=0;h<24;h++) todMap[h<10?'0'+h:String(h)] = 0;
-  filtered.forEach(a => {
-    if(!a.start_date_local) return;
-    const h = a.start_date_local.slice(11,13);
-    todMap[h] = (todMap[h]||0)+1;
-  });
-  const todData = Object.entries(todMap).map(([hour,count])=>({hour,count}));
+  const buildTod = (subset) => {
+    const m = {};
+    for(let h=0;h<24;h++) m[h<10?'0'+h:String(h)] = 0;
+    subset.forEach(a => { if(a.start_date_local) m[a.start_date_local.slice(11,13)] = (m[a.start_date_local.slice(11,13)]||0)+1; });
+    return Object.entries(m).map(([hour,count])=>({hour,count}));
+  };
+  const todData = buildTod(filtered);
+  const todRun  = isAll ? buildTod(acts.filter(a=>isRun(a.sport_type)))  : null;
+  const todRide = isAll ? buildTod(acts.filter(a=>isRide(a.sport_type))) : null;
+  const todSwim = isAll ? buildTod(acts.filter(a=>isSwim(a.sport_type))) : null;
+  // Merge into single array for multi-line
+  const todMerged = isAll ? todData.map((d,i)=>({hour:d.hour, run:todRun[i].count, ride:todRide[i].count, swim:todSwim[i].count})) : todData;
 
   // Day of week radar
   const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -536,10 +540,14 @@ function StatsSection({ sportFilter }) {
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1px",background:C.border}}>
           <ChartBox title="Activity by Time of Day" subtitle="peak: early morning" minH={310}>
             <ResponsiveContainer width="100%" height={220}>
-              <RadarChart data={todData}>
+              <RadarChart data={isAll?todMerged:todData} startAngle={90} endAngle={-270}>
                 <PolarGrid stroke={C.border} />
                 <PolarAngleAxis dataKey="hour" tick={{fontFamily:F.mono,fontSize:8,fill:C.faint}} />
-                <Radar dataKey="count" stroke={sColor} fill={sColor} fillOpacity={0.25} dot={false} />
+                {isAll ? <>
+                  <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name="Run" />
+                  <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name="Ride" />
+                  <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name="Swim" />
+                </> : <Radar dataKey="count" stroke={sColor} fill={sColor} fillOpacity={0.2} dot={false} name="activities" />}
                 <Tooltip content={<Tip />} />
               </RadarChart>
             </ResponsiveContainer>
