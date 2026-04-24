@@ -215,7 +215,7 @@ function NotableTable({ rows, cols, selected, onSelect, sportColor }) {
 }
 
 /* ─── NOTABLE SECTION ─── */
-function NotableSection() {
+function NotableSection({ unitSystem="metric" }) {
   const [sport, setSport] = useState("run");
   const [tab, setTab] = useState("pbs");
   const [rows, setRows] = useState([]);
@@ -1553,7 +1553,7 @@ export default function App() {
         </section>
 
         {/* NOTABLE */}
-        <NotableSection />
+        <NotableSection unitSystem={unitSystem} />
 
         {/* STATS */}
         <section id="stats" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
