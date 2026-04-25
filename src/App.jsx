@@ -1411,3 +1411,614 @@ function ProgressionSection() {
         </div>
       )}
     </section>
+function RecentSection({ lang, unitSystem="metric" }) {
+  const fmtDist = m => unitSystem==="imperial" ? `${(m/1609.34).toFixed(1)} mi` : `${(m/1000).toFixed(1)} km`;
+  const [period, setPeriod] = useState("thisweek");
+  const [acts, setActs] = useState([]);
+  const [expanded, setExpanded] = useState(null);
+  const [showAll, setShowAll] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const getRange = (p) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (p === "thisweek") {
+      const mon = new Date(today); mon.setDate(today.getDate() - ((today.getDay()+6)%7));
+      return { since: mon, until: null };
+    }
+    if (p === "lastweek") {
+      const mon = new Date(today); mon.setDate(today.getDate() - ((today.getDay()+6)%7) - 7);
+      const sun = new Date(mon); sun.setDate(mon.getDate() + 7);
+      return { since: mon, until: sun };
+    }
+    if (p === "thismonth") {
+      return { since: new Date(today.getFullYear(), today.getMonth(), 1), until: null };
+    }
+    if (p === "last60") {
+      const d = new Date(today); d.setDate(d.getDate() - 60);
+      return { since: d, until: null };
+    }
+    if (p === "ytd") {
+      return { since: new Date(today.getFullYear(), 0, 1), until: null };
+    }
+    return { since: new Date(today), until: null };
+  };
+
+  useEffect(() => {
+    setLoading(true); setShowAll(false); setExpanded(null);
+    const { since, until } = getRange(period);
+    let url = `activities?select=id,name,type,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,average_speed,average_watts,map_summary_polyline&start_date_local=gte.${since.toISOString().slice(0,10)}&order=start_date_local.desc&limit=200`;
+    if (until) url += `&start_date_local=lt.${until.toISOString().slice(0,10)}`;
+    q(url).then(d => { setActs(safe(d)); setLoading(false); });
+  }, [period]);
+
+  const fmtTime = s => { if (!s) return "0m"; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`; };
+  const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" }) : "";
+  const typeColor = { Swim: "#3a7ca8", Ride: "#b85a3a", VirtualRide: "#b85a3a", Run: C.green, Workout: "#9a8070", WeightTraining: "#b85a7a", AlpineSki: "#6ab" };
+  const typeIcon = { Swim: "~", Ride: "⊙", VirtualRide: "⊙", Run: "↗", Workout: "◈", WeightTraining: "◈", AlpineSki: "❄" };
+  const typeLabel = { Swim:"Swim", Ride:"Ride", VirtualRide:"Virtual Ride", Run:"Run", Workout:"Workout", WeightTraining:"Weights", AlpineSki:"Ski" };
+
+  const totalTime = acts.reduce((s,a) => s+(a.moving_time||0), 0);
+  const totalDist = acts.reduce((s,a) => s+(a.distance||0), 0) / 1000;
+
+  // Build donut data grouped by sport category
+  const byType = {};
+  acts.forEach(a => {
+    const t = a.type || "Other";
+    if(!byType[t]) byType[t] = { time:0, dist:0, count:0 };
+    byType[t].time += a.moving_time||0;
+    byType[t].dist += a.distance||0;
+    byType[t].count++;
+  });
+  const donutData = Object.entries(byType)
+    .map(([type, v]) => ({ label: typeLabel[type]||type, value: v.time, dist: v.dist, count: v.count, color: typeColor[type]||C.faint }))
+    .sort((a,b) => b.value - a.value);
+
+  const shown = showAll ? acts : acts.slice(0, 8);
+  const periodLabels = { thisweek:"THIS WEEK", lastweek:"LAST WEEK", thismonth:"THIS MONTH", last60:"LAST 60 DAYS", ytd:"YEAR TO DATE" };
+
+  return (
+    <section id="recent" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
+      <Divider />
+      <SectionNum n={6} />
+      <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 1.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>RECENT ACTIVITIES</h2>
+      <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>stalk me if you must.</div>
+
+      <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap", alignItems:"center" }}>
+        {Object.entries(periodLabels).map(([key,lbl]) => (
+          <SubTab key={key} label={lbl} active={period===key} onClick={()=>setPeriod(key)} />
+        ))}
+        {!loading && <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint, marginLeft:"0.5rem" }}>{acts.length} activities</span>}
+      </div>
+
+      {loading ? <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div> : (
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 220px", gap:"2rem", alignItems:"start" }}>
+          <div>
+            <div style={{ borderTop:`1px solid ${C.border}` }}>
+              {shown.map(act => {
+                const isExp = expanded === act.id;
+                const tc = typeColor[act.type] || C.muted;
+                const ic = typeIcon[act.type] || "·";
+                return (
+                  <div key={act.id}>
+                    <div onClick={()=>setExpanded(isExp?null:act.id)} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.8rem 0", borderBottom:`1px solid ${C.border}`, cursor:"pointer" }}>
+                      <ActivityIcon type={act.type} color={tc} />
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:400, color:C.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{act.name}</div>
+                        <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint }}>{fmtDate(act.start_date_local)}</div>
+                      </div>
+                      <div style={{ display:"flex", gap:"1rem", alignItems:"center", flexShrink:0 }}>
+                        {act.distance > 0 && <span style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:500, color:C.ink, fontFamily:F.mono }}>{fmtDist(act.distance)}</span>}
+                        <span style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.muted }}>{fmtTime(act.moving_time)}</span>
+                        <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:isExp?C.green:C.faint }}>{isExp?"▲":"▼"}</span>
+                      </div>
+                    </div>
+                    {isExp && (
+                      <div style={{ borderBottom:`1px solid ${C.border}`, background:C.surface, padding:"1rem" }}>
+                        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1rem" }}>
+                          <ActivityMap polyline={act.map_summary_polyline} type={act.type} height={200} />
+                          <div>
+                            <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"0.75rem" }}>{fmtDate(act.start_date_local)}</div>
+                            {[
+                              act.distance>0 && { l:"Distance", v:fmtDist(act.distance) },
+                              { l:"Time", v:fmtTime(act.moving_time) },
+                              act.total_elevation_gain && { l:"Elevation", v:unitSystem==="imperial" ? `${Math.round((act.total_elevation_gain||0)*3.28084)} ft` : `${Math.round(act.total_elevation_gain||0)} m` },
+                              act.average_heartrate && { l:"Avg HR", v:`${Math.round(act.average_heartrate)} bpm` },
+                              act.average_watts && { l:"Avg Power", v:`${Math.round(act.average_watts)} W` },
+                            ].filter(Boolean).map(({l,v}) => (
+                              <div key={l} style={{ display:"flex", justifyContent:"space-between", padding:"0.35rem 0", borderBottom:`1px solid ${C.border}`, fontFamily:F.mono, fontSize:"0.72rem" }}>
+                                <span style={{ color:C.faint }}>{l}</span><span style={{ color:C.ink, fontWeight:600 }}>{v}</span>
+                              </div>
+                            ))}
+                            <a href={`https://www.strava.com/activities/${act.id}`} target="_blank" rel="noopener noreferrer" style={{ display:"block", marginTop:"0.75rem", fontFamily:F.mono, fontSize:"0.58rem", color:C.green, textDecoration:"none", letterSpacing:"0.08em" }}>VIEW ON STRAVA →</a>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {acts.length > 8 && (
+              <button onClick={()=>setShowAll(v=>!v)} style={{ width:"100%", marginTop:"0.5rem", padding:"0.75rem", background:"transparent", border:`1px solid ${C.border}`, borderRadius:2, cursor:"pointer", fontFamily:F.mono, fontSize:"0.6rem", letterSpacing:"0.1em", textTransform:"uppercase", color:C.muted }}>
+                {showAll ? "SHOW LESS ▲" : `SHOW ALL ${acts.length} ACTIVITIES ▼`}
+              </button>
+            )}
+          </div>
+
+          {/* RIGHT PANEL */}
+          <div style={{ position:"sticky", top:65 }}>
+            <div style={{ marginBottom:"1rem" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", fontFamily:F.mono, fontSize:"0.6rem", marginBottom:"0.3rem" }}>
+                <span style={{ color:C.faint, textTransform:"uppercase", letterSpacing:"0.1em" }}>Total Time</span>
+                <span style={{ color:C.ink, fontWeight:600 }}>{fmtTime(totalTime)}</span>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", fontFamily:F.mono, fontSize:"0.6rem" }}>
+                <span style={{ color:C.faint, textTransform:"uppercase", letterSpacing:"0.1em" }}>Total Distance</span>
+                <span style={{ color:C.ink, fontWeight:600 }}>{unitSystem==="imperial" ? (totalDist*0.621371).toFixed(1) : totalDist.toFixed(1)} {unitSystem==="imperial"?"mi":"km"}</span>
+              </div>
+            </div>
+
+            {donutData.length > 0 && (
+              <>
+                <div style={{ fontFamily:F.mono, fontSize:"0.55rem", letterSpacing:"0.12em", textTransform:"uppercase", color:C.faint, marginBottom:"0.75rem" }}>Time Breakdown</div>
+                <DonutChart data={donutData} size={180} />
+                <div style={{ marginTop:"1rem" }}>
+                  {donutData.map(d => {
+                    const pct = totalTime ? Math.round(d.value/totalTime*100) : 0;
+                    return (
+                      <div key={d.label} style={{ display:"grid", gridTemplateColumns:"8px 1fr 30px 52px 42px", alignItems:"center", gap:"0.4rem", marginBottom:"0.4rem" }}>
+                        <div style={{ width:7, height:7, borderRadius:"50%", background:d.color, opacity:0.75 }} />
+                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{d.label}</span>
+                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.ink, textAlign:"right" }}>{pct}%</span>
+                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{fmtTime(d.value)}</span>
+                        <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{d.dist>0 ? unitSystem==="imperial" ? (d.dist/1609.34).toFixed(1)+'mi' : (d.dist/1000).toFixed(1)+'km' : '—'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+
+/* ─── PROGRESSION ─── */
+function ProgressionSection() {
+  const YEARS = ["All time","Last 365","2026","2025","2024","2023","2022","2021","2020","2019"];
+  const [period, setPeriod] = useState("Last 365");
+  const [actDays, setActDays] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    async function fetchAll() {
+      const map = {};
+      let offset = 0;
+      const pageSize = 1000;
+      while(true) {
+        const res = await fetch(
+          `${SB_URL}/rest/v1/activities?select=start_date_local,moving_time&order=start_date_local.asc&limit=${pageSize}&offset=${offset}`,
+          { headers: SBH }
+        ).then(r => r.json());
+        if(!Array.isArray(res) || res.length === 0) break;
+        res.forEach(a => {
+          const utcDate = new Date(a.start_date_local);
+          const localDate = new Date(utcDate.getTime() - 3 * 60 * 60 * 1000);
+          const day = localDate.toISOString().slice(0, 10);
+          if(!map[day]) map[day] = 0;
+          map[day] += a.moving_time || 0;
+        });
+        if(res.length < pageSize) break;
+        offset += pageSize;
+      }
+      setActDays(map);
+      setLoading(false);
+    }
+    fetchAll();
+  }, []);
+
+  const ALL_YEARS = ["2026","2025","2024","2023","2022","2021","2020","2019"];
+
+  const getRange = (yr) => {
+    const today = new Date();
+    if(yr === "Last 365") {
+      const s = new Date(today); s.setDate(s.getDate() - 364);
+      return { start: s, end: today };
+    }
+    const y = parseInt(yr);
+    return { start: new Date(y, 0, 1), end: y === today.getFullYear() ? today : new Date(y, 11, 31) };
+  };
+
+  const buildWeeks = (rangeStart, rangeEnd) => {
+    const startMonday = new Date(rangeStart);
+    startMonday.setDate(startMonday.getDate() - ((startMonday.getDay()+6)%7));
+    const weeks = [];
+    let cur = new Date(startMonday);
+    while(cur <= rangeEnd) {
+      const week = [];
+      for(let i=0;i<7;i++) {
+        const d = new Date(cur);
+        const str = d.toISOString().slice(0,10);
+        const inRange = d >= rangeStart && d <= rangeEnd;
+        week.push({ date: str, mins: inRange ? Math.round((actDays[str]||0)/60) : -1 });
+        cur.setDate(cur.getDate()+1);
+      }
+      weeks.push(week);
+    }
+    return weeks;
+  };
+
+  const getColor = (mins, maxMins) => {
+    if(mins < 0) return 'transparent';
+    if(mins === 0) return C.border;
+    const m = maxMins || 150;
+    if(mins < m * 0.25) return '#c6dfc9';
+    if(mins < m * 0.5) return '#8cbf92';
+    if(mins < m * 0.75) return '#4a9a5c';
+    return C.green;
+  };
+
+  // Global max for All time view
+  const globalMax = period === "All time"
+    ? Math.max(...Object.values(actDays).map(s => Math.round(s/60)), 1)
+    : 150;
+
+  const getStats = (rangeStart, rangeEnd) => {
+    const s = rangeStart.toISOString().slice(0,10);
+    const e = rangeEnd.toISOString().slice(0,10);
+    const totalDays = Math.round((rangeEnd - rangeStart) / 86400000) + 1;
+    const activeDays = Object.keys(actDays).filter(d => d >= s && d <= e).length;
+    const restDays = totalDays - activeDays;
+    const pct = Math.round(activeDays / totalDays * 100);
+    return { totalDays, activeDays, restDays, pct };
+  };
+
+  const Heatmap = ({ rangeStart, rangeEnd, label, maxMins }) => {
+    const weeks = buildWeeks(rangeStart, rangeEnd);
+    const { totalDays, activeDays, restDays, pct } = getStats(rangeStart, rangeEnd);
+    const monthLabels = [];
+    let lastMonth = -1;
+    weeks.forEach((week, wi) => {
+      const m = new Date(week[0].date).getMonth();
+      if(m !== lastMonth) { monthLabels[wi] = new Date(week[0].date).toLocaleString('en',{month:'short'}); lastMonth = m; }
+      else monthLabels[wi] = '';
+    });
+    return (
+      <div style={{ marginBottom:"1.5rem" }}>
+        <div style={{ display:"flex", alignItems:"flex-start", gap:"1rem" }}>
+          {/* Heatmap */}
+          <div style={{ overflowX:"auto", flex:1 }}>
+            <div style={{ display:"inline-flex", flexDirection:"column" }}>
+              <div style={{ display:"flex", gap:3, marginBottom:4, marginLeft:18 }}>
+                {weeks.map((_, wi) => (
+                  <div key={wi} style={{ width:9, flexShrink:0, fontFamily:F.mono, fontSize:"0.38rem", color:C.faint, textTransform:"uppercase", overflow:"hidden" }}>
+                    {monthLabels[wi]||''}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display:"flex", gap:3 }}>
+                <div style={{ display:"grid", gridTemplateRows:"repeat(7,9px)", gap:1, marginRight:2 }}>
+                  {['M','','W','','F','',''].map((lbl,i) => (
+                    <div key={i} style={{ height:9, fontFamily:F.mono, fontSize:"0.38rem", color:C.faint, display:"flex", alignItems:"center" }}>{lbl}</div>
+                  ))}
+                </div>
+                {weeks.map((week, wi) => (
+                  <div key={wi} style={{ display:"grid", gridTemplateRows:"repeat(7,9px)", gap:1 }}>
+                    {week.map((day, di) => (
+                      <div key={di}
+                        onMouseEnter={e => { if(day.mins>=0) { const r=e.target.getBoundingClientRect(); document.getElementById('heat-tip').style.display='block'; document.getElementById('heat-tip').style.left=(r.left+16)+'px'; document.getElementById('heat-tip').style.top=(r.top-28)+'px'; document.getElementById('heat-tip').textContent=day.mins>0?`${day.date}: ${String(Math.floor(day.mins/60)).padStart(2,"0")}:${String(day.mins%60).padStart(2,"0")}`:`${day.date}: rest`; }}}
+                        onMouseLeave={() => { document.getElementById('heat-tip').style.display='none'; }}
+                        style={{ width:9, height:9, borderRadius:1, background:getColor(day.mins, maxMins), cursor:day.mins>0?'pointer':'default' }}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Stats */}
+          <div style={{ flexShrink:0, textAlign:"right", paddingTop:"1rem" }}>
+            <div style={{ fontFamily:F.mono, fontSize:"0.85rem", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600, color:C.green, lineHeight:1 }}>{pct}%</div>
+            <div style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.faint, marginTop:"0.2rem" }}>{activeDays}/{totalDays}</div>
+            <div style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.faint }}>{restDays} rest</div>
+          </div>
+        </div>
+        
+      </div>
+    );
+  };
+
+  const singleYears = period !== "All time" ? [period === "Last 365" ? "Last 365" : period] : null;
+  const yearsToShow = period === "All time" ? ALL_YEARS : [period];
+
+  return (
+    <section id="progression" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
+      <Divider />
+      <SectionNum n={4} />
+      <h2 style={{ fontFamily:F.heading, fontSize:"clamp(2rem,5vw,3.5rem)", fontWeight:800, color:C.ink, margin:"0 0 0.5rem", lineHeight:0.9, letterSpacing:"-1px" }}>
+        PROGRESSION
+      </h2>
+      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>i take rest days, but not by choice.</div>
+      <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap" }}>
+        {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
+      </div>
+      <div id="heat-tip" style={{ position:"fixed", display:"none", background:"rgba(20,20,20,0.92)", color:"#fff", padding:"4px 10px", fontFamily:"monospace", fontSize:"0.62rem", borderRadius:3, pointerEvents:"none", zIndex:9999, border:"1px solid rgba(255,255,255,0.15)" }} />
+      {loading ? (
+        <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div>
+      ) : (
+        <div>
+          {yearsToShow.map(yr => {
+            const { start, end } = getRange(yr);
+            return (
+              <div key={yr} style={{ display:"flex", alignItems:"flex-start", gap:"0.75rem" }}>
+                {period === "All time" && (
+                  <div style={{ fontFamily:F.mono, fontSize:"0.85rem", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600, color:C.ink, width:44, textAlign:"right", flexShrink:0, alignSelf:"center" }}>{yr}</div>
+                )}
+                <div style={{ flex:1 }}>
+                  <Heatmap rangeStart={start} rangeEnd={end} label={yr} maxMins={globalMax} />
+                </div>
+              </div>
+            );
+          })}
+          {period !== "All time" && (() => {
+            const { start, end } = getRange(period);
+            const { totalDays, activeDays, restDays } = getStats(start, end);
+            return (
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:"0.75rem" }}>
+                <div style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>
+                  <span style={{ fontFamily:F.mono, fontSize:"0.85rem", letterSpacing:"0.1em", fontWeight:600, color:C.ink, textTransform:"uppercase" }}>{restDays}</span>
+                  {' '}<span style={{ color:C.faint }}>rest days / {totalDays} total</span>
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:4, fontFamily:F.mono, fontSize:"0.52rem", color:C.faint }}>
+                  <span>Less</span>
+                  {[C.border,'#c6dfc9','#8cbf92','#4a9a5c',C.green].map((c,i)=>(
+                    <div key={i} style={{ width:13, height:13, borderRadius:2, background:c }} />
+                  ))}
+                  <span>More</span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+    </section>
+  );
+}
+
+
+/* ─── ACTIVITY INFO ICON ─── */
+function ActivityInfoIcon() {
+  const [open, setOpen] = useState(false);
+  const [counts, setCounts] = useState(null);
+  useEffect(() => {
+    if (!open || counts) return;
+    const H = {apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'count=exact'};
+    const types = ['Run','Ride','VirtualRide','Swim','Workout','WeightTraining','AlpineSki','Walk','Hike','Yoga'];
+    Promise.all(types.map(t =>
+      fetch(`${SB_URL}/rest/v1/activities?select=count&type=eq.${t}`, {headers:H})
+      .then(r=>({type:t, count:parseInt(r.headers.get('content-range')?.split('/')[1]||'0')}))
+    )).then(results => setCounts(results.filter(r=>r.count>0).sort((a,b)=>b.count-a.count)));
+  }, [open]);
+  const typeLabel = {Run:'Run',Ride:'Ride',VirtualRide:'Virtual Ride',Swim:'Swim',Workout:'Workout',WeightTraining:'Weights',AlpineSki:'Alpine Ski',Walk:'Walk',Hike:'Hike',Yoga:'Yoga'};
+  return (
+    <div style={{position:"relative",display:"inline-flex",alignItems:"center"}}>
+      <span onClick={e=>{e.stopPropagation();setOpen(v=>!v);}} style={{cursor:"pointer",color:C.faint,fontSize:"0.65rem",lineHeight:1,userSelect:"none",marginLeft:2}}>ⓘ</span>
+      {open && <>
+        <div onClick={()=>setOpen(false)} style={{position:"fixed",inset:0,zIndex:99}} />
+        <div style={{position:"absolute",bottom:"calc(100% + 8px)",left:"50%",transform:"translateX(-50%)",zIndex:100,background:C.bg,border:`1px solid ${C.border}`,borderRadius:4,padding:"10px 14px",minWidth:180,boxShadow:"0 4px 20px rgba(0,0,0,0.08)"}}>
+          <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.15em",color:C.faint,marginBottom:"6px",textTransform:"uppercase"}}>By activity type</div>
+          {counts ? counts.map(({type,count})=>(
+            <div key={type} style={{display:"flex",justifyContent:"space-between",gap:"2rem",fontFamily:F.mono,fontSize:"0.6rem",padding:"2px 0",borderBottom:`1px solid ${C.border}`}}>
+              <span style={{color:C.muted}}>{typeLabel[type]||type}</span>
+              <span style={{fontWeight:600,color:C.ink}}>{count.toLocaleString()}</span>
+            </div>
+          )) : <div style={{fontFamily:F.mono,fontSize:"0.6rem",color:C.faint}}>loading...</div>}
+        </div>
+      </>}
+    </div>
+  );
+}
+
+/* ─── MAIN APP ─── */
+export default function App() {
+  const [hero, setHero] = useState(null);
+  const [sports, setSports] = useState(null);
+  const [lastSync, setLastSync] = useState(null);
+  const [restDays, setRestDays] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  const [sportFilter, setSportFilter] = useState("all");
+  const [statsTab, setStatsTab] = useState("all");
+  const [unitSystem, setUnitSystem] = useState("metric");
+  const NAV_IDS = ["about", "notable", "stats", "progression", "geography", "recent"];
+  const [active, setActive] = useScrollSpy(NAV_IDS);
+
+  const acts = useCountUp(hero?.total_activities || 0);
+  const km = useCountUp(hero?.total_km || 0);
+  const hrs = useCountUp(hero?.total_hours || 0);
+  const elev = useCountUp(hero?.total_elevation || 0);
+
+  useEffect(() => {
+    setMounted(true);
+    Promise.all([rpc("get_hero_stats"), rpc("get_sport_totals")]).then(([h, s]) => {
+      setHero(h); setSports(s);
+    });
+    fetch(`${SB_URL}/rest/v1/activities?select=start_date_local&order=start_date_local.desc&limit=1`, { headers: SBH })
+      .then(r => r.json()).then(d => { if (d[0]?.start_date_local) setLastSync(new Date(d[0].start_date_local)); });
+    // Calculate rest days for current year
+    const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString().slice(0,10);
+    const yearEnd = new Date(new Date().getFullYear() + 1, 0, 1).toISOString().slice(0,10);
+    fetch(`${SB_URL}/rest/v1/activities?select=start_date_local&start_date_local=gte.${yearStart}&start_date_local=lt.${yearEnd}`, { headers: SBH })
+      .then(r => r.json()).then(acts => {
+        const activeDays = new Set(acts.map(a => a.start_date_local?.slice(0,10))).size;
+        const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 1)) / 86400000) + 1;
+        setRestDays(dayOfYear - activeDays);
+      });
+  }, []);
+
+  const fmtSync = d => {
+    const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  };
+
+  const goto = id => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); setActive(id); };
+
+  const statColors = { all: C.green, run: C.run, ride: C.ride, swim: C.swim };
+
+  return (
+    <div style={{ background: C.bg, color: C.ink, fontFamily: F.body, fontSize: 14, minHeight: "100vh" }}>
+      {/* NAV */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(237,232,220,0.92)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2rem", height: 50 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <span style={{ fontFamily: F.heading, fontSize: "0.9rem", fontWeight: 800, color: C.green, letterSpacing: "0.02em" }}>BRUNO S.</span>
+          {lastSync && <span style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint }}>· synced {fmtSync(lastSync)}</span>}
+        </div>
+        <div style={{ display: "flex", gap: "2rem" }}>
+          {NAV_IDS.map(id => (
+            <button key={id} onClick={() => goto(id)} style={{ background: "none", border: "none", borderBottom: `1.5px solid ${active === id ? C.green : "transparent"}`, padding: "4px 0", cursor: "pointer", fontFamily: F.mono, fontSize: "0.58rem", letterSpacing: "0.15em", textTransform: "uppercase", color: active === id ? C.green : C.muted, transition: "all 0.15s" }}>
+              {id.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 2rem" }}>
+
+        {/* HERO */}
+        <section style={{ padding: "5rem 0 3rem", textAlign: "center" }}>
+          <h1 style={{ fontFamily: F.heading, fontSize: "clamp(5rem,15vw,10rem)", fontWeight: 800, color: C.green, lineHeight: 1, letterSpacing: "0", margin: "0 0 1rem" }}>
+            修行
+          </h1>
+          <div style={{ fontFamily: F.body, fontSize: "0.9rem", color: C.muted, lineHeight: 1.8, marginBottom: "2.5rem", maxWidth: "520px", margin: "0 auto 2.5rem", textAlign: "center", fontStyle: "italic" }}>
+            <em>Shugyō</em> — the quiet discipline of giving yourself to the process so completely that repetition becomes transformation
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", border: `1px solid ${C.border}` }}>
+            {[
+              { val: acts, label: "ACTIVITIES", sub: restDays !== null ? `${restDays} rest day${restDays !== 1 ? 's' : ''} in ${new Date().getFullYear()}` : null, showInfo: true },
+              { val: unitSystem==="imperial" ? Math.round(km*0.621371) : km, label: unitSystem==="imperial" ? "MILES" : "KILOMETERS", sub: hero ? `${(hero.total_km / 40075).toFixed(2)} laps around the Earth` : null },
+              { val: hrs, label: "HOURS", sub: hero ? `${(hero.total_hours / 24).toFixed(0)} full days` : null },
+              { val: unitSystem==="imperial" ? Math.round(elev*3.28084) : elev, label: unitSystem==="imperial" ? "FT CLIMBED" : "M CLIMBED", sub: hero ? `${(hero.total_elevation / 3500).toFixed(1)} Everests base camp to summit` : null, last: true },
+            ].map(({ val, label, sub, last }) => (
+              <div key={label} style={{ padding: "1.25rem 1rem", textAlign: "center", borderRight: last ? "none" : `1px solid ${C.border}` }}>
+                <div style={{ fontFamily: F.mono, fontSize: "clamp(1.6rem,2.5vw,2.2rem)", fontWeight: 800, color: C.green, letterSpacing: "-1px", lineHeight: 1 }}>
+                  {val.toLocaleString()}
+                </div>
+                <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.15em", color: C.muted, margin: "0.35rem 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+                    {label}
+                    {label === "ACTIVITIES" && <ActivityInfoIcon />}
+                  </div>
+                {sub && <div style={{ fontFamily: F.body, fontSize: "0.65rem", color: C.faint, lineHeight: 1.4 }}>{sub}</div>}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* FOREWORD */}
+        <section id="about" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
+          <Divider />
+          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+            <h2 style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, letterSpacing: "0.2em", color: C.green, margin: 0 }}>FOREWORD</h2>
+          </div>
+          <div style={{ maxWidth: 480, margin: "0 auto" }}>
+            {[
+              "Like many, endurance sports entered my life when I hit rock bottom. I was depressed, drinking, partying, and had just walked away from the most toxic relationship I'd ever been in. What started as a personal challenge quickly became a lifestyle — one that has reshaped my life, inside and out.",
+              "Triathlon brought discipline, self-discovery, self-respect, and a clear mind. It gave me consistency, and an unshakable, insatiable desire to evolve — in sport and in life.",
+              "I'm a numbers guy, always have been. I like keeping track of my accomplishments as a daily reminder of where I came from, where I am, and what I'm still capable of.",
+            ].map((p, i) => (
+              <p key={i} style={{ fontFamily: F.body, fontSize: "0.9rem", lineHeight: 1.8, color: C.dim, marginBottom: "1.2rem", fontWeight: 400 }}>{p}</p>
+            ))}
+            <p style={{ fontFamily: F.body, fontSize: "0.875rem", lineHeight: 1.8, color: C.green, fontStyle: "italic", marginBottom: "2rem", fontWeight: 500 }}>
+              This is the never-ending search for my own limits.
+            </p>
+          </div>
+          <Divider />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, color: C.ink, marginBottom: "0.3rem" }}>Bruno Silva</div>
+              <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, letterSpacing: "0.12em" }}>From Tokyo — and all over the world — to Rio de Janeiro</div>
+            </div>
+            <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint }}>2026</div>
+          </div>
+          {sports && (
+            <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1rem" }}>
+              {[
+                { l: "SWIM", c: sports.swim?.count, km: sports.swim?.km, h: sports.swim?.hours, col: C.swim },
+                { l: "RIDE", c: sports.ride?.count, km: sports.ride?.km, h: sports.ride?.hours, col: C.ride },
+                { l: "RUN", c: sports.run?.count, km: sports.run?.km, h: sports.run?.hours, col: C.run },
+              ].map(s => (
+                <div key={s.l} style={{ borderTop: `2px solid ${s.col}`, paddingTop: "0.75rem" }}>
+                  <div style={{ fontFamily: F.mono, fontSize: "0.55rem", letterSpacing: "0.15em", color: s.col, marginBottom: "0.3rem" }}>{s.l}</div>
+                  <div style={{ fontFamily: F.mono, fontSize: "2rem", fontWeight: 800, color: C.ink }}>{(s.c || 0).toLocaleString()}</div>
+                  <div style={{ fontFamily: F.mono, fontSize: "0.6rem", color: C.faint }}>
+                    {unitSystem==="imperial" ? Math.round((s.km||0)*0.621371).toLocaleString() : Math.round(s.km||0).toLocaleString()} {unitSystem==="imperial"?"mi":"km"} · {Math.round(s.h||0)}h
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* NOTABLE */}
+        <NotableSection unitSystem={unitSystem} />
+
+        {/* STATS */}
+        <section id="stats" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
+          <Divider />
+          <SectionNum n={3} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
+            <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: 0, lineHeight: 0.9, letterSpacing: "-1px" }}>
+              Statistics <span style={{ color: statColors[statsTab] }}>{statsTab.charAt(0).toUpperCase() + statsTab.slice(1)}</span>
+            </h2>
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+              {["all", "run", "ride", "swim"].map(s => (
+                <SubTab key={s} label={s.toUpperCase()} active={statsTab === s} onClick={() => setStatsTab(s)} />
+              ))}
+            </div>
+          </div>
+          <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>measured, not guessed.</div>
+          
+          <StatsSection sportFilter={statsTab} unitSystem={unitSystem} />
+        </section>
+
+        {/* PROGRESSION */}
+        <ProgressionSection />
+
+        {/* GEOGRAPHY */}
+        <section id="geography" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
+          <Divider />
+          <SectionNum n={5} />
+          <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 0.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>
+            GEOGRAPHY
+          </h2>
+          <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>i get around.</div>
+          <GeoSection />
+        </section>
+
+        {/* RECENT */}
+        <RecentSection unitSystem={unitSystem} />
+
+        <footer style={{ borderTop: `1px solid ${C.border}`, padding: "2rem 0", fontFamily: F.mono, fontSize: "0.55rem", color: C.faint, display: "flex", justifyContent: "space-between" }}>
+          <span>Data synced live from Strava. Not affiliated with Strava, Inc.</span>
+          <span>Built by Bruno Silva © 2026</span>
+        </footer>
+      </div>
+
+      {/* Floating unit toggle */}
+      <div style={{ position:"fixed", bottom:"1.5rem", right:"1.5rem", zIndex:1000, display:"flex", gap:0, boxShadow:"0 2px 12px rgba(0,0,0,0.12)", borderRadius:4, overflow:"hidden", border:`1px solid ${C.border}` }}>
+        {["metric","imperial"].map(u=>(
+          <button key={u} onClick={()=>setUnitSystem(u)} style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.1em", textTransform:"uppercase", padding:"6px 10px", background:unitSystem===u?C.ink:C.surface, color:unitSystem===u?"#fff":C.faint, border:"none", cursor:"pointer", transition:"all 0.15s" }}>{u==="metric"?"km":"mi"}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Thu Apr 23 11:48:56 -03 2026
+// bust
