@@ -1411,7 +1411,9 @@ function ProgressionSection() {
         </div>
       )}
     </section>
+  );
 }
+
 
 function RecentSection({ lang, unitSystem="metric" }) {
   const fmtDist = m => unitSystem==="imperial" ? `${(m/1609.34).toFixed(1)} mi` : `${(m/1000).toFixed(1)} km`;
