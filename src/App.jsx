@@ -220,6 +220,8 @@ function NotableSection({ unitSystem="metric" }) {
   const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [prs, setPrs] = useState([]);
+  useEffect(() => { q("best_efforts?select=sport,distance_label,elapsed_time&order=elapsed_time.asc").then(d => setPrs(Array.isArray(d) ? d : [])); }, []);
 
   const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
   const sportType = sport === "run" ? "Run" : sport === "ride" ? "Ride,VirtualRide" : "Swim";
@@ -245,7 +247,7 @@ function NotableSection({ unitSystem="metric" }) {
   }, [sport, tab]);
 
   useEffect(() => {
-    if (sport === "ride" || sport === "swim") setTab("longest");
+    if (sport === "swim") setTab("longest");
     else setTab("pbs");
   }, [sport]);
 
@@ -291,6 +293,7 @@ function NotableSection({ unitSystem="metric" }) {
       <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", marginBottom: "0.5rem" }}>
         {sport === "run" && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
         <SubTab label="LONGEST" active={tab === "longest"} onClick={() => setTab("longest")} />
+        {(sport === "run" || sport === "ride") && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
         {sport !== "swim" && <SubTab label="ELEVATION GAIN" active={tab === "elevation"} onClick={() => setTab("elevation")} />}
       </div>
 
@@ -300,9 +303,28 @@ function NotableSection({ unitSystem="metric" }) {
 
       {loading ? <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint, padding: "3rem 0" }}>loading...</div> : (
         <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 280px", gap: "0", border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden", background: C.surface }}>
-          <div style={{ borderRight: `1px solid ${C.border}` }}>
-            <NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} />
-          </div>
+          {tab === "pbs" ? (
+            <div style={{ padding: "1.25rem", flex: 1 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "1px", background: C.border, border: "1px solid " + C.border }}>
+                <div style={{ background: C.surface, padding: "0.5rem 1rem", fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint }}>DISTANCE</div>
+                <div style={{ background: C.surface, padding: "0.5rem 1rem", fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint, textAlign: "right" }}>TIME</div>
+                {prs.filter(p => p.sport === sport).map((pr, i) => {
+                  const s = pr.elapsed_time, h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = String(s%60).padStart(2,"0");
+                  const time = h > 0 ? h+":"+String(m).padStart(2,"0")+":"+sec : m+":"+sec;
+                  return (
+                    <React.Fragment key={i}>
+                      <div style={{ background: i%2===0?C.bg:C.surface, padding: "0.6rem 1rem", fontFamily: F.mono, fontSize: "0.65rem", color: C.muted }}>{pr.distance_label}</div>
+                      <div style={{ background: i%2===0?C.bg:C.surface, padding: "0.6rem 1rem", fontFamily: F.mono, fontSize: "0.75rem", fontWeight: 700, color: sportColor, textAlign: "right" }}>{time}</div>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div style={{ borderRight: "1px solid " + C.border }}>
+              <NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} />
+            </div>
+          )}
           <div>
             <ActivityMap polyline={cur?.map_summary_polyline} type={sport === "run" ? "Run" : sport === "ride" ? "Ride" : "Swim"} height={380} />
           </div>
