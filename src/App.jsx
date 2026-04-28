@@ -1504,16 +1504,16 @@ export default function App() {
   const applyLang = (l) => {
     setLang(l.code);
     setShowLangMenu(false);
+    // Use Google Translate cookie method - most reliable approach
     if (l.gt === "en") {
-      // Reset to English
-      const frame = document.querySelector(".goog-te-banner-frame");
-      if (frame) { const btn = frame.contentDocument?.querySelector(".goog-te-button button"); if(btn) btn.click(); }
-      const sel = document.querySelector("select.goog-te-combo");
-      if (sel) { sel.value = "en"; sel.dispatchEvent(new Event("change")); }
+      // Remove translate cookie to restore English
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.hostname;
     } else {
-      const sel = document.querySelector("select.goog-te-combo");
-      if (sel) { sel.value = l.gt; sel.dispatchEvent(new Event("change")); }
+      document.cookie = "googtrans=/en/" + l.gt + "; path=/";
+      document.cookie = "googtrans=/en/" + l.gt + "; path=/; domain=" + location.hostname;
     }
+    window.location.reload();
   };
   const NAV_IDS = ["about", "notable", "stats", "progression", "geography", "recent"];
   const [active, setActive] = useScrollSpy(NAV_IDS);
