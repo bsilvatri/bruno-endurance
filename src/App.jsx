@@ -220,7 +220,6 @@ function NotableSection({ unitSystem="metric" }) {
   const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [prs, setPrs] = useState([]);
 
   const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
   const sportType = sport === "run" ? "Run" : sport === "ride" ? "Ride,VirtualRide" : "Swim";
@@ -246,15 +245,9 @@ function NotableSection({ unitSystem="metric" }) {
   }, [sport, tab]);
 
   useEffect(() => {
-    if (sport === "ride") setTab("prs");
-    else if (sport === "swim") setTab("longest");
+    if (sport === "ride" || sport === "swim") setTab("longest");
     else setTab("pbs");
   }, [sport]);
-
-  useEffect(() => {
-    q("best_efforts?select=sport,distance_label,elapsed_time&order=elapsed_time.asc")
-      .then(data => setPrs(Array.isArray(data) ? data : []));
-  }, []);
 
   const cur = rows[selected];
   const fmtTime = s => { if (!s) return "—"; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : `${m}:${String(sec).padStart(2, "0")}`; };
@@ -297,7 +290,6 @@ function NotableSection({ unitSystem="metric" }) {
 
       <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", marginBottom: "0.5rem" }}>
         {sport === "run" && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
-        {sport !== "swim" && <SubTab label="PERSONAL RECORDS" active={tab === "prs"} onClick={() => setTab("prs")} />}
         <SubTab label="LONGEST" active={tab === "longest"} onClick={() => setTab("longest")} />
         {sport !== "swim" && <SubTab label="ELEVATION GAIN" active={tab === "elevation"} onClick={() => setTab("elevation")} />}
       </div>
@@ -1344,7 +1336,7 @@ function ProgressionSection() {
         {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
       </div>
       <div id="heat-tip" style={{ position:"fixed", display:"none", background:"rgba(20,20,20,0.92)", color:"#fff", padding:"4px 10px", fontFamily:"monospace", fontSize:"0.62rem", borderRadius:3, pointerEvents:"none", zIndex:9999, border:"1px solid rgba(255,255,255,0.15)" }} />
-      loading ? (
+      {loading ? (
         <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div>
       ) : (
         <div>
@@ -1615,7 +1607,6 @@ export default function App() {
     </div>
   );
 }
-
 
 // Thu Apr 23 11:48:56 -03 2026
 // bust
