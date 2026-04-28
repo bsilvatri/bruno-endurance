@@ -220,6 +220,12 @@ function NotableSection({ unitSystem="metric" }) {
   const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [prs, setPrs] = useState([]);
+
+  useEffect(() => {
+    q("best_efforts?select=sport,distance_label,elapsed_time&order=elapsed_time.asc")
+      .then(data => setPrs(Array.isArray(data) ? data : []));
+  }, []);
 
   const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
   const sportType = sport === "run" ? "Run" : sport === "ride" ? "Ride,VirtualRide" : "Swim";
@@ -1336,7 +1342,28 @@ function ProgressionSection() {
         {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
       </div>
       <div id="heat-tip" style={{ position:"fixed", display:"none", background:"rgba(20,20,20,0.92)", color:"#fff", padding:"4px 10px", fontFamily:"monospace", fontSize:"0.62rem", borderRadius:3, pointerEvents:"none", zIndex:9999, border:"1px solid rgba(255,255,255,0.15)" }} />
-      {loading ? (
+      {tab === "pbs" ? (
+        <div style={{ marginTop:"1.5rem" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:"1px", background:C.border, border:`1px solid ${C.border}` }}>
+            <div style={{ background:C.surface, padding:"0.5rem 1rem", fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint }}>DISTANCE</div>
+            <div style={{ background:C.surface, padding:"0.5rem 1rem", fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint, textAlign:"right" }}>TIME</div>
+            {prs.filter(p => p.sport === sport).map((pr, i) => {
+              const s = pr.elapsed_time;
+              const h = Math.floor(s / 3600);
+              const m = Math.floor((s % 3600) / 60);
+              const sec = String(s % 60).padStart(2, '0');
+              const time = h > 0 ? `${h}:${String(m).padStart(2,'0')}:${sec}` : `${m}:${sec}`;
+              const label = pr.distance_label.replace(' (ride)','').replace(' (run)','');
+              return (
+                <>
+                  <div key={"d"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>{label}</div>
+                  <div key={"t"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.75rem", fontWeight:700, color:sportColor, textAlign:"right" }}>{time}</div>
+                </>
+              );
+            })}
+          </div>
+        </div>
+      ) : loading ? (
         <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div>
       ) : (
         <div>
