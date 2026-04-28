@@ -248,6 +248,7 @@ function NotableSection({ unitSystem="metric" }) {
 
   useEffect(() => {
     if (sport === "swim") setTab("longest");
+    else if (sport === "races") setTab("races");
     else setTab("pbs");
   }, [sport]);
 
@@ -302,27 +303,14 @@ function NotableSection({ unitSystem="metric" }) {
       </h2>
 
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem" }}>
+        <SportTab label="RACES" active={sport === "races"} onClick={() => setSport("races")} color={C.green} />
         <SportTab label="RUNS" active={sport === "run"} onClick={() => setSport("run")} color={C.run} />
         <SportTab label="RIDES" active={sport === "ride"} onClick={() => setSport("ride")} color={C.ride} />
         <SportTab label="SWIMS" active={sport === "swim"} onClick={() => setSport("swim")} color={C.swim} />
       </div>
 
-      <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", marginBottom: "0.5rem" }}>
-        <SubTab label="LONGEST" active={tab === "longest"} onClick={() => setTab("longest")} />
-        <SubTab label="NOTABLE RACES" active={tab === "races"} onClick={() => setTab("races")} />
-        {(sport === "run" || sport === "ride") && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
-        {sport !== "swim" && <SubTab label="ELEVATION GAIN" active={tab === "elevation"} onClick={() => setTab("elevation")} />}
-      </div>
-
-      <div style={{ fontFamily: F.mono, fontSize: "0.62rem", color: C.faint, marginBottom: "1rem" }}>
-        {tab === "pbs" ? "fastest times across standard running distances" : tab === "longest" ? `my longest ${sport}s on record` : `the most vertical gain in a single ${sport}`}
-      </div>
-
-      {loading ? <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint, padding: "3rem 0" }}>loading...</div> : (
-        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 280px", gap: "0", border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden", background: C.surface }}>
-          {tab === "races" ? (
+sport === "races" ? (
         <div style={{ marginTop:"1.5rem" }}>
-          {/* PRs */}
           <div style={{ marginBottom:"1.5rem" }}>
             <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>PERSONAL RECORDS</div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:"1px", background:C.border, border:"1px solid "+C.border }}>
@@ -335,8 +323,7 @@ function NotableSection({ unitSystem="metric" }) {
               ))}
             </div>
           </div>
-          {/* Race history */}
-          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>RACE HISTORY ({[{"race":"Cascais, Portugal","date":"Oct '22","swim":"0:30:39","bike":"2:33:46","run":"1:35:13","finish":"4:48:04","status":"fin"},{"race":"Florianópolis, Brazil","date":"Apr '23","swim":"0:31:25","bike":"2:25:23","run":"1:36:15","finish":"4:39:27","status":"fin"},{"race":"Geraardsbergen, Belgium","date":"Jun '23","swim":"0:34:50","bike":"1:01:37","run":"—","finish":"DNF","status":"dnf"},{"race":"Rio de Janeiro, Brazil","date":"Jul '23","swim":"0:34:36","bike":"2:31:53","run":"1:40:41","finish":"4:55:39","status":"fin"},{"race":"São Paulo, Brazil","date":"Sep '23","swim":"0:32:15","bike":"2:24:13","run":"1:38:20","finish":"4:42:56","status":"fin"},{"race":"Cascais, Portugal","date":"Oct '23","swim":"0:28:29","bike":"2:32:53","run":"1:25:14","finish":"4:34:03","status":"fin"},{"race":"Panama City, Panama","date":"Feb '24","swim":"0:23:27","bike":"2:26:08","run":"1:49:40","finish":"4:46:08","status":"fin"},{"race":"Eagleman, USA","date":"Jun '24","swim":"0:36:29","bike":"2:27:10","run":"1:42:01","finish":"4:52:26","status":"fin"},{"race":"São Paulo, Brazil","date":"Sep '24","swim":"—","bike":"—","run":"—","finish":"DNS","status":"dns"},{"race":"Cascais, Portugal","date":"Oct '24","swim":"0:31:06","bike":"2:24:08","run":"1:28:34","finish":"4:30:59","status":"fin"},{"race":"Florianópolis, Brazil","date":"Nov '24","swim":"0:28:13","bike":"2:18:59","run":"1:26:56","finish":"4:21:47","status":"fin"},{"race":"Punta del Este, Uruguay","date":"Mar '25","swim":"—","bike":"—","run":"—","finish":"DNF","status":"dnf"},{"race":"Brasília, Brazil","date":"Apr '25","swim":"0:28:28","bike":"2:16:45","run":"1:38:18","finish":"4:28:00","status":"fin"},{"race":"Samorin, Slovakia","date":"May '25","swim":"0:10:48","bike":"2:27:18","run":"1:26:20","finish":"DNC","status":"dnc"},{"race":"Marbella, Spain","date":"Nov '25","swim":"0:30:30","bike":"2:46:13","run":"1:26:48","finish":"4:52:24","status":"fin"},{"race":"Florianópolis, Brazil","date":"Nov '25","swim":"0:27:45","bike":"2:18:45","run":"1:41:10","finish":"4:32:46","status":"fin"},{"race":"Curitiba, Brazil","date":"Mar '26","swim":"0:27:49","bike":"2:42:58","run":"1:33:08","finish":"4:48:41","status":"fin"},{"race":"Brasília, Brazil","date":"Apr '26","swim":"0:27:57","bike":"2:14:26","run":"1:30:46","finish":"4:18:09","status":"fin"}].length} races)</div>
+          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>RACE HISTORY — 18 STARTS · 14 FINISHES · 2 DNF · 1 DNS · 1 DNC</div>
           <div style={{ overflowX:"auto" }}>
             <div style={{ display:"grid", gridTemplateColumns:"1.4fr 70px 80px 80px 80px 90px", gap:"1px", background:C.border, border:"1px solid "+C.border, minWidth:"520px" }}>
               {[{l:"RACE",c:C.faint},{l:"DATE",c:C.faint},{l:"SWIM",c:C.swim},{l:"BIKE",c:C.ride},{l:"RUN",c:C.run},{l:"FINISH",c:C.ink}].map((h,i)=>(
@@ -345,21 +332,34 @@ function NotableSection({ unitSystem="metric" }) {
               {[{"race":"Cascais, Portugal","date":"Oct '22","swim":"0:30:39","bike":"2:33:46","run":"1:35:13","finish":"4:48:04","status":"fin"},{"race":"Florianópolis, Brazil","date":"Apr '23","swim":"0:31:25","bike":"2:25:23","run":"1:36:15","finish":"4:39:27","status":"fin"},{"race":"Geraardsbergen, Belgium","date":"Jun '23","swim":"0:34:50","bike":"1:01:37","run":"—","finish":"DNF","status":"dnf"},{"race":"Rio de Janeiro, Brazil","date":"Jul '23","swim":"0:34:36","bike":"2:31:53","run":"1:40:41","finish":"4:55:39","status":"fin"},{"race":"São Paulo, Brazil","date":"Sep '23","swim":"0:32:15","bike":"2:24:13","run":"1:38:20","finish":"4:42:56","status":"fin"},{"race":"Cascais, Portugal","date":"Oct '23","swim":"0:28:29","bike":"2:32:53","run":"1:25:14","finish":"4:34:03","status":"fin"},{"race":"Panama City, Panama","date":"Feb '24","swim":"0:23:27","bike":"2:26:08","run":"1:49:40","finish":"4:46:08","status":"fin"},{"race":"Eagleman, USA","date":"Jun '24","swim":"0:36:29","bike":"2:27:10","run":"1:42:01","finish":"4:52:26","status":"fin"},{"race":"São Paulo, Brazil","date":"Sep '24","swim":"—","bike":"—","run":"—","finish":"DNS","status":"dns"},{"race":"Cascais, Portugal","date":"Oct '24","swim":"0:31:06","bike":"2:24:08","run":"1:28:34","finish":"4:30:59","status":"fin"},{"race":"Florianópolis, Brazil","date":"Nov '24","swim":"0:28:13","bike":"2:18:59","run":"1:26:56","finish":"4:21:47","status":"fin"},{"race":"Punta del Este, Uruguay","date":"Mar '25","swim":"—","bike":"—","run":"—","finish":"DNF","status":"dnf"},{"race":"Brasília, Brazil","date":"Apr '25","swim":"0:28:28","bike":"2:16:45","run":"1:38:18","finish":"4:28:00","status":"fin"},{"race":"Samorin, Slovakia","date":"May '25","swim":"0:10:48","bike":"2:27:18","run":"1:26:20","finish":"DNC","status":"dnc"},{"race":"Marbella, Spain","date":"Nov '25","swim":"0:30:30","bike":"2:46:13","run":"1:26:48","finish":"4:52:24","status":"fin"},{"race":"Florianópolis, Brazil","date":"Nov '25","swim":"0:27:45","bike":"2:18:45","run":"1:41:10","finish":"4:32:46","status":"fin"},{"race":"Curitiba, Brazil","date":"Mar '26","swim":"0:27:49","bike":"2:42:58","run":"1:33:08","finish":"4:48:41","status":"fin"},{"race":"Brasília, Brazil","date":"Apr '26","swim":"0:27:57","bike":"2:14:26","run":"1:30:46","finish":"4:18:09","status":"fin"}].map((r,i)=>{
                 const isDNx = r.status!=="fin";
                 const bg = i%2===0?C.bg:C.surface;
-                const alpha = isDNx?"0.45":"1";
-                const statusColor = r.status==="dnf"?"#c04040":r.status==="dns"?"#888":r.status==="dnc"?"#8060c0":C.run;
+                const op = isDNx ? "0.5" : "1";
+                const fc = r.status==="dnf"?"#c04040":r.status==="dns"?"#888":r.status==="dnc"?"#8060c0":C.green;
                 return [
-                  <div key={"n"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.ink, opacity:alpha }}>{r.race}</div>,
-                  <div key={"d"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.55rem", color:C.muted, textAlign:"center", opacity:alpha }}>{r.date}</div>,
-                  <div key={"s"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.swim, textAlign:"center", opacity:alpha }}>{r.swim}</div>,
-                  <div key={"b"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.ride, textAlign:"center", opacity:alpha }}>{r.bike}</div>,
-                  <div key={"r"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.run, textAlign:"center", opacity:alpha }}>{r.run}</div>,
-                  <div key={"f"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.65rem", fontWeight:isDNx?400:700, color:statusColor, textAlign:"center" }}>{r.finish}</div>
+                  <div key={"n"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.ink, opacity:op }}>{r.race}</div>,
+                  <div key={"d"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.55rem", color:C.muted, textAlign:"center", opacity:op }}>{r.date}</div>,
+                  <div key={"s"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.swim, textAlign:"center", opacity:op }}>{r.swim}</div>,
+                  <div key={"b"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.ride, textAlign:"center", opacity:op }}>{r.bike}</div>,
+                  <div key={"r"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.run, textAlign:"center", opacity:op }}>{r.run}</div>,
+                  <div key={"f"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.65rem", fontWeight:isDNx?400:700, color:fc, textAlign:"center" }}>{r.finish}</div>
                 ];
               })}
             </div>
           </div>
         </div>
-      ) : tab === "pbs" ? (
+      ) : (
+            <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", marginBottom: "0.5rem" }}>
+        <SubTab label="LONGEST" active={tab === "longest"} onClick={() => setTab("longest")} />
+        {(sport === "run" || sport === "ride") && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
+        {sport !== "swim" && <SubTab label="ELEVATION GAIN" active={tab === "elevation"} onClick={() => setTab("elevation")} />}
+      </div>
+
+      <div style={{ fontFamily: F.mono, fontSize: "0.62rem", color: C.faint, marginBottom: "1rem" }}>
+        {tab === "pbs" ? "fastest times across standard running distances" : tab === "longest" ? `my longest ${sport}s on record` : `the most vertical gain in a single ${sport}`}
+      </div>
+
+      {loading ? <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint, padding: "3rem 0" }}>loading...</div> : (
+        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 280px", gap: "0", border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden", background: C.surface }}>
+          {tab === "pbs" ? (
             <div style={{ padding: "1.25rem", flex: 1 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "1px", background: C.border, border: "1px solid " + C.border }}>
                 <div style={{ background: C.surface, padding: "0.5rem 1rem", fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint }}>DISTANCE</div>
@@ -415,6 +415,7 @@ function NotableSection({ unitSystem="metric" }) {
           </div>
         </div>
       )}
+      )
     </section>
   );
 }
