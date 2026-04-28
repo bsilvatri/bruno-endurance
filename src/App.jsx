@@ -359,7 +359,7 @@ function NotableSection({ unitSystem="metric" }) {
             </div>
           </div>
         </div>
-      )) : tab === "pbs" ? (
+      ) : tab === "pbs" ? (
             <div style={{ padding: "1.25rem", flex: 1 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "1px", background: C.border, border: "1px solid " + C.border }}>
                 <div style={{ background: C.surface, padding: "0.5rem 1rem", fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint }}>DISTANCE</div>
