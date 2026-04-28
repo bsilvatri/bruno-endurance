@@ -412,6 +412,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
 
   const filtered = acts.filter(matchesSport);
   const isAll = sportFilter==='all';
+  const [distTip, setDistTip] = useState(null);
   const sColor = sportFilter==='run'?C.run:sportFilter==='ride'?C.ride:sportFilter==='swim'?C.swim:C.green;
   const hrColors = ["#2d8a7e","#4a7c59","#9a7e5a","#c47a2a","#b85a3a"];
 
