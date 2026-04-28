@@ -704,7 +704,18 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
                   <Pie data={ioData} cx="50%" cy="50%" innerRadius={42} outerRadius={65} dataKey="value" strokeWidth={0} paddingAngle={2}>
                     {ioData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
                   </Pie>
-                  <Tooltip content={<Tip />} />
+                  <Tooltip content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const p = payload[0];
+                    const total = ioData.reduce((s,d)=>s+d.value,0);
+                    const pct = total > 0 ? Math.round(p.value/total*100) : 0;
+                    return (
+                      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:4,padding:"8px 12px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink}}>
+                        <div style={{color:p.payload.fill,fontWeight:700,marginBottom:2}}>{p.name}</div>
+                        <div>{p.value} activities · {pct}%</div>
+                      </div>
+                    );
+                  }} />
                 </PieChart>
               </ResponsiveContainer>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.2rem 0.5rem"}}>
