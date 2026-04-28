@@ -654,16 +654,17 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
       <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
         <ChartBox title="Distance Distribution" subtitle="activity counts by distance" minH={331}>
           {isAll ? (
-            <div style={{paddingTop:"0.25rem"}}>
+            <div style={{paddingTop:"0.25rem",position:"relative"}} onMouseLeave={()=>setDistTip(null)}>
+              {distTip&&<div style={{position:"fixed",pointerEvents:"none",zIndex:9999,background:C.surface,border:`1px solid ${C.border}`,borderRadius:4,padding:"6px 10px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink,top:distTip.y-40,left:distTip.x+14,whiteSpace:"nowrap",boxShadow:"0 2px 8px rgba(0,0,0,0.1)",display:"flex",gap:"0.4rem",alignItems:"center"}}><span style={{color:distTip.color,fontWeight:700}}>{distTip.label}:</span><span>{distTip.count}</span></div>}
               {[{label:"RUNS",data:runDist,color:C.run},{label:"RIDES",data:rideDist,color:C.ride},{label:"SWIMS",data:swimDist,color:C.swim}].map(({label,data,color},si)=>(
                 <div key={si} style={{marginBottom:si<2?"0.75rem":"0"}}>
                   <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.1em",color,marginBottom:"0.3rem"}}>{label}</div>
                   {data.map((d,i)=>{
                     const max=Math.max(...data.map(x=>x.count),1);
                     return (
-                      <div key={i} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem"}}>
+                      <div key={i} onMouseEnter={e=>setDistTip({label:d.label,count:d.count,color,x:e.clientX,y:e.clientY})} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem",cursor:"default"}}>
                         <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.faint,width:60,flexShrink:0,textAlign:"right"}}>{d.label}</div>
-                        <div style={{flex:1,background:C.border,borderRadius:2,height:10,overflow:"hidden",position:"relative"}} title={`${d.label}: ${d.count}`}>
+                        <div style={{flex:1,background:C.border,borderRadius:2,height:10,overflow:"hidden"}}>
                           <div style={{height:"100%",background:color,borderRadius:2,width:d.count>0?Math.max(4,Math.round(d.count/max*100))+"%":"0%",transition:"width 0.3s"}} />
                         </div>
                         <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.muted,width:24,textAlign:"right"}}>{d.count}</div>
