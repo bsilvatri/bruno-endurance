@@ -515,14 +515,12 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
     count: filtered.filter(a=>a.average_heartrate&&+a.average_heartrate>=hrBounds[i][0]&&+a.average_heartrate<hrBounds[i][1]).length
   }));
 
-  // ── Indoor vs Outdoor ──
+  // ── All-time Activities ──
   const ioData = [
-    {name:"Outdoor Run",  value:acts.filter(a=>isRun(a.sport_type)&&!a.trainer).length,  fill:C.run},
-    {name:"Treadmill",    value:acts.filter(a=>isRun(a.sport_type)&&a.trainer).length,    fill:"#8a9a80"},
-    {name:"Outdoor Ride", value:acts.filter(a=>a.sport_type==='Ride').length,             fill:C.ride},
-    {name:"Virtual Ride", value:acts.filter(a=>a.sport_type==='VirtualRide').length,      fill:"#c0805a"},
-    {name:"Open Water",   value:acts.filter(a=>isSwim(a.sport_type)&&!a.trainer).length,  fill:C.swim},
-    {name:"Pool Swim",    value:acts.filter(a=>isSwim(a.sport_type)&&a.trainer).length,   fill:"#5a9ac0"},
+    {name:"Runs",  value:acts.filter(a=>isRun(a.sport_type)).length,  fill:C.run},
+    {name:"Rides", value:acts.filter(a=>a.sport_type==='Ride'||a.sport_type==='VirtualRide').length, fill:C.ride},
+    {name:"Swims", value:acts.filter(a=>isSwim(a.sport_type)).length, fill:C.swim},
+    {name:"Other", value:acts.filter(a=>!isRun(a.sport_type)&&a.sport_type!=='Ride'&&a.sport_type!=='VirtualRide'&&!isSwim(a.sport_type)).length, fill:C.muted},
   ].filter(d=>d.value>0);
 
   // ── Weekly Volume ──
@@ -698,7 +696,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
             </BarChart>
           </ResponsiveContainer>
         </ChartBox>
-        <ChartBox title="Indoor vs Outdoor" subtitle="rain or shine" minH={331}>
+        <ChartBox title="All-time Activities" subtitle="by sport type" minH={331}>
           {ioData.length>0 && (
             <div style={{height:220,display:"flex",flexDirection:"column",gap:"0.5rem"}}>
               <ResponsiveContainer width="100%" height={155}>
