@@ -1491,29 +1491,17 @@ export default function App() {
   ];
   const [showLangMenu, setShowLangMenu] = useState(false);
 
-  useEffect(() => {
-    // Load Google Translate
-    window.googleTranslateElementInit = () => {
-      new window.google.translate.TranslateElement({ pageLanguage:"en", autoDisplay:false }, "gt-root");
-    };
-    const s = document.createElement("script");
-    s.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-    document.body.appendChild(s);
-  }, []);
+
 
   const applyLang = (l) => {
     setLang(l.code);
     setShowLangMenu(false);
-    // Use Google Translate cookie method - most reliable approach
     if (l.gt === "en") {
-      // Remove translate cookie to restore English
-      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.hostname;
+      // If currently on a translated page, go back to original
+      window.location.href = "https://bruno-endurance.vercel.app";
     } else {
-      document.cookie = "googtrans=/en/" + l.gt + "; path=/";
-      document.cookie = "googtrans=/en/" + l.gt + "; path=/; domain=" + location.hostname;
+      window.location.href = "https://translate.google.com/translate?sl=en&tl=" + l.gt + "&u=" + encodeURIComponent("https://bruno-endurance.vercel.app");
     }
-    window.location.reload();
   };
   const NAV_IDS = ["about", "notable", "stats", "progression", "geography", "recent"];
   const [active, setActive] = useScrollSpy(NAV_IDS);
