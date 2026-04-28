@@ -479,22 +479,18 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
   }));
 
   // ── Distance Distribution ──
-  const _kmBuckets = isAll||sportFilter==='run'
-    ? [[0,5],[5,10],[10,21],[21,42],[42,999]]
-    : sportFilter==='swim'
-    ? [[0,1],[1,2],[2,3],[3,5],[5,999]]
-    : [[0,30],[30,60],[60,100],[100,150],[150,999]];
+  const runActs2 = acts.filter(a=>isRun(a.sport_type));
+  const rideActs2 = acts.filter(a=>a.sport_type==='Ride'||a.sport_type==='VirtualRide');
+  const swimActs2 = acts.filter(a=>isSwim(a.sport_type));
+  const mkBucket = (label, arr, lo, hi) => ({ label, count: arr.filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&(hi===999?true:km<hi);}).length });
+  const runDist  = [mkBucket("0–5km",runActs2,0,5),mkBucket("5–10km",runActs2,5,10),mkBucket("10–15km",runActs2,10,15),mkBucket("15–21km",runActs2,15,21),mkBucket("21–30km",runActs2,21,30),mkBucket("30–42km",runActs2,30,42)];
+  const rideDist = [mkBucket("0–20km",rideActs2,0,20),mkBucket("20–40km",rideActs2,20,40),mkBucket("40–60km",rideActs2,40,60),mkBucket("60–80km",rideActs2,60,80),mkBucket("80–100km",rideActs2,80,100),mkBucket("100–120km",rideActs2,100,120),mkBucket("120km+",rideActs2,120,999)];
+  const swimDist = [mkBucket("0–500m",swimActs2,0,0.5),mkBucket("500m–1km",swimActs2,0.5,1),mkBucket("1–2km",swimActs2,1,2),mkBucket("2–3km",swimActs2,2,3),mkBucket("3–5km",swimActs2,3,5),mkBucket("5km+",swimActs2,5,999)];
+  // single-sport fallback
+  const _kmBuckets = sportFilter==='swim' ? [[0,0.5],[0.5,1],[1,2],[2,3],[3,5],[5,999]] : sportFilter==='ride' ? [[0,20],[20,40],[40,60],[60,80],[80,100],[100,120],[120,999]] : [[0,5],[5,10],[10,15],[15,21],[21,30],[30,42]];
   const distData = _kmBuckets.map(([lo,hi]) => {
-    const label = hi===999?`${toUnitRound(lo)}+${distUnit}`:`${toUnitRound(lo)}-${toUnitRound(hi)}${distUnit}`;
-    if (isAll) {
-      return {
-        bucket: label,
-        run:  acts.filter(a=>isRun(a.sport_type)).filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length,
-        ride: acts.filter(a=>a.sport_type==='Ride'||a.sport_type==='VirtualRide').filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length,
-        swim: acts.filter(a=>isSwim(a.sport_type)).filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length,
-      };
-    }
-    return { bucket:label, count:filtered.filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length };
+    const label = hi===999 ? `${lo<1?lo*1000+"m":lo+"km"}+` : lo<1&&hi<=1 ? `${lo*1000}–${hi*1000}m` : `${lo<1?lo*1000+"m":lo+"km"}–${hi<1?hi*1000+"m":hi+"km"}`;
+    return { label, count: filtered.filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&(hi===999?true:km<hi);}).length };
   });
 
   // ── Pace Distribution (run only, or all running for "all") ──
@@ -703,22 +699,57 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
 
       {/* ROW 1 — Distance Dist | Indoor/Outdoor | Pace Dist */}
       <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
-        <ChartBox title={`Distance Distribution (${distUnit})`} subtitle="activity counts by distance" minH={331}>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={distData} layout="vertical" barSize={isAll?8:14}>
-              <CartesianGrid horizontal={false} stroke={C.border} />
-              <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} width={52} />
-              <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
-              {isAll ? (<>
-                <Bar dataKey="run"  fill={C.run}  radius={[0,2,2,0]} name="Runs" />
-                <Bar dataKey="ride" fill={C.ride} radius={[0,2,2,0]} name="Rides" />
-                <Bar dataKey="swim" fill={C.swim} radius={[0,2,2,0]} name="Swims" />
-              </>) : (
+        <ChartBox title="Distance Distribution" subtitle="activity counts by distance" minH={331}>
+          {isAll ? (
+            <div style={{paddingTop:"0.25rem"}}>
+              <div style={{marginBottom:"0.75rem"}}>
+                <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.1em",color:C.run,marginBottom:"0.3rem"}}>RUNS</div>
+                {runDist.map((d,i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem"}}>
+                    <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.faint,width:56,flexShrink:0,textAlign:"right"}}>{d.label}</div>
+                    <div style={{flex:1,background:C.border,borderRadius:2,height:10,overflow:"hidden"}}>
+                      <div style={{height:"100%",background:C.run,borderRadius:2,width:runDist.some(x=>x.count>0)?Math.max(d.count>0?4:0,Math.round(d.count/Math.max(...runDist.map(x=>x.count),1)*100))+"%":"0%"}} />
+                    </div>
+                    <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.muted,width:24,textAlign:"right"}}>{d.count}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{marginBottom:"0.75rem"}}>
+                <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.1em",color:C.ride,marginBottom:"0.3rem"}}>RIDES</div>
+                {rideDist.map((d,i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem"}}>
+                    <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.faint,width:56,flexShrink:0,textAlign:"right"}}>{d.label}</div>
+                    <div style={{flex:1,background:C.border,borderRadius:2,height:10,overflow:"hidden"}}>
+                      <div style={{height:"100%",background:C.ride,borderRadius:2,width:rideDist.some(x=>x.count>0)?Math.max(d.count>0?4:0,Math.round(d.count/Math.max(...rideDist.map(x=>x.count),1)*100))+"%":"0%"}} />
+                    </div>
+                    <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.muted,width:24,textAlign:"right"}}>{d.count}</div>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.1em",color:C.swim,marginBottom:"0.3rem"}}>SWIMS</div>
+                {swimDist.map((d,i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem"}}>
+                    <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.faint,width:56,flexShrink:0,textAlign:"right"}}>{d.label}</div>
+                    <div style={{flex:1,background:C.border,borderRadius:2,height:10,overflow:"hidden"}}>
+                      <div style={{height:"100%",background:C.swim,borderRadius:2,width:swimDist.some(x=>x.count>0)?Math.max(d.count>0?4:0,Math.round(d.count/Math.max(...swimDist.map(x=>x.count),1)*100))+"%":"0%"}} />
+                    </div>
+                    <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.muted,width:24,textAlign:"right"}}>{d.count}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={distData} layout="vertical" barSize={14}>
+                <CartesianGrid horizontal={false} stroke={C.border} />
+                <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} hide />
+                <YAxis type="category" dataKey="label" tick={tickStyle} axisLine={false} tickLine={false} width={60} />
+                <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
                 <Bar dataKey="count" fill={sColor} radius={[0,2,2,0]} name="activities" />
-              )}
-            </BarChart>
-          </ResponsiveContainer>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </ChartBox>
         <ChartBox title={ioTitle} subtitle={ioSubtitle} minH={331}>
           {ioData.length>0 && (
