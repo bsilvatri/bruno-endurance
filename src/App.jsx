@@ -485,8 +485,15 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
     ? [[0,1],[1,2],[2,3],[3,5],[5,999]]
     : [[0,30],[30,60],[60,100],[100,150],[150,999]];
   const distData = _kmBuckets.map(([lo,hi]) => {
-    const loU = toUnit(lo), hiU = hi===999?999:toUnit(hi);
     const label = hi===999?`${toUnitRound(lo)}+${distUnit}`:`${toUnitRound(lo)}-${toUnitRound(hi)}${distUnit}`;
+    if (isAll) {
+      return {
+        bucket: label,
+        run:  acts.filter(a=>isRun(a.sport_type)).filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length,
+        ride: acts.filter(a=>a.sport_type==='Ride'||a.sport_type==='VirtualRide').filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length,
+        swim: acts.filter(a=>isSwim(a.sport_type)).filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length,
+      };
+    }
     return { bucket:label, count:filtered.filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length };
   });
 
@@ -698,12 +705,18 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
       <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
         <ChartBox title={`Distance Distribution (${distUnit})`} subtitle="activity counts by distance" minH={331}>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={distData} layout="vertical" barSize={14}>
+            <BarChart data={distData} layout="vertical" barSize={isAll?8:14}>
               <CartesianGrid horizontal={false} stroke={C.border} />
               <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
               <YAxis type="category" dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} width={52} />
               <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
-              <Bar dataKey="count" fill={sColor} radius={[0,2,2,0]} name="activities" />
+              {isAll ? (<>
+                <Bar dataKey="run"  fill={C.run}  radius={[0,2,2,0]} name="Runs" />
+                <Bar dataKey="ride" fill={C.ride} radius={[0,2,2,0]} name="Rides" />
+                <Bar dataKey="swim" fill={C.swim} radius={[0,2,2,0]} name="Swims" />
+              </>) : (
+                <Bar dataKey="count" fill={sColor} radius={[0,2,2,0]} name="activities" />
+              )}
             </BarChart>
           </ResponsiveContainer>
         </ChartBox>
