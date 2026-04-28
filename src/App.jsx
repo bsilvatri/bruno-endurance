@@ -215,7 +215,7 @@ function NotableTable({ rows, cols, selected, onSelect, sportColor }) {
 
 /* ─── NOTABLE SECTION ─── */
 function NotableSection({ unitSystem="metric" }) {
-  const [sport, setSport] = useState("run");
+  const [sport, setSport] = useState("races");
   const [tab, setTab] = useState("pbs");
   const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState(0);
