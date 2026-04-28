@@ -712,7 +712,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
                     return (
                       <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:4,padding:"8px 12px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink}}>
                         <div style={{color:p.payload.fill,fontWeight:700,marginBottom:2}}>{p.name}</div>
-                        <div>{p.value} activities · {pct}%</div>
+                        <div>{p.value} · {pct}%</div>
                       </div>
                     );
                   }} />
