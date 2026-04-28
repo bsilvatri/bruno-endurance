@@ -311,12 +311,10 @@ function NotableSection({ unitSystem="metric" }) {
                 {prs.filter(p => p.sport === sport).map((pr, i) => {
                   const s = pr.elapsed_time, h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = String(s%60).padStart(2,"0");
                   const time = h > 0 ? h+":"+String(m).padStart(2,"0")+":"+sec : m+":"+sec;
-                  return (
-                    <React.Fragment key={i}>
-                      <div style={{ background: i%2===0?C.bg:C.surface, padding: "0.6rem 1rem", fontFamily: F.mono, fontSize: "0.65rem", color: C.muted }}>{pr.distance_label}</div>
-                      <div style={{ background: i%2===0?C.bg:C.surface, padding: "0.6rem 1rem", fontFamily: F.mono, fontSize: "0.75rem", fontWeight: 700, color: sportColor, textAlign: "right" }}>{time}</div>
-                    </React.Fragment>
-                  );
+                  return [
+                    <div key={"d"+i} style={{ background: i%2===0?C.bg:C.surface, padding: "0.6rem 1rem", fontFamily: F.mono, fontSize: "0.65rem", color: C.muted }}>{pr.distance_label}</div>,
+                    <div key={"t"+i} style={{ background: i%2===0?C.bg:C.surface, padding: "0.6rem 1rem", fontFamily: F.mono, fontSize: "0.75rem", fontWeight: 700, color: sportColor, textAlign: "right" }}>{time}</div>
+                  ];
                 })}
               </div>
             </div>
