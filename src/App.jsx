@@ -1441,7 +1441,7 @@ function ActivityInfoIcon() {
 }
 
 /* ─── MAIN APP ─── */
-export default function App() {
+export default export default function App() {
   const [hero, setHero] = useState(null);
   const [sports, setSports] = useState(null);
   const [lastSync, setLastSync] = useState(null);
@@ -1636,7 +1636,6 @@ export default function App() {
   );
 }
 
-export default App;
 
 // Thu Apr 23 11:48:56 -03 2026
 // bust
