@@ -1344,27 +1344,7 @@ function ProgressionSection() {
         {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
       </div>
       <div id="heat-tip" style={{ position:"fixed", display:"none", background:"rgba(20,20,20,0.92)", color:"#fff", padding:"4px 10px", fontFamily:"monospace", fontSize:"0.62rem", borderRadius:3, pointerEvents:"none", zIndex:9999, border:"1px solid rgba(255,255,255,0.15)" }} />
-      {tab === "prs" ? (
-        <div style={{ marginTop:"2rem" }}>
-          <div style={{ fontFamily:F.mono, fontSize:"0.55rem", letterSpacing:"0.15em", color:C.muted, marginBottom:"1rem" }}>{sport === "ride" ? "CYCLING" : "RUNNING"} PERSONAL RECORDS</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1px", background:C.border, border:`1px solid ${C.border}` }}>
-            {prs.filter(p=>p.sport===sport).map((pr,i)=>{
-              const s = pr.elapsed_time;
-              const h = Math.floor(s/3600);
-              const m = Math.floor((s%3600)/60);
-              const sec = String(s%60).padStart(2,'0');
-              const time = h>0 ? `${h}:${String(m).padStart(2,'0')}:${sec}` : `${m}:${sec}`;
-              const label = pr.distance_label.replace(' (ride)','').replace(' (run)','');
-              return (
-                <div key={i} style={{background:C.bg,padding:"0.75rem 1rem",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={{fontFamily:F.mono,fontSize:"0.6rem",color:C.muted,letterSpacing:"0.05em"}}>{label}</span>
-                  <span style={{fontFamily:F.mono,fontSize:"0.85rem",fontWeight:700,color:sportColor}}>{time}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : loading ? (
+      loading ? (
         <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div>
       ) : (
         <div>
