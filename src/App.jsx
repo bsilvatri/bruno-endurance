@@ -271,24 +271,24 @@ function NotableSection({ unitSystem="metric" }) {
   }));
 
   const RACES = [
-    {race:"Cascais, Portugal",date:"Oct '22",swim:"0:30:39",bike:"2:33:46",run:"1:35:13",finish:"4:48:04",s:"fin"},
-    {race:"Florianópolis, Brazil",date:"Apr '23",swim:"0:31:25",bike:"2:25:23",run:"1:36:15",finish:"4:39:27",s:"fin"},
-    {race:"Geraardsbergen, Belgium",date:"Jun '23",swim:"0:34:50",bike:"1:01:37",run:"—",finish:"DNF",s:"dnf"},
-    {race:"Rio de Janeiro, Brazil",date:"Jul '23",swim:"0:34:36",bike:"2:31:53",run:"1:40:41",finish:"4:55:39",s:"fin"},
-    {race:"São Paulo, Brazil",date:"Sep '23",swim:"0:32:15",bike:"2:24:13",run:"1:38:20",finish:"4:42:56",s:"fin"},
-    {race:"Cascais, Portugal",date:"Oct '23",swim:"0:28:29",bike:"2:32:53",run:"1:25:14",finish:"4:34:03",s:"fin"},
-    {race:"Panama City, Panama",date:"Feb '24",swim:"0:23:27",bike:"2:26:08",run:"1:49:40",finish:"4:46:08",s:"fin"},
-    {race:"Eagleman, USA",date:"Jun '24",swim:"0:36:29",bike:"2:27:10",run:"1:42:01",finish:"4:52:26",s:"fin"},
-    {race:"São Paulo, Brazil",date:"Sep '24",swim:"—",bike:"—",run:"—",finish:"DNS",s:"dns"},
-    {race:"Cascais, Portugal",date:"Oct '24",swim:"0:31:06",bike:"2:24:08",run:"1:28:34",finish:"4:30:59",s:"fin"},
-    {race:"Florianópolis, Brazil",date:"Nov '24",swim:"0:28:13",bike:"2:18:59",run:"1:26:56",finish:"4:21:47",s:"fin"},
-    {race:"Punta del Este, Uruguay",date:"Mar '25",swim:"—",bike:"—",run:"—",finish:"DNF",s:"dnf"},
-    {race:"Brasília, Brazil",date:"Apr '25",swim:"0:28:28",bike:"2:16:45",run:"1:38:18",finish:"4:28:00",s:"fin"},
-    {race:"Samorin, Slovakia",date:"May '25",swim:"0:10:48",bike:"2:27:18",run:"1:26:20",finish:"DNC",s:"dnc"},
-    {race:"Marbella, Spain",date:"Nov '25",swim:"0:30:30",bike:"2:46:13",run:"1:26:48",finish:"4:52:24",s:"fin"},
-    {race:"Florianópolis, Brazil",date:"Nov '25",swim:"0:27:45",bike:"2:18:45",run:"1:41:10",finish:"4:32:46",s:"fin"},
-    {race:"Curitiba, Brazil",date:"Mar '26",swim:"0:27:49",bike:"2:42:58",run:"1:33:08",finish:"4:48:41",s:"fin"},
-    {race:"Brasília, Brazil",date:"Apr '26",swim:"0:27:57",bike:"2:14:26",run:"1:30:46",finish:"4:18:09",s:"fin"},
+    {race:"IM70.3 Cascais",date:"Oct '22",swim:"0:30:39",bike:"2:33:46",run:"1:35:13",finish:"4:48:04",s:"fin"},
+    {race:"IM70.3 Florianópolis",date:"Apr '23",swim:"0:31:25",bike:"2:25:23",run:"1:36:15",finish:"4:39:27",s:"fin"},
+    {race:"Challenge Geraardsbergen",date:"Jun '23",swim:"0:34:50",bike:"1:01:37",run:"—",finish:"DNF",s:"dnf"},
+    {race:"IM70.3 Rio de Janeiro",date:"Jul '23",swim:"0:34:36",bike:"2:31:53",run:"1:40:41",finish:"4:55:39",s:"fin"},
+    {race:"IM70.3 São Paulo",date:"Sep '23",swim:"0:32:15",bike:"2:24:13",run:"1:38:20",finish:"4:42:56",s:"fin"},
+    {race:"IM70.3 Cascais",date:"Oct '23",swim:"0:28:29",bike:"2:32:53",run:"1:25:14",finish:"4:34:03",s:"fin"},
+    {race:"IM70.3 Panama City",date:"Feb '24",swim:"0:23:27",bike:"2:26:08",run:"1:49:40",finish:"4:46:08",s:"fin"},
+    {race:"IM70.3 Eagleman",date:"Jun '24",swim:"0:36:29",bike:"2:27:10",run:"1:42:01",finish:"4:52:26",s:"fin"},
+    {race:"IM70.3 São Paulo",date:"Sep '24",swim:"—",bike:"—",run:"—",finish:"DNS",s:"dns"},
+    {race:"IM70.3 Cascais",date:"Oct '24",swim:"0:31:06",bike:"2:24:08",run:"1:28:34",finish:"4:30:59",s:"fin"},
+    {race:"Challenge Florianópolis",date:"Nov '24",swim:"0:28:13",bike:"2:18:59",run:"1:26:56",finish:"4:21:47",s:"fin",pr:true},
+    {race:"IM70.3 Punta del Este",date:"Mar '25",swim:"—",bike:"—",run:"—",finish:"DNF",s:"dnf"},
+    {race:"IM70.3 Brasília",date:"Apr '25",swim:"0:28:28",bike:"2:16:45",run:"1:38:18",finish:"4:28:00",s:"fin",pr:true},
+    {race:"Challenge Samorin",date:"May '25",swim:"0:10:48",bike:"2:27:18",run:"1:26:20",finish:"DNC",s:"dnc"},
+    {race:"IM70.3 Marbella",date:"Nov '25",swim:"0:30:30",bike:"2:46:13",run:"1:26:48",finish:"4:52:24",s:"fin"},
+    {race:"IM70.3 Florianópolis",date:"Nov '25",swim:"0:27:45",bike:"2:18:45",run:"1:41:10",finish:"4:32:46",s:"fin"},
+    {race:"IM70.3 Curitiba",date:"Mar '26",swim:"0:27:49",bike:"2:42:58",run:"1:33:08",finish:"4:48:41",s:"fin"},
+    {race:"IM70.3 Brasília",date:"Apr '26",swim:"0:27:57",bike:"2:14:26",run:"1:30:46",finish:"4:18:09",s:"fin",pr:true},
   ];
 
   return (
@@ -329,7 +329,7 @@ function NotableSection({ unitSystem="metric" }) {
                 const bg = i%2===0 ? C.bg : C.surface;
                 const fc = r.s==="dnf" ? "#c04040" : r.s==="dns" ? "#888" : r.s==="dnc" ? "#7050b0" : C.green;
                 return [
-                  <div key={"n"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.82rem",color:C.ink,opacity:dnx?"0.5":"1"}}>{r.race}</div>,
+                  <div key={"n"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.82rem",color:C.ink,opacity:dnx?"0.5":"1",display:"flex",alignItems:"center",gap:"0.4rem"}}>{r.race}{r.pr && <span style={{fontFamily:F.mono,fontSize:"0.45rem",letterSpacing:"0.08em",background:C.green,color:"#fff",padding:"0.1rem 0.3rem",borderRadius:2,fontWeight:700,flexShrink:0}}>PR</span>}</div>,
                   <div key={"d"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.82rem",color:C.muted,textAlign:"center",opacity:dnx?"0.5":"1"}}>{r.date}</div>,
                   <div key={"s"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.82rem",color:C.swim,textAlign:"center",opacity:dnx?"0.5":"1"}}>{r.swim}</div>,
                   <div key={"b"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.82rem",color:C.ride,textAlign:"center",opacity:dnx?"0.5":"1"}}>{r.bike}</div>,
