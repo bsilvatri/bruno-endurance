@@ -318,7 +318,7 @@ function NotableSection({ unitSystem="metric" }) {
               </div>
             ))}
           </div>
-          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>RACE HISTORY — 18 STARTS · 14 FINISHES · 2 DNF · 1 DNS · 1 DNC</div>
+          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>RACE HISTORY — 18 RACES · 15 FINISHES · 2 DNF · 1 DNS · 1 DNC</div>
           <div style={{ overflowX:"auto" }}>
             <div style={{ display:"grid", gridTemplateColumns:"1.5fr 90px 80px 80px 80px 90px", gap:"1px", background:C.border, border:"1px solid "+C.border, minWidth:"520px" }}>
               {["RACE","DATE","SWIM","BIKE","RUN","FINISH"].map((h,i) => (
@@ -339,6 +339,7 @@ function NotableSection({ unitSystem="metric" }) {
               })}
             </div>
           </div>
+          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", color:C.faint, marginTop:"0.75rem", letterSpacing:"0.05em" }}>DNF — Did not finish | DNS — Did not start | DNC — Did not count</div>
         </div>
       ) : (
         <>
