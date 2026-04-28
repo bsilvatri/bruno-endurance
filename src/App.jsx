@@ -220,6 +220,7 @@ function NotableSection({ unitSystem="metric" }) {
   const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [distHover, setDistHover] = useState(null);
 
   const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
 
@@ -701,11 +702,16 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
       <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
         <ChartBox title="Distance Distribution" subtitle="activity counts by distance" minH={331}>
           {isAll ? (
-            <div style={{paddingTop:"0.25rem"}}>
+            <div style={{paddingTop:"0.25rem",position:"relative"}} onMouseLeave={()=>setDistHover(null)}>
+              {distHover && (
+                <div style={{position:"fixed",pointerEvents:"none",zIndex:999,background:C.surface,border:`1px solid ${C.border}`,borderRadius:4,padding:"6px 10px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink,top:distHover.y-36,left:distHover.x+12,whiteSpace:"nowrap",boxShadow:"0 2px 8px rgba(0,0,0,0.1)"}}>
+                  <span style={{color:distHover.color,fontWeight:700}}>{distHover.label}:</span> {distHover.count}
+                </div>
+              )}
               <div style={{marginBottom:"0.75rem"}}>
                 <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.1em",color:C.run,marginBottom:"0.3rem"}}>RUNS</div>
                 {runDist.map((d,i)=>(
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem"}}>
+                  <div key={i} onMouseEnter={e=>setDistHover({label:d.label,count:d.count,color:C.run,x:e.clientX,y:e.clientY})} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem",cursor:"default"}}>
                     <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.faint,width:56,flexShrink:0,textAlign:"right"}}>{d.label}</div>
                     <div style={{flex:1,background:C.border,borderRadius:2,height:10,overflow:"hidden"}}>
                       <div style={{height:"100%",background:C.run,borderRadius:2,width:runDist.some(x=>x.count>0)?Math.max(d.count>0?4:0,Math.round(d.count/Math.max(...runDist.map(x=>x.count),1)*100))+"%":"0%"}} />
@@ -717,7 +723,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
               <div style={{marginBottom:"0.75rem"}}>
                 <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.1em",color:C.ride,marginBottom:"0.3rem"}}>RIDES</div>
                 {rideDist.map((d,i)=>(
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem"}}>
+                  <div key={i} onMouseEnter={e=>setDistHover({label:d.label,count:d.count,color:C.ride,x:e.clientX,y:e.clientY})} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem",cursor:"default"}}>
                     <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.faint,width:56,flexShrink:0,textAlign:"right"}}>{d.label}</div>
                     <div style={{flex:1,background:C.border,borderRadius:2,height:10,overflow:"hidden"}}>
                       <div style={{height:"100%",background:C.ride,borderRadius:2,width:rideDist.some(x=>x.count>0)?Math.max(d.count>0?4:0,Math.round(d.count/Math.max(...rideDist.map(x=>x.count),1)*100))+"%":"0%"}} />
@@ -729,7 +735,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
               <div>
                 <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.1em",color:C.swim,marginBottom:"0.3rem"}}>SWIMS</div>
                 {swimDist.map((d,i)=>(
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem"}}>
+                  <div key={i} onMouseEnter={e=>setDistHover({label:d.label,count:d.count,color:C.swim,x:e.clientX,y:e.clientY})} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem",cursor:"default"}}>
                     <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.faint,width:56,flexShrink:0,textAlign:"right"}}>{d.label}</div>
                     <div style={{flex:1,background:C.border,borderRadius:2,height:10,overflow:"hidden"}}>
                       <div style={{height:"100%",background:C.swim,borderRadius:2,width:swimDist.some(x=>x.count>0)?Math.max(d.count>0?4:0,Math.round(d.count/Math.max(...swimDist.map(x=>x.count),1)*100))+"%":"0%"}} />
