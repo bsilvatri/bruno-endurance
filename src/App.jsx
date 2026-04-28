@@ -310,25 +310,11 @@ function NotableSection({ unitSystem="metric" }) {
         <div>
           <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>PERSONAL RECORDS</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:"1px", background:C.border, border:"1px solid "+C.border, marginBottom:"1.5rem" }}>
-            {[
-              {l:"SWIM",v:"0:23:27",sub:"Panama '24",c:C.swim,top3:["0:23:27","0:27:45","0:27:49"]},
-              {l:"BIKE",v:"2:14:26",sub:"Brasília '26",c:C.ride,top3:["2:14:26","2:16:45","2:18:45"]},
-              {l:"RUN",v:"1:25:14",sub:"Cascais '23",c:C.run,top3:["1:25:14","1:26:20","1:26:48"]},
-              {l:"FINISH",v:"4:18:09",sub:"Brasília '26",c:C.ink,top3:["4:18:09","4:21:47","4:28:00"]}
-            ].map((pr,i) => (
+            {[{l:"SWIM",v:"0:23:27",sub:"Panama '24",c:C.swim},{l:"BIKE",v:"2:14:26",sub:"Brasília '26",c:C.ride},{l:"RUN",v:"1:25:14",sub:"Cascais '23",c:C.run},{l:"FINISH",v:"4:18:09",sub:"Brasília '26",c:C.ink}].map((pr,i) => (
               <div key={i} style={{ background:C.bg, padding:"0.65rem 0.75rem" }}>
                 <div style={{ fontFamily:F.mono, fontSize:"0.45rem", letterSpacing:"0.1em", color:C.faint, marginBottom:"0.2rem" }}>{pr.l}</div>
-                {pr.top3.map((t,rank) => {
-                  const medal = rank===0?"#D4AF37":rank===1?"#A8A9AD":"#CD7F32";
-                  const label = rank===0?"🥇":rank===1?"🥈":"🥉";
-                  return (
-                    <div key={rank} style={{ display:"flex", alignItems:"baseline", gap:"0.3rem", marginBottom: rank<2?"0.15rem":"0" }}>
-                      <span style={{ fontSize:"0.55rem" }}>{label}</span>
-                      <span style={{ fontFamily:F.mono, fontSize:rank===0?"0.82rem":"0.65rem", fontWeight:rank===0?700:500, color:medal }}>{t}</span>
-                    </div>
-                  );
-                })}
-                <div style={{ fontFamily:F.mono, fontSize:"0.45rem", color:C.muted, marginTop:"0.25rem" }}>{pr.sub}</div>
+                <div style={{ fontFamily:F.mono, fontSize:"0.82rem", fontWeight:700, color:pr.c }}>{pr.v}</div>
+                <div style={{ fontFamily:F.mono, fontSize:"0.45rem", color:C.muted, marginTop:"0.15rem" }}>{pr.sub}</div>
               </div>
             ))}
           </div>
@@ -341,7 +327,9 @@ function NotableSection({ unitSystem="metric" }) {
               {RACES.map((r,i) => {
                 const dnx = r.s !== "fin";
                 const bg = i%2===0 ? C.bg : C.surface;
-                const fc = r.s==="dnf" ? "#c04040" : r.s==="dns" ? "#888" : r.s==="dnc" ? "#7050b0" : C.green;
+                const top3 = ["4:18:09","4:21:47","4:28:00"];
+                const medalColor = top3[0]===r.finish?"#D4AF37":top3[1]===r.finish?"#A8A9AD":top3[2]===r.finish?"#CD7F32":null;
+                const fc = r.s==="dnf" ? "#c04040" : r.s==="dns" ? "#888" : r.s==="dnc" ? "#7050b0" : medalColor || C.green;
                 return [
                   <div key={"n"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.82rem",color:C.ink,opacity:dnx?"0.5":"1",display:"flex",alignItems:"center",gap:"0.4rem"}}>{r.race}{r.pr && <span style={{fontFamily:F.mono,fontSize:"0.45rem",letterSpacing:"0.08em",background:C.green,color:"#fff",padding:"0.1rem 0.3rem",borderRadius:2,fontWeight:700,flexShrink:0}}>PR</span>}</div>,
                   <div key={"d"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.82rem",color:C.muted,textAlign:"center",opacity:dnx?"0.5":"1"}}>{r.date}</div>,
