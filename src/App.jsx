@@ -1480,29 +1480,69 @@ export default function App() {
   const [statsTab, setStatsTab] = useState("all");
   const [unitSystem, setUnitSystem] = useState("metric");
   const [lang, setLang] = useState("EN");
-  const LANGS = [
-    {code:"EN", gt:"en"},
-    {code:"PT", gt:"pt"},
-    {code:"ES", gt:"es"},
-    {code:"FR", gt:"fr"},
-    {code:"DE", gt:"de"},
-    {code:"IT", gt:"it"},
-    {code:"JA", gt:"ja"},
-  ];
-  const [showLangMenu, setShowLangMenu] = useState(false);
-
-
-
-  const applyLang = (l) => {
-    setLang(l.code);
-    setShowLangMenu(false);
-    if (l.gt === "en") {
-      // If currently on a translated page, go back to original
-      window.location.href = "https://bruno-endurance.vercel.app";
-    } else {
-      window.location.href = "https://translate.google.com/translate?sl=en&tl=" + l.gt + "&u=" + encodeURIComponent("https://bruno-endurance.vercel.app");
+  const T = {
+    EN: {
+      foreword: "FOREWORD",
+      about: "ABOUT",
+      notable: "NOTABLE",
+      stats: "STATS",
+      progression: "PROGRESSION",
+      geography: "GEOGRAPHY",
+      recent: "RECENT",
+      activities: "ACTIVITIES",
+      kilometers: "KILOMETERS",
+      hours: "HOURS",
+      mClimbed: "M CLIMBED",
+      restDays: (n) => n + " rest days in 2026",
+      laps: "1.28 laps around the Earth",
+      fullDays: "122 full days",
+      everests: "97.6 Everests base camp to summit",
+      syncedAgo: (t) => "synced " + t,
+      loading: "loading...",
+      viewOnStrava: "VIEW ON STRAVA →",
+      longestRuns: "my longest runs on record",
+      longestRides: "my longest rides on record",
+      longestSwims: "my longest swims on record",
+      fastestTimes: "fastest times across standard running distances",
+      mostVerticalRun: "the most vertical gain in a single run",
+      mostVerticalRide: "the most vertical gain in a single ride",
+      personalRecords: "PERSONAL RECORDS",
+      raceHistory: "RACE HISTORY",
+    },
+    PT: {
+      foreword: "PREFÁCIO",
+      about: "SOBRE",
+      notable: "NOTÁVEL",
+      stats: "STATS",
+      progression: "PROGRESSÃO",
+      geography: "GEOGRAFIA",
+      recent: "RECENTES",
+      activities: "ATIVIDADES",
+      kilometers: "QUILÔMETROS",
+      hours: "HORAS",
+      mClimbed: "M ESCALADOS",
+      restDays: (n) => n + " dias de descanso em 2026",
+      laps: "1,28 voltas ao redor da Terra",
+      fullDays: "122 dias completos",
+      everests: "97,6 Everests da base ao topo",
+      syncedAgo: (t) => "sincronizado " + t,
+      loading: "carregando...",
+      viewOnStrava: "VER NO STRAVA →",
+      longestRuns: "minhas corridas mais longas",
+      longestRides: "meus pedais mais longos",
+      longestSwims: "minhas nadadas mais longas",
+      fastestTimes: "melhores tempos em distâncias padrão",
+      mostVerticalRun: "maior ganho de elevação em uma corrida",
+      mostVerticalRide: "maior ganho de elevação em um pedal",
+      personalRecords: "RECORDES PESSOAIS",
+      raceHistory: "HISTÓRICO DE CORRIDAS",
     }
   };
+  const t = T[lang];
+
+
+
+
   const NAV_IDS = ["about", "notable", "stats", "progression", "geography", "recent"];
   const [active, setActive] = useScrollSpy(NAV_IDS);
 
@@ -1681,12 +1721,15 @@ export default function App() {
 
       {/* Floating unit toggle */}
       <div style={{ position:"fixed", bottom:"1.5rem", right:"1.5rem", zIndex:1000, display:"flex", gap:"0.5rem", alignItems:"center" }}>
-        <button onClick={()=>setShowLangMenu(v=>!v)} style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.1em", textTransform:"uppercase", padding:"6px 10px", background:C.ink, color:"#fff", border:`1px solid ${C.border}`, borderRadius:4, cursor:"pointer", boxShadow:"0 2px 12px rgba(0,0,0,0.12)", transition:"all 0.15s" }}>{lang}</button>
+        <div style={{ display:"flex", gap:0, boxShadow:"0 2px 12px rgba(0,0,0,0.12)", borderRadius:4, overflow:"hidden", border:`1px solid ${C.border}` }}>
+          {["EN","PT"].map(l => (
+            <button key={l} onClick={()=>setLang(l)} style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.1em", padding:"6px 10px", background:lang===l?C.ink:C.surface, color:lang===l?"#fff":C.faint, border:"none", cursor:"pointer", transition:"all 0.15s" }}>{l}</button>
+          ))}
+        </div>
         <div style={{ display:"flex", gap:0, boxShadow:"0 2px 12px rgba(0,0,0,0.12)", borderRadius:4, overflow:"hidden", border:`1px solid ${C.border}` }}>
         {["metric","imperial"].map(u=>(
           <button key={u} onClick={()=>setUnitSystem(u)} style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.1em", textTransform:"uppercase", padding:"6px 10px", background:unitSystem===u?C.ink:C.surface, color:unitSystem===u?"#fff":C.faint, border:"none", cursor:"pointer", transition:"all 0.15s" }}>{u==="metric"?"km":"mi"}</button>
         ))}
-      </div>
       </div>
     </div>
   );
