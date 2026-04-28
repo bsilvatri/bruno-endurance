@@ -220,8 +220,6 @@ function NotableSection({ unitSystem="metric" }) {
   const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [prs, setPrs] = useState([]);
-  useEffect(() => { q("best_efforts?select=sport,distance_label,elapsed_time&order=elapsed_time.asc").then(d => setPrs(Array.isArray(d) ? d : [])); }, []);
 
   const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
   const sportType = sport === "run" ? "Run" : sport === "ride" ? "Ride,VirtualRide" : "Swim";
@@ -247,8 +245,7 @@ function NotableSection({ unitSystem="metric" }) {
   }, [sport, tab]);
 
   useEffect(() => {
-    if (sport === "swim") setTab("longest");
-    else if (sport === "races") setTab("races");
+    if (sport === "ride" || sport === "swim") setTab("longest");
     else setTab("pbs");
   }, [sport]);
 
@@ -259,23 +256,6 @@ function NotableSection({ unitSystem="metric" }) {
   const fmtSpeed = s => s ? `${unitSystem==="imperial" ? (s*2.237).toFixed(1) : (s*3.6).toFixed(1)} ${unitSystem==="imperial"?"mi/h":"km/h"}` : "—";
   const fmtSwimPace = (t, d) => { if (!t || !d) return "—"; const s = unitSystem==="imperial" ? t / (d / 91.44) : t / (d / 100); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/${unitSystem==="imperial"?"100yd":"100m"}`; };
 
-
-  const RACES = [
-    { race:"IM 70.3 Brasília", date:"Apr 2026", country:"🇧🇷", swim:"0:27:57", bike:"2:14:26", run:"1:30:46", finish:"4:18:09", pb:true },
-    { race:"Challenge Floripa", date:"Nov 2024", country:"🇧🇷", swim:"0:28:13", bike:"2:18:59", run:"1:26:56", finish:"4:21:47", pb:false },
-    { race:"IM 70.3 Brasília", date:"Apr 2025", country:"🇧🇷", swim:"0:28:28", bike:"2:16:45", run:"1:38:18", finish:"4:28:00", pb:false },
-    { race:"IM 70.3 Cascais", date:"Oct 2024", country:"🇵🇹", swim:"0:31:06", bike:"2:24:08", run:"1:28:34", finish:"4:30:59", pb:false },
-    { race:"Challenge Floripa", date:"Nov 2025", country:"🇧🇷", swim:"0:27:45", bike:"2:18:45", run:"1:41:10", finish:"4:32:46", pb:false },
-    { race:"IM 70.3 Cascais", date:"Oct 2023", country:"🇵🇹", swim:"0:28:29", bike:"2:32:53", run:"1:25:14", finish:"4:34:03", pb:false },
-    { race:"Challenge Floripa", date:"Apr 2023", country:"🇧🇷", swim:"0:31:25", bike:"2:25:23", run:"1:36:15", finish:"4:39:27", pb:false },
-    { race:"IM 70.3 São Paulo", date:"Sep 2023", country:"🇧🇷", swim:"0:32:15", bike:"2:24:13", run:"1:38:20", finish:"4:42:56", pb:false },
-    { race:"IM 70.3 Panama", date:"Feb 2024", country:"🇵🇦", swim:"0:23:27", bike:"2:26:08", run:"1:49:40", finish:"4:46:08", pb:false },
-    { race:"IM 70.3 Curitiba", date:"Mar 2026", country:"🇧🇷", swim:"0:27:49", bike:"2:42:58", run:"1:33:08", finish:"4:48:41", pb:false },
-    { race:"IM 70.3 Cascais", date:"Oct 2022", country:"🇵🇹", swim:"0:30:39", bike:"2:33:46", run:"1:35:13", finish:"4:48:04", pb:false },
-    { race:"IM 70.3 Eagleman", date:"Jun 2024", country:"🇺🇸", swim:"0:36:29", bike:"2:27:10", run:"1:42:01", finish:"4:52:26", pb:false },
-    { race:"IM 70.3 Marbella", date:"Nov 2025", country:"🇪🇸", swim:"0:30:30", bike:"2:46:13", run:"1:26:48", finish:"4:52:24", pb:false },
-    { race:"IM 70.3 Rio", date:"Jul 2023", country:"🇧🇷", swim:"0:34:36", bike:"2:31:53", run:"1:40:41", finish:"4:55:39", pb:false },
-  ];
   const cols = tab === "pbs"
     ? [{ k: "#", l: "#", w: "40px" }, { k: "date", l: "Date", w: "110px" }, { k: "dist", l: "Distance", w: "100px" }, { k: "time", l: "Time", w: "1fr", mono: true, accent: true }]
     : tab === "elevation"
@@ -303,53 +283,14 @@ function NotableSection({ unitSystem="metric" }) {
       </h2>
 
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem" }}>
-        <SportTab label="RACES" active={sport === "races"} onClick={() => setSport("races")} color={C.green} />
         <SportTab label="RUNS" active={sport === "run"} onClick={() => setSport("run")} color={C.run} />
         <SportTab label="RIDES" active={sport === "ride"} onClick={() => setSport("ride")} color={C.ride} />
         <SportTab label="SWIMS" active={sport === "swim"} onClick={() => setSport("swim")} color={C.swim} />
       </div>
 
-sport === "races" ? (
-        <div style={{ marginTop:"1.5rem" }}>
-          <div style={{ marginBottom:"1.5rem" }}>
-            <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>PERSONAL RECORDS</div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:"1px", background:C.border, border:"1px solid "+C.border }}>
-              {[{l:"SWIM",v:"0:23:27",sub:"Panama '24",color:C.swim},{l:"BIKE",v:"2:14:26",sub:"Brasília '26",color:C.ride},{l:"RUN",v:"1:25:14",sub:"Cascais '23",color:C.run},{l:"FINISH",v:"4:18:09",sub:"Brasília '26",color:C.ink}].map((pr,i)=>(
-                <div key={i} style={{ background:C.bg, padding:"0.6rem 0.75rem" }}>
-                  <div style={{ fontFamily:F.mono, fontSize:"0.45rem", letterSpacing:"0.1em", color:C.faint, marginBottom:"0.2rem" }}>{pr.l}</div>
-                  <div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:pr.color }}>{pr.v}</div>
-                  <div style={{ fontFamily:F.mono, fontSize:"0.45rem", color:C.muted, marginTop:"0.15rem" }}>{pr.sub}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>RACE HISTORY — 18 STARTS · 14 FINISHES · 2 DNF · 1 DNS · 1 DNC</div>
-          <div style={{ overflowX:"auto" }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1.4fr 70px 80px 80px 80px 90px", gap:"1px", background:C.border, border:"1px solid "+C.border, minWidth:"520px" }}>
-              {[{l:"RACE",c:C.faint},{l:"DATE",c:C.faint},{l:"SWIM",c:C.swim},{l:"BIKE",c:C.ride},{l:"RUN",c:C.run},{l:"FINISH",c:C.ink}].map((h,i)=>(
-                <div key={i} style={{ background:C.surface, padding:"0.4rem 0.5rem", fontFamily:F.mono, fontSize:"0.45rem", letterSpacing:"0.1em", color:h.c, textAlign:i>1?"center":"left" }}>{h.l}</div>
-              ))}
-              {[{"race":"Cascais, Portugal","date":"Oct '22","swim":"0:30:39","bike":"2:33:46","run":"1:35:13","finish":"4:48:04","status":"fin"},{"race":"Florianópolis, Brazil","date":"Apr '23","swim":"0:31:25","bike":"2:25:23","run":"1:36:15","finish":"4:39:27","status":"fin"},{"race":"Geraardsbergen, Belgium","date":"Jun '23","swim":"0:34:50","bike":"1:01:37","run":"—","finish":"DNF","status":"dnf"},{"race":"Rio de Janeiro, Brazil","date":"Jul '23","swim":"0:34:36","bike":"2:31:53","run":"1:40:41","finish":"4:55:39","status":"fin"},{"race":"São Paulo, Brazil","date":"Sep '23","swim":"0:32:15","bike":"2:24:13","run":"1:38:20","finish":"4:42:56","status":"fin"},{"race":"Cascais, Portugal","date":"Oct '23","swim":"0:28:29","bike":"2:32:53","run":"1:25:14","finish":"4:34:03","status":"fin"},{"race":"Panama City, Panama","date":"Feb '24","swim":"0:23:27","bike":"2:26:08","run":"1:49:40","finish":"4:46:08","status":"fin"},{"race":"Eagleman, USA","date":"Jun '24","swim":"0:36:29","bike":"2:27:10","run":"1:42:01","finish":"4:52:26","status":"fin"},{"race":"São Paulo, Brazil","date":"Sep '24","swim":"—","bike":"—","run":"—","finish":"DNS","status":"dns"},{"race":"Cascais, Portugal","date":"Oct '24","swim":"0:31:06","bike":"2:24:08","run":"1:28:34","finish":"4:30:59","status":"fin"},{"race":"Florianópolis, Brazil","date":"Nov '24","swim":"0:28:13","bike":"2:18:59","run":"1:26:56","finish":"4:21:47","status":"fin"},{"race":"Punta del Este, Uruguay","date":"Mar '25","swim":"—","bike":"—","run":"—","finish":"DNF","status":"dnf"},{"race":"Brasília, Brazil","date":"Apr '25","swim":"0:28:28","bike":"2:16:45","run":"1:38:18","finish":"4:28:00","status":"fin"},{"race":"Samorin, Slovakia","date":"May '25","swim":"0:10:48","bike":"2:27:18","run":"1:26:20","finish":"DNC","status":"dnc"},{"race":"Marbella, Spain","date":"Nov '25","swim":"0:30:30","bike":"2:46:13","run":"1:26:48","finish":"4:52:24","status":"fin"},{"race":"Florianópolis, Brazil","date":"Nov '25","swim":"0:27:45","bike":"2:18:45","run":"1:41:10","finish":"4:32:46","status":"fin"},{"race":"Curitiba, Brazil","date":"Mar '26","swim":"0:27:49","bike":"2:42:58","run":"1:33:08","finish":"4:48:41","status":"fin"},{"race":"Brasília, Brazil","date":"Apr '26","swim":"0:27:57","bike":"2:14:26","run":"1:30:46","finish":"4:18:09","status":"fin"}].map((r,i)=>{
-                const isDNx = r.status!=="fin";
-                const bg = i%2===0?C.bg:C.surface;
-                const op = isDNx ? "0.5" : "1";
-                const fc = r.status==="dnf"?"#c04040":r.status==="dns"?"#888":r.status==="dnc"?"#8060c0":C.green;
-                return [
-                  <div key={"n"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.ink, opacity:op }}>{r.race}</div>,
-                  <div key={"d"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.55rem", color:C.muted, textAlign:"center", opacity:op }}>{r.date}</div>,
-                  <div key={"s"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.swim, textAlign:"center", opacity:op }}>{r.swim}</div>,
-                  <div key={"b"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.ride, textAlign:"center", opacity:op }}>{r.bike}</div>,
-                  <div key={"r"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.6rem", color:C.run, textAlign:"center", opacity:op }}>{r.run}</div>,
-                  <div key={"f"+i} style={{ background:bg, padding:"0.45rem 0.5rem", fontFamily:F.mono, fontSize:"0.65rem", fontWeight:isDNx?400:700, color:fc, textAlign:"center" }}>{r.finish}</div>
-                ];
-              })}
-            </div>
-          </div>
-        </div>
-      ) : (
-            <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", marginBottom: "0.5rem" }}>
+      <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", marginBottom: "0.5rem" }}>
+        {sport === "run" && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
         <SubTab label="LONGEST" active={tab === "longest"} onClick={() => setTab("longest")} />
-        {(sport === "run" || sport === "ride") && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
         {sport !== "swim" && <SubTab label="ELEVATION GAIN" active={tab === "elevation"} onClick={() => setTab("elevation")} />}
       </div>
 
@@ -359,26 +300,9 @@ sport === "races" ? (
 
       {loading ? <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint, padding: "3rem 0" }}>loading...</div> : (
         <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 280px", gap: "0", border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden", background: C.surface }}>
-          {tab === "pbs" ? (
-            <div style={{ padding: "1.25rem", flex: 1 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "1px", background: C.border, border: "1px solid " + C.border }}>
-                <div style={{ background: C.surface, padding: "0.5rem 1rem", fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint }}>DISTANCE</div>
-                <div style={{ background: C.surface, padding: "0.5rem 1rem", fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint, textAlign: "right" }}>TIME</div>
-                {prs.filter(p => p.sport === sport).map((pr, i) => {
-                  const s = pr.elapsed_time, h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = String(s%60).padStart(2,"0");
-                  const time = h > 0 ? h+":"+String(m).padStart(2,"0")+":"+sec : m+":"+sec;
-                  return [
-                    <div key={"d"+i} style={{ background: i%2===0?C.bg:C.surface, padding: "0.6rem 1rem", fontFamily: F.mono, fontSize: "0.65rem", color: C.muted }}>{pr.distance_label}</div>,
-                    <div key={"t"+i} style={{ background: i%2===0?C.bg:C.surface, padding: "0.6rem 1rem", fontFamily: F.mono, fontSize: "0.75rem", fontWeight: 700, color: sportColor, textAlign: "right" }}>{time}</div>
-                  ];
-                })}
-              </div>
-            </div>
-          ) : (
-            <div style={{ borderRight: "1px solid " + C.border }}>
-              <NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} />
-            </div>
-          )}
+          <div style={{ borderRight: `1px solid ${C.border}` }}>
+            <NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} />
+          </div>
           <div>
             <ActivityMap polyline={cur?.map_summary_polyline} type={sport === "run" ? "Run" : sport === "ride" ? "Ride" : "Swim"} height={380} />
           </div>
@@ -415,7 +339,6 @@ sport === "races" ? (
           </div>
         </div>
       )}
-      )
     </section>
   );
 }
