@@ -251,7 +251,6 @@ function NotableSection({ unitSystem="metric" }) {
     else setTab("pbs");
   }, [sport]);
 
-  // Fetch personal records from Supabase
   useEffect(() => {
     q("best_efforts?select=sport,distance_label,elapsed_time&order=elapsed_time.asc")
       .then(data => setPrs(Array.isArray(data) ? data : []));
@@ -1105,7 +1104,7 @@ function RecentSection({ lang, unitSystem="metric" }) {
                         <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint }}>{fmtDate(act.start_date_local)}</div>
                       </div>
                       <div style={{ display:"flex", gap:"1rem", alignItems:"center", flexShrink:0 }}>
-                        {act.distance > 0 && <span style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:500, color:C.ink }}>{fmtDist(act.distance)}</span>}
+                        {act.distance > 0 && <span style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:500, color:C.ink, fontFamily:F.mono }}>{fmtDist(act.distance)}</span>}
                         <span style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.muted }}>{fmtTime(act.moving_time)}</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:isExp?C.green:C.faint }}>{isExp?"▲":"▼"}</span>
                       </div>
@@ -1346,31 +1345,24 @@ function ProgressionSection() {
       </div>
       <div id="heat-tip" style={{ position:"fixed", display:"none", background:"rgba(20,20,20,0.92)", color:"#fff", padding:"4px 10px", fontFamily:"monospace", fontSize:"0.62rem", borderRadius:3, pointerEvents:"none", zIndex:9999, border:"1px solid rgba(255,255,255,0.15)" }} />
       {tab === "prs" ? (
-        <div style={{ marginTop: "2rem" }}>
-          {[{sport:"run",label:"Running"},{sport:"ride",label:"Cycling"}].filter(s => s.sport === sport || sport === "all").map(s => {
-            const sportPrs = prs.filter(p => p.sport === s.sport);
-            if(!sportPrs.length) return null;
-            return (
-              <div key={s.sport} style={{ marginBottom: "2rem" }}>
-                <div style={{ fontFamily:F.mono, fontSize:"0.55rem", letterSpacing:"0.15em", color:C.muted, marginBottom:"1rem" }}>{s.label.toUpperCase()} PERSONAL RECORDS</div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1px", background:C.border, border:`1px solid ${C.border}` }}>
-                  {sportPrs.map((pr,i) => {
-                    const mins = Math.floor(pr.elapsed_time/60);
-                    const secs = String(pr.elapsed_time%60).padStart(2,'0');
-                    const hours = Math.floor(mins/60);
-                    const remMins = String(mins%60).padStart(2,'0');
-                    const time = hours > 0 ? `${hours}:${remMins}:${secs}` : `${mins}:${secs}`;
-                    return (
-                      <div key={i} style={{ background:C.bg, padding:"0.75rem 1rem", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                        <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.muted, letterSpacing:"0.05em" }}>{pr.distance_label.replace(' (ride)','').replace(' (run)','')}</span>
-                        <span style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:sportColor }}>{time}</span>
-                      </div>
-                    );
-                  })}
+        <div style={{ marginTop:"2rem" }}>
+          <div style={{ fontFamily:F.mono, fontSize:"0.55rem", letterSpacing:"0.15em", color:C.muted, marginBottom:"1rem" }}>{sport === "ride" ? "CYCLING" : "RUNNING"} PERSONAL RECORDS</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1px", background:C.border, border:`1px solid ${C.border}` }}>
+            {prs.filter(p=>p.sport===sport).map((pr,i)=>{
+              const s = pr.elapsed_time;
+              const h = Math.floor(s/3600);
+              const m = Math.floor((s%3600)/60);
+              const sec = String(s%60).padStart(2,'0');
+              const time = h>0 ? `${h}:${String(m).padStart(2,'0')}:${sec}` : `${m}:${sec}`;
+              const label = pr.distance_label.replace(' (ride)','').replace(' (run)','');
+              return (
+                <div key={i} style={{background:C.bg,padding:"0.75rem 1rem",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontFamily:F.mono,fontSize:"0.6rem",color:C.muted,letterSpacing:"0.05em"}}>{label}</span>
+                  <span style={{fontFamily:F.mono,fontSize:"0.85rem",fontWeight:700,color:sportColor}}>{time}</span>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       ) : loading ? (
         <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div>
@@ -1414,4 +1406,235 @@ function ProgressionSection() {
   );
 }
 
-export default App;
+
+/* ─── ACTIVITY INFO ICON ─── */
+function ActivityInfoIcon() {
+  const [open, setOpen] = useState(false);
+  const [counts, setCounts] = useState(null);
+  useEffect(() => {
+    if (!open || counts) return;
+    const H = {apikey:SB_KEY, Authorization:`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'count=exact'};
+    const types = ['Run','Ride','VirtualRide','Swim','Workout','WeightTraining','AlpineSki','Walk','Hike','Yoga'];
+    Promise.all(types.map(t =>
+      fetch(`${SB_URL}/rest/v1/activities?select=count&type=eq.${t}`, {headers:H})
+      .then(r=>({type:t, count:parseInt(r.headers.get('content-range')?.split('/')[1]||'0')}))
+    )).then(results => setCounts(results.filter(r=>r.count>0).sort((a,b)=>b.count-a.count)));
+  }, [open]);
+  const typeLabel = {Run:'Run',Ride:'Ride',VirtualRide:'Virtual Ride',Swim:'Swim',Workout:'Workout',WeightTraining:'Weights',AlpineSki:'Alpine Ski',Walk:'Walk',Hike:'Hike',Yoga:'Yoga'};
+  return (
+    <div style={{position:"relative",display:"inline-flex",alignItems:"center"}}>
+      <span onClick={e=>{e.stopPropagation();setOpen(v=>!v);}} style={{cursor:"pointer",color:C.faint,fontSize:"0.65rem",lineHeight:1,userSelect:"none",marginLeft:2}}>ⓘ</span>
+      {open && <>
+        <div onClick={()=>setOpen(false)} style={{position:"fixed",inset:0,zIndex:99}} />
+        <div style={{position:"absolute",bottom:"calc(100% + 8px)",left:"50%",transform:"translateX(-50%)",zIndex:100,background:C.bg,border:`1px solid ${C.border}`,borderRadius:4,padding:"10px 14px",minWidth:180,boxShadow:"0 4px 20px rgba(0,0,0,0.08)"}}>
+          <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.15em",color:C.faint,marginBottom:"6px",textTransform:"uppercase"}}>By activity type</div>
+          {counts ? counts.map(({type,count})=>(
+            <div key={type} style={{display:"flex",justifyContent:"space-between",gap:"2rem",fontFamily:F.mono,fontSize:"0.6rem",padding:"2px 0",borderBottom:`1px solid ${C.border}`}}>
+              <span style={{color:C.muted}}>{typeLabel[type]||type}</span>
+              <span style={{fontWeight:600,color:C.ink}}>{count.toLocaleString()}</span>
+            </div>
+          )) : <div style={{fontFamily:F.mono,fontSize:"0.6rem",color:C.faint}}>loading...</div>}
+        </div>
+      </>}
+    </div>
+  );
+}
+
+/* ─── MAIN APP ─── */
+export default function App() {
+  const [hero, setHero] = useState(null);
+  const [sports, setSports] = useState(null);
+  const [lastSync, setLastSync] = useState(null);
+  const [restDays, setRestDays] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  const [sportFilter, setSportFilter] = useState("all");
+  const [statsTab, setStatsTab] = useState("all");
+  const [unitSystem, setUnitSystem] = useState("metric");
+  const NAV_IDS = ["about", "notable", "stats", "progression", "geography", "recent"];
+  const [active, setActive] = useScrollSpy(NAV_IDS);
+
+  const acts = useCountUp(hero?.total_activities || 0);
+  const km = useCountUp(hero?.total_km || 0);
+  const hrs = useCountUp(hero?.total_hours || 0);
+  const elev = useCountUp(hero?.total_elevation || 0);
+
+  useEffect(() => {
+    setMounted(true);
+    Promise.all([rpc("get_hero_stats"), rpc("get_sport_totals")]).then(([h, s]) => {
+      setHero(h); setSports(s);
+    });
+    fetch(`${SB_URL}/rest/v1/activities?select=start_date_local&order=start_date_local.desc&limit=1`, { headers: SBH })
+      .then(r => r.json()).then(d => { if (d[0]?.start_date_local) setLastSync(new Date(d[0].start_date_local)); });
+    // Calculate rest days for current year
+    const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString().slice(0,10);
+    const yearEnd = new Date(new Date().getFullYear() + 1, 0, 1).toISOString().slice(0,10);
+    fetch(`${SB_URL}/rest/v1/activities?select=start_date_local&start_date_local=gte.${yearStart}&start_date_local=lt.${yearEnd}`, { headers: SBH })
+      .then(r => r.json()).then(acts => {
+        const activeDays = new Set(acts.map(a => a.start_date_local?.slice(0,10))).size;
+        const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 1)) / 86400000) + 1;
+        setRestDays(dayOfYear - activeDays);
+      });
+  }, []);
+
+  const fmtSync = d => {
+    const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  };
+
+  const goto = id => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); setActive(id); };
+
+  const statColors = { all: C.green, run: C.run, ride: C.ride, swim: C.swim };
+
+  return (
+    <div style={{ background: C.bg, color: C.ink, fontFamily: F.body, fontSize: 14, minHeight: "100vh" }}>
+      {/* NAV */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(237,232,220,0.92)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2rem", height: 50 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <span style={{ fontFamily: F.heading, fontSize: "0.9rem", fontWeight: 800, color: C.green, letterSpacing: "0.02em" }}>BRUNO S.</span>
+          {lastSync && <span style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint }}>· synced {fmtSync(lastSync)}</span>}
+        </div>
+        <div style={{ display: "flex", gap: "2rem" }}>
+          {NAV_IDS.map(id => (
+            <button key={id} onClick={() => goto(id)} style={{ background: "none", border: "none", borderBottom: `1.5px solid ${active === id ? C.green : "transparent"}`, padding: "4px 0", cursor: "pointer", fontFamily: F.mono, fontSize: "0.58rem", letterSpacing: "0.15em", textTransform: "uppercase", color: active === id ? C.green : C.muted, transition: "all 0.15s" }}>
+              {id.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 2rem" }}>
+
+        {/* HERO */}
+        <section style={{ padding: "5rem 0 3rem", textAlign: "center" }}>
+          <h1 style={{ fontFamily: F.heading, fontSize: "clamp(5rem,15vw,10rem)", fontWeight: 800, color: C.green, lineHeight: 1, letterSpacing: "0", margin: "0 0 1rem" }}>
+            修行
+          </h1>
+          <div style={{ fontFamily: F.body, fontSize: "0.9rem", color: C.muted, lineHeight: 1.8, marginBottom: "2.5rem", maxWidth: "520px", margin: "0 auto 2.5rem", textAlign: "center", fontStyle: "italic" }}>
+            <em>Shugyō</em> — the quiet discipline of giving yourself to the process so completely that repetition becomes transformation
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", border: `1px solid ${C.border}` }}>
+            {[
+              { val: acts, label: "ACTIVITIES", sub: restDays !== null ? `${restDays} rest day${restDays !== 1 ? 's' : ''} in ${new Date().getFullYear()}` : null, showInfo: true },
+              { val: unitSystem==="imperial" ? Math.round(km*0.621371) : km, label: unitSystem==="imperial" ? "MILES" : "KILOMETERS", sub: hero ? `${(hero.total_km / 40075).toFixed(2)} laps around the Earth` : null },
+              { val: hrs, label: "HOURS", sub: hero ? `${(hero.total_hours / 24).toFixed(0)} full days` : null },
+              { val: unitSystem==="imperial" ? Math.round(elev*3.28084) : elev, label: unitSystem==="imperial" ? "FT CLIMBED" : "M CLIMBED", sub: hero ? `${(hero.total_elevation / 3500).toFixed(1)} Everests base camp to summit` : null, last: true },
+            ].map(({ val, label, sub, last }) => (
+              <div key={label} style={{ padding: "1.25rem 1rem", textAlign: "center", borderRight: last ? "none" : `1px solid ${C.border}` }}>
+                <div style={{ fontFamily: F.mono, fontSize: "clamp(1.6rem,2.5vw,2.2rem)", fontWeight: 800, color: C.green, letterSpacing: "-1px", lineHeight: 1 }}>
+                  {val.toLocaleString()}
+                </div>
+                <div style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.15em", color: C.muted, margin: "0.35rem 0", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+                    {label}
+                    {label === "ACTIVITIES" && <ActivityInfoIcon />}
+                  </div>
+                {sub && <div style={{ fontFamily: F.body, fontSize: "0.65rem", color: C.faint, lineHeight: 1.4 }}>{sub}</div>}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* FOREWORD */}
+        <section id="about" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
+          <Divider />
+          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+            <h2 style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, letterSpacing: "0.2em", color: C.green, margin: 0 }}>FOREWORD</h2>
+          </div>
+          <div style={{ maxWidth: 480, margin: "0 auto" }}>
+            {[
+              "Like many, endurance sports entered my life when I hit rock bottom. I was depressed, drinking, partying, and had just walked away from the most toxic relationship I'd ever been in. What started as a personal challenge quickly became a lifestyle — one that has reshaped my life, inside and out.",
+              "Triathlon brought discipline, self-discovery, self-respect, and a clear mind. It gave me consistency, and an unshakable, insatiable desire to evolve — in sport and in life.",
+              "I'm a numbers guy, always have been. I like keeping track of my accomplishments as a daily reminder of where I came from, where I am, and what I'm still capable of.",
+            ].map((p, i) => (
+              <p key={i} style={{ fontFamily: F.body, fontSize: "0.9rem", lineHeight: 1.8, color: C.dim, marginBottom: "1.2rem", fontWeight: 400 }}>{p}</p>
+            ))}
+            <p style={{ fontFamily: F.body, fontSize: "0.875rem", lineHeight: 1.8, color: C.green, fontStyle: "italic", marginBottom: "2rem", fontWeight: 500 }}>
+              This is the never-ending search for my own limits.
+            </p>
+          </div>
+          <Divider />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, color: C.ink, marginBottom: "0.3rem" }}>Bruno Silva</div>
+              <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, letterSpacing: "0.12em" }}>From Tokyo — and all over the world — to Rio de Janeiro</div>
+            </div>
+            <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint }}>2026</div>
+          </div>
+          {sports && (
+            <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1rem" }}>
+              {[
+                { l: "SWIM", c: sports.swim?.count, km: sports.swim?.km, h: sports.swim?.hours, col: C.swim },
+                { l: "RIDE", c: sports.ride?.count, km: sports.ride?.km, h: sports.ride?.hours, col: C.ride },
+                { l: "RUN", c: sports.run?.count, km: sports.run?.km, h: sports.run?.hours, col: C.run },
+              ].map(s => (
+                <div key={s.l} style={{ borderTop: `2px solid ${s.col}`, paddingTop: "0.75rem" }}>
+                  <div style={{ fontFamily: F.mono, fontSize: "0.55rem", letterSpacing: "0.15em", color: s.col, marginBottom: "0.3rem" }}>{s.l}</div>
+                  <div style={{ fontFamily: F.mono, fontSize: "2rem", fontWeight: 800, color: C.ink }}>{(s.c || 0).toLocaleString()}</div>
+                  <div style={{ fontFamily: F.mono, fontSize: "0.6rem", color: C.faint }}>
+                    {unitSystem==="imperial" ? Math.round((s.km||0)*0.621371).toLocaleString() : Math.round(s.km||0).toLocaleString()} {unitSystem==="imperial"?"mi":"km"} · {Math.round(s.h||0)}h
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* NOTABLE */}
+        <NotableSection unitSystem={unitSystem} />
+
+        {/* STATS */}
+        <section id="stats" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
+          <Divider />
+          <SectionNum n={3} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
+            <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: 0, lineHeight: 0.9, letterSpacing: "-1px" }}>
+              Statistics <span style={{ color: statColors[statsTab] }}>{statsTab.charAt(0).toUpperCase() + statsTab.slice(1)}</span>
+            </h2>
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+              {["all", "run", "ride", "swim"].map(s => (
+                <SubTab key={s} label={s.toUpperCase()} active={statsTab === s} onClick={() => setStatsTab(s)} />
+              ))}
+            </div>
+          </div>
+          <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>measured, not guessed.</div>
+          
+          <StatsSection sportFilter={statsTab} unitSystem={unitSystem} />
+        </section>
+
+        {/* PROGRESSION */}
+        <ProgressionSection />
+
+        {/* GEOGRAPHY */}
+        <section id="geography" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
+          <Divider />
+          <SectionNum n={5} />
+          <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 0.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>
+            GEOGRAPHY
+          </h2>
+          <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>i get around.</div>
+          <GeoSection />
+        </section>
+
+        {/* RECENT */}
+        <RecentSection unitSystem={unitSystem} />
+
+        <footer style={{ borderTop: `1px solid ${C.border}`, padding: "2rem 0", fontFamily: F.mono, fontSize: "0.55rem", color: C.faint, display: "flex", justifyContent: "space-between" }}>
+          <span>Data synced live from Strava. Not affiliated with Strava, Inc.</span>
+          <span>Built by Bruno Silva © 2026</span>
+        </footer>
+      </div>
+
+      {/* Floating unit toggle */}
+      <div style={{ position:"fixed", bottom:"1.5rem", right:"1.5rem", zIndex:1000, display:"flex", gap:0, boxShadow:"0 2px 12px rgba(0,0,0,0.12)", borderRadius:4, overflow:"hidden", border:`1px solid ${C.border}` }}>
+        {["metric","imperial"].map(u=>(
+          <button key={u} onClick={()=>setUnitSystem(u)} style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.1em", textTransform:"uppercase", padding:"6px 10px", background:unitSystem===u?C.ink:C.surface, color:unitSystem===u?"#fff":C.faint, border:"none", cursor:"pointer", transition:"all 0.15s" }}>{u==="metric"?"km":"mi"}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Thu Apr 23 11:48:56 -03 2026
+// bust
