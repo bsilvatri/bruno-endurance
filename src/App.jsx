@@ -1479,6 +1479,42 @@ export default function App() {
   const [sportFilter, setSportFilter] = useState("all");
   const [statsTab, setStatsTab] = useState("all");
   const [unitSystem, setUnitSystem] = useState("metric");
+  const [lang, setLang] = useState("EN");
+  const LANGS = [
+    {code:"EN", gt:"en"},
+    {code:"PT", gt:"pt"},
+    {code:"ES", gt:"es"},
+    {code:"FR", gt:"fr"},
+    {code:"DE", gt:"de"},
+    {code:"IT", gt:"it"},
+    {code:"JA", gt:"ja"},
+  ];
+  const [showLangMenu, setShowLangMenu] = useState(false);
+
+  useEffect(() => {
+    // Load Google Translate
+    window.googleTranslateElementInit = () => {
+      new window.google.translate.TranslateElement({ pageLanguage:"en", autoDisplay:false }, "gt-root");
+    };
+    const s = document.createElement("script");
+    s.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    document.body.appendChild(s);
+  }, []);
+
+  const applyLang = (l) => {
+    setLang(l.code);
+    setShowLangMenu(false);
+    if (l.gt === "en") {
+      // Reset to English
+      const frame = document.querySelector(".goog-te-banner-frame");
+      if (frame) { const btn = frame.contentDocument?.querySelector(".goog-te-button button"); if(btn) btn.click(); }
+      const sel = document.querySelector("select.goog-te-combo");
+      if (sel) { sel.value = "en"; sel.dispatchEvent(new Event("change")); }
+    } else {
+      const sel = document.querySelector("select.goog-te-combo");
+      if (sel) { sel.value = l.gt; sel.dispatchEvent(new Event("change")); }
+    }
+  };
   const NAV_IDS = ["about", "notable", "stats", "progression", "geography", "recent"];
   const [active, setActive] = useScrollSpy(NAV_IDS);
 
@@ -1656,10 +1692,13 @@ export default function App() {
       </div>
 
       {/* Floating unit toggle */}
-      <div style={{ position:"fixed", bottom:"1.5rem", right:"1.5rem", zIndex:1000, display:"flex", gap:0, boxShadow:"0 2px 12px rgba(0,0,0,0.12)", borderRadius:4, overflow:"hidden", border:`1px solid ${C.border}` }}>
+      <div style={{ position:"fixed", bottom:"1.5rem", right:"1.5rem", zIndex:1000, display:"flex", gap:"0.5rem", alignItems:"center" }}>
+        <button onClick={()=>setShowLangMenu(v=>!v)} style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.1em", textTransform:"uppercase", padding:"6px 10px", background:C.ink, color:"#fff", border:`1px solid ${C.border}`, borderRadius:4, cursor:"pointer", boxShadow:"0 2px 12px rgba(0,0,0,0.12)", transition:"all 0.15s" }}>{lang}</button>
+        <div style={{ display:"flex", gap:0, boxShadow:"0 2px 12px rgba(0,0,0,0.12)", borderRadius:4, overflow:"hidden", border:`1px solid ${C.border}` }}>
         {["metric","imperial"].map(u=>(
           <button key={u} onClick={()=>setUnitSystem(u)} style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.1em", textTransform:"uppercase", padding:"6px 10px", background:unitSystem===u?C.ink:C.surface, color:unitSystem===u?"#fff":C.faint, border:"none", cursor:"pointer", transition:"all 0.15s" }}>{u==="metric"?"km":"mi"}</button>
         ))}
+      </div>
       </div>
     </div>
   );
