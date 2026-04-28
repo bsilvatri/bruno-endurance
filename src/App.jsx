@@ -1441,7 +1441,7 @@ function ActivityInfoIcon() {
 }
 
 /* ─── MAIN APP ─── */
-export default export default function App() {
+export default function App() {
   const [hero, setHero] = useState(null);
   const [sports, setSports] = useState(null);
   const [lastSync, setLastSync] = useState(null);
