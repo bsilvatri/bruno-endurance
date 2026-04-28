@@ -220,11 +220,6 @@ function NotableSection({ unitSystem="metric" }) {
   const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [prs, setPrs] = useState([]);
-  useEffect(() => {
-    q("best_efforts?select=sport,distance_label,elapsed_time&order=elapsed_time.asc")
-      .then(data => setPrs(Array.isArray(data) ? data : []));
-  }, []);
 
   const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
   const sportType = sport === "run" ? "Run" : sport === "ride" ? "Ride,VirtualRide" : "Swim";
@@ -250,7 +245,7 @@ function NotableSection({ unitSystem="metric" }) {
   }, [sport, tab]);
 
   useEffect(() => {
-    if (sport === "swim") setTab("longest");
+    if (sport === "ride" || sport === "swim") setTab("longest");
     else setTab("pbs");
   }, [sport]);
 
@@ -296,7 +291,6 @@ function NotableSection({ unitSystem="metric" }) {
       <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", marginBottom: "0.5rem" }}>
         {sport === "run" && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
         <SubTab label="LONGEST" active={tab === "longest"} onClick={() => setTab("longest")} />
-        {(sport === "run" || sport === "ride") && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
         {sport !== "swim" && <SubTab label="ELEVATION GAIN" active={tab === "elevation"} onClick={() => setTab("elevation")} />}
       </div>
 
@@ -306,28 +300,6 @@ function NotableSection({ unitSystem="metric" }) {
 
       {loading ? <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint, padding: "3rem 0" }}>loading...</div> : (
         <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 280px", gap: "0", border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden", background: C.surface }}>
-          {tab === "pbs" ? (
-            <div style={{ padding: "1.25rem", flex: 1 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "1px", background: C.border, border: `1px solid ${C.border}` }}>
-                <div style={{ background: C.surface, padding: "0.5rem 1rem", fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint }}>DISTANCE</div>
-                <div style={{ background: C.surface, padding: "0.5rem 1rem", fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.12em", color: C.faint, textAlign: "right" }}>TIME</div>
-                {prs.filter(p => p.sport === sport).map((pr, i) => {
-                  const s = pr.elapsed_time;
-                  const h = Math.floor(s / 3600);
-                  const m = Math.floor((s % 3600) / 60);
-                  const sec = String(s % 60).padStart(2, "0");
-                  const time = h > 0 ? `${h}:${String(m).padStart(2,"0")}:${sec}` : `${m}:${sec}`;
-                  return (
-                    <React.Fragment key={i}>
-                      <div style={{ background: i%2===0 ? C.bg : C.surface, padding: "0.6rem 1rem", fontFamily: F.mono, fontSize: "0.65rem", color: C.muted }}>{pr.distance_label}</div>
-                      <div style={{ background: i%2===0 ? C.bg : C.surface, padding: "0.6rem 1rem", fontFamily: F.mono, fontSize: "0.75rem", fontWeight: 700, color: sportColor, textAlign: "right" }}>{time}</div>
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-          <React.Fragment>
           <div style={{ borderRight: `1px solid ${C.border}` }}>
             <NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} />
           </div>
@@ -365,9 +337,7 @@ function NotableSection({ unitSystem="metric" }) {
               </div>
             </>)}
           </div>
-          </React.Fragment>
         </div>
-          )}
       )}
     </section>
   );
@@ -391,11 +361,6 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
   const toUnitRound = (km) => Math.round(isMetric ? km : km * 0.621371);
   const [acts, setActs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [prs, setPrs] = useState([]);
-  useEffect(() => {
-    q("best_efforts?select=sport,distance_label,elapsed_time&order=elapsed_time.asc")
-      .then(data => setPrs(Array.isArray(data) ? data : []));
-  }, []);
 
   useEffect(() => {
     // Fetch all activities with all fields needed for charts
@@ -1041,11 +1006,6 @@ function RecentSection({ lang, unitSystem="metric" }) {
   const [expanded, setExpanded] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [prs, setPrs] = useState([]);
-  useEffect(() => {
-    q("best_efforts?select=sport,distance_label,elapsed_time&order=elapsed_time.asc")
-      .then(data => setPrs(Array.isArray(data) ? data : []));
-  }, []);
 
   const getRange = (p) => {
     const now = new Date();
@@ -1221,11 +1181,6 @@ function ProgressionSection() {
   const [period, setPeriod] = useState("Last 365");
   const [actDays, setActDays] = useState({});
   const [loading, setLoading] = useState(true);
-  const [prs, setPrs] = useState([]);
-  useEffect(() => {
-    q("best_efforts?select=sport,distance_label,elapsed_time&order=elapsed_time.asc")
-      .then(data => setPrs(Array.isArray(data) ? data : []));
-  }, []);
 
   useEffect(() => {
     setLoading(true);
