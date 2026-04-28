@@ -296,11 +296,11 @@ function NotableSection({ unitSystem="metric" }) {
       <Divider />
       <SectionNum n={2} />
       <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 1.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>
-        NOTABLE <span style={{ color: sport === "races" ? C.green : sportColor }}>{sport === "races" ? "RACES" : sport.toUpperCase()+"S"}</span>
+        NOTABLE <span style={{ color: sport === "races" ? "#A63D2F" : sportColor }}>{sport === "races" ? "RACES" : sport.toUpperCase()+"S"}</span>
       </h2>
 
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem" }}>
-        <SportTab label="RACES" active={sport === "races"} onClick={() => setSport("races")} color={C.green} />
+        <SportTab label="RACES" active={sport === "races"} onClick={() => setSport("races")} color="#A63D2F" />
         <SportTab label="RUNS" active={sport === "run"} onClick={() => setSport("run")} color={C.run} />
         <SportTab label="RIDES" active={sport === "ride"} onClick={() => setSport("ride")} color={C.ride} />
         <SportTab label="SWIMS" active={sport === "swim"} onClick={() => setSport("swim")} color={C.swim} />
