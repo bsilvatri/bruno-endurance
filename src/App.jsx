@@ -296,7 +296,7 @@ function NotableSection({ unitSystem="metric" }) {
       <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", marginBottom: "0.5rem" }}>
         {sport === "run" && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
         <SubTab label="LONGEST" active={tab === "longest"} onClick={() => setTab("longest")} />
-        {sport !== "swim" && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
+        {(sport === "run" || sport === "ride") && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
         {sport !== "swim" && <SubTab label="ELEVATION GAIN" active={tab === "elevation"} onClick={() => setTab("elevation")} />}
       </div>
 
