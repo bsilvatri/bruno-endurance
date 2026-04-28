@@ -327,6 +327,7 @@ function NotableSection({ unitSystem="metric" }) {
               </div>
             </div>
           ) : (
+          <React.Fragment>
           <div style={{ borderRight: `1px solid ${C.border}` }}>
             <NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} />
           </div>
@@ -364,6 +365,7 @@ function NotableSection({ unitSystem="metric" }) {
               </div>
             </>)}
           </div>
+          </React.Fragment>
         </div>
           )}
       )}
