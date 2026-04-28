@@ -300,6 +300,343 @@ function NotableSection({ unitSystem="metric" }) {
         {tab === "pbs" ? "fastest times across standard running distances" : tab === "longest" ? `my longest ${sport}s on record` : `the most vertical gain in a single ${sport}`}
       </div>
 
+      {sport === "races" ? (
+        <div style={{ marginTop:"1.5rem" }}>
+          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>PERSONAL RECORDS</div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:"1px", background:C.border, border:"1px solid "+C.border, marginBottom:"1.5rem" }}>
+            {[{l:"SWIM",v:"0:23:27",sub:"Panama '24",c:C.swim},{l:"BIKE",v:"2:14:26",sub:"Brasília '26",c:C.ride},{l:"RUN",v:"1:25:14",sub:"Cascais '23",c:C.run},{l:"FINISH",v:"4:18:09",sub:"Brasília '26",c:C.ink}].map((pr,i)=>(
+              <div key={i} style={{ background:C.bg, padding:"0.65rem 0.75rem" }}>
+                <div style={{ fontFamily:F.mono, fontSize:"0.45rem", letterSpacing:"0.1em", color:C.faint, marginBottom:"0.2rem" }}>{pr.l}</div>
+                <div style={{ fontFamily:F.mono, fontSize:"0.82rem", fontWeight:700, color:pr.c }}>{pr.v}</div>
+                <div style={{ fontFamily:F.mono, fontSize:"0.45rem", color:C.muted, marginTop:"0.15rem" }}>{pr.sub}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>RACE HISTORY — 18 STARTS · 14 FINISHES · 2 DNF · 1 DNS · 1 DNC</div>
+          <div style={{ overflowX:"auto" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1.5fr 70px 80px 80px 80px 90px", gap:"1px", background:C.border, border:"1px solid "+C.border, minWidth:"520px" }}>
+              {["RACE","DATE","SWIM","BIKE","RUN","FINISH"].map((h,i)=>(
+                <div key={i} style={{ background:C.surface, padding:"0.4rem 0.5rem", fontFamily:F.mono, fontSize:"0.45rem", letterSpacing:"0.1em", color:[C.faint,C.faint,C.swim,C.ride,C.run,C.ink][i], textAlign:i>1?"center":"left" }}>{h}</div>
+              ))}
+              {[{"race":"Cascais, Portugal","date":"Oct '22","swim":"0:30:39","bike":"2:33:46","run":"1:35:13","finish":"4:48:04","s":"fin"},{"race":"Florianópolis, Brazil","date":"Apr '23","swim":"0:31:25","bike":"2:25:23","run":"1:36:15","finish":"4:39:27","s":"fin"},{"race":"Geraardsbergen, Belgium","date":"Jun '23","swim":"0:34:50","bike":"1:01:37","run":"—","finish":"DNF","s":"dnf"},{"race":"Rio de Janeiro, Brazil","date":"Jul '23","swim":"0:34:36","bike":"2:31:53","run":"1:40:41","finish":"4:55:39","s":"fin"},{"race":"São Paulo, Brazil","date":"Sep '23","swim":"0:32:15","bike":"2:24:13","run":"1:38:20","finish":"4:42:56","s":"fin"},{"race":"Cascais, Portugal","date":"Oct '23","swim":"0:28:29","bike":"2:32:53","run":"1:25:14","finish":"4:34:03","s":"fin"},{"race":"Panama City, Panama","date":"Feb '24","swim":"0:23:27","bike":"2:26:08","run":"1:49:40","finish":"4:46:08","s":"fin"},{"race":"Eagleman, USA","date":"Jun '24","swim":"0:36:29","bike":"2:27:10","run":"1:42:01","finish":"4:52:26","s":"fin"},{"race":"São Paulo, Brazil","date":"Sep '24","swim":"—","bike":"—","run":"—","finish":"DNS","s":"dns"},{"race":"Cascais, Portugal","date":"Oct '24","swim":"0:31:06","bike":"2:24:08","run":"1:28:34","finish":"4:30:59","s":"fin"},{"race":"Florianópolis, Brazil","date":"Nov '24","swim":"0:28:13","bike":"2:18:59","run":"1:26:56","finish":"4:21:47","s":"fin"},{"race":"Punta del Este, Uruguay","date":"Mar '25","swim":"—","bike":"—","run":"—","finish":"DNF","s":"dnf"},{"race":"Brasília, Brazil","date":"Apr '25","swim":"0:28:28","bike":"2:16:45","run":"1:38:18","finish":"4:28:00","s":"fin"},{"race":"Samorin, Slovakia","date":"May '25","swim":"0:10:48","bike":"2:27:18","run":"1:26:20","finish":"DNC","s":"dnc"},{"race":"Marbella, Spain","date":"Nov '25","swim":"0:30:30","bike":"2:46:13","run":"1:26:48","finish":"4:52:24","s":"fin"},{"race":"Florianópolis, Brazil","date":"Nov '25","swim":"0:27:45","bike":"2:18:45","run":"1:41:10","finish":"4:32:46","s":"fin"},{"race":"Curitiba, Brazil","date":"Mar '26","swim":"0:27:49","bike":"2:42:58","run":"1:33:08","finish":"4:48:41","s":"fin"},{"race":"Brasília, Brazil","date":"Apr '26","swim":"0:27:57","bike":"2:14:26","run":"1:30:46","finish":"4:18:09","s":"fin"}].map((r,i)=>{
+                const dnx = r.s!=="fin";
+                const bg = i%2===0?C.bg:C.surface;
+                const fc = r.s==="dnf"?"#c04040":r.s==="dns"?"#888":r.s==="dnc"?"#7050b0":C.green;
+                return [
+                  <div key={"n"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.6rem",color:C.ink,opacity:dnx?"0.5":"1"}}>{r.race}</div>,
+                  <div key={"d"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.55rem",color:C.muted,textAlign:"center",opacity:dnx?"0.5":"1"}}>{r.date}</div>,
+                  <div key={"s"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.6rem",color:C.swim,textAlign:"center",opacity:dnx?"0.5":"1"}}>{r.swim}</div>,
+                  <div key={"b"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.6rem",color:C.ride,textAlign:"center",opacity:dnx?"0.5":"1"}}>{r.bike}</div>,
+                  <div key={"r"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.6rem",color:C.run,textAlign:"center",opacity:dnx?"0.5":"1"}}>{r.run}</div>,
+                  <div key={"f"+i} style={{background:bg,padding:"0.45rem 0.5rem",fontFamily:F.mono,fontSize:"0.65rem",fontWeight:dnx?400:700,color:fc,textAlign:"center"}}>{r.finish}</div>
+                ];
+              })}
+            </div>
+          </div>
+        </div>
+      ) : (
+        eEffect, useRef, useCallback } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
+
+/* ─── TOKENS ─── */
+const SB_URL = import.meta.env.VITE_SB_URL;
+const _BUILD=Date.now();const SB_KEY = import.meta.env.VITE_SB_KEY;
+const MB_TOKEN = import.meta.env.VITE_MB_TOKEN;
+
+const SBH = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "application/json" };
+const rpc = (fn, args = {}) => fetch(`${SB_URL}/rest/v1/rpc/${fn}`, { method: "POST", headers: SBH, body: JSON.stringify(args) }).then(r => r.json());
+const q = path => fetch(`${SB_URL}/rest/v1/${path}`, { headers: SBH }).then(r => r.json());
+const safe = (d, fb = []) => Array.isArray(d) ? d : fb;
+
+/* ─── COLORS ─── */
+const C = {
+  bg: "#EDE8DC",
+  surface: "#E5E0D4",
+  card: "#DDD8CC",
+  border: "#C8C2B4",
+  ink: "#1A1A18",
+  dim: "#3A3A36",
+  muted: "#6B6860",
+  faint: "#9A9488",
+  green: "#2D4A35",
+  greenMid: "#3D6048",
+  greenLight: "#4A7A58",
+  run: "#2D4A35",
+  ride: "#8B4513",
+  swim: "#2B5BA0",
+  white: "#FFFFFF",
+};
+
+/* ─── FONTS ─── */
+const F = {
+  heading: "'Syne', sans-serif",
+  body: "'Manrope', sans-serif",
+  mono: "'JetBrains Mono', monospace",
+};
+
+/* ─── POLYLINE DECODER ─── */
+function decodePoly(str) {
+  if (!str) return [];
+  let i = 0, lat = 0, lng = 0, coords = [];
+  while (i < str.length) {
+    let b, shift = 0, result = 0;
+    do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+    lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+    shift = 0; result = 0;
+    do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+    lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+    coords.push([lng / 1e5, lat / 1e5]);
+  }
+  return coords;
+}
+
+/* ─── MAPBOX LOADER ─── */
+let mbReady = false, mbCbs = [];
+function loadMapbox(cb) {
+  if (window.mapboxgl) { window.mapboxgl.accessToken = MB_TOKEN; cb(); return; }
+  if (mbReady) { mbCbs.push(cb); return; }
+  mbReady = true;
+  const l = document.createElement("link"); l.rel = "stylesheet"; l.href = "https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css"; document.head.appendChild(l);
+  const s = document.createElement("script"); s.src = "https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js";
+  s.onload = () => { window.mapboxgl.accessToken = MB_TOKEN; cb(); mbCbs.forEach(f => f()); mbCbs = []; };
+  document.head.appendChild(s);
+}
+
+/* ─── HOOKS ─── */
+function useCountUp(target, duration = 2000) {
+  const [val, setVal] = useState(0);
+  const started = useRef(false);
+  useEffect(() => {
+    if (!target || started.current) return;
+    started.current = true;
+    const start = performance.now();
+    const tick = now => {
+      const p = Math.min((now - start) / duration, 1);
+      const e = 1 - Math.pow(1 - p, 4);
+      setVal(Math.floor(e * target));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [target]);
+  return val;
+}
+
+function useScrollSpy(ids) {
+  const [active, setActive] = useState(ids[0]);
+  useEffect(() => {
+    const fn = () => {
+      let cur = ids[0];
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 80) cur = id;
+      }
+      setActive(cur);
+    };
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+  return [active, setActive];
+}
+
+/* ─── ACTIVITY MAP ─── */
+function ActivityMap({ polyline, type, height = 300 }) {
+  const ref = useRef(null);
+  const mapRef = useRef(null);
+  const [ready, setReady] = useState(false);
+  const color = type === "Swim" ? "#4A8FD4" : type === "Ride" || type === "VirtualRide" ? "#C06030" : "#4A7A58";
+
+  useEffect(() => {
+    if (!polyline) { setReady(true); return; }
+    loadMapbox(() => {
+      if (!ref.current || mapRef.current) return;
+      const coords = decodePoly(polyline);
+      if (!coords.length) { setReady(true); return; }
+      const lngs = coords.map(c => c[0]), lats = coords.map(c => c[1]);
+      const map = new window.mapboxgl.Map({
+        container: ref.current,
+        style: "mapbox://styles/mapbox/dark-v11",
+        bounds: [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+        fitBoundsOptions: { padding: 40 },
+        interactive: false,
+        attributionControl: false,
+      });
+      mapRef.current = map;
+      map.on("load", () => {
+        map.addSource("r", { type: "geojson", data: { type: "Feature", geometry: { type: "LineString", coordinates: coords } } });
+        map.addLayer({ id: "r", type: "line", source: "r", layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": color, "line-width": 3, "line-opacity": 0.95 } });
+        setReady(true);
+      });
+    });
+    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } };
+  }, [polyline]);
+
+  return (
+    <div style={{ position: "relative", height, background: "#1a1a2e", borderRadius: 4, overflow: "hidden" }}>
+      <div ref={ref} style={{ width: "100%", height: "100%" }} />
+      {!ready && (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: C.faint, fontFamily: F.mono, fontSize: "0.7rem" }}>
+          {polyline ? "loading..." : "no route data"}
+        </div>
+      )}
+      {ready && <div style={{ position: "absolute", bottom: 6, right: 8, fontFamily: F.mono, fontSize: "0.55rem", color: "rgba(255,255,255,0.4)" }}>mapbox</div>}
+    </div>
+  );
+}
+
+/* ─── SHARED COMPONENTS ─── */
+const Divider = ({ my = "2.5rem" }) => <div style={{ borderTop: `1px solid ${C.border}`, margin: `${my} 0` }} />;
+
+const Label = ({ children, color }) => (
+  <div style={{ fontFamily: F.mono, fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", color: color || C.muted, marginBottom: "0.4rem" }}>
+    {children}
+  </div>
+);
+
+const SectionNum = ({ n }) => (
+  <div style={{ fontFamily: F.mono, fontSize: "0.6rem", color: C.muted, marginBottom: "0.5rem" }}>0{n}</div>
+);
+
+const SportTab = ({ label, active, onClick, color }) => (
+  <button onClick={onClick} style={{
+    fontFamily: F.mono, fontSize: "0.62rem", letterSpacing: "0.12em", textTransform: "uppercase",
+    padding: "5px 14px", border: `1px solid ${active ? color : C.border}`, borderRadius: 2,
+    background: "transparent", color: active ? color : C.muted, cursor: "pointer",
+    transition: "all 0.15s",
+  }}>{label}</button>
+);
+
+const SubTab = ({ label, active, onClick }) => (
+  <button onClick={onClick} style={{
+    fontFamily: F.mono, fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase",
+    padding: "5px 16px", border: `1px solid ${active ? C.ink : C.border}`, borderRadius: 2,
+    background: active ? C.ink : "transparent", color: active ? C.white : C.muted,
+    cursor: "pointer", transition: "all 0.15s",
+  }}>{label}</button>
+);
+
+const Tip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "8px 12px", fontFamily: F.mono, fontSize: "0.65rem", color: C.ink }}>
+      {label && <div style={{ color: C.faint, marginBottom: 4 }}>{label}</div>}
+      {payload.map(p => (
+        <div key={p.dataKey} style={{ color: p.color || C.white }}>
+          {p.name || p.dataKey}: <strong>{typeof p.value === "number" ? (Number.isInteger(p.value) ? p.value.toLocaleString() : p.value.toFixed(1)) : p.value}</strong>{p.unit||""}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+
+
+function NotableTable({ rows, cols, selected, onSelect, sportColor }) {
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), padding: "0.4rem 0.75rem", borderBottom: `1px solid ${C.border}` }}>
+        {cols.map(c => <div key={c.k} style={{ fontFamily: F.mono, fontSize: "0.52rem", letterSpacing: "0.12em", textTransform: "uppercase", color: C.faint }}>{c.l}</div>)}
+      </div>
+      {rows.map((r, i) => (
+        <div key={i} onClick={() => onSelect(i)}
+          style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), padding: "0.7rem 0.75rem", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selected === i ? C.card : "transparent", transition: "background 0.12s" }}>
+          {cols.map(c => (
+            <div key={c.k} style={{ fontFamily: F.mono, fontSize: "0.82rem", color: c.accent ? sportColor : C.ink, fontWeight: c.bold ? 600 : 400 }}>
+              {c.k === "#" ? `#${i + 1}` : r[c.k]}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── NOTABLE SECTION ─── */
+function NotableSection({ unitSystem="metric" }) {
+  const [sport, setSport] = useState("run");
+  const [tab, setTab] = useState("pbs");
+  const [rows, setRows] = useState([]);
+  const [selected, setSelected] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
+  const sportType = sport === "run" ? "Run" : sport === "ride" ? "Ride,VirtualRide" : "Swim";
+
+  useEffect(() => {
+    setLoading(true);
+    setSelected(0);
+    let queryUrl = "";
+    if (sport === "run" && tab === "pbs") {
+      queryUrl = `activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,map_summary_polyline&type=eq.Run&distance=gt.1000&order=moving_time.asc&limit=10`;
+    } else if (tab === "longest") {
+      const typeFilter = sport === "ride" ? "type=in.(Ride,VirtualRide)" : sport === "swim" ? "type=eq.Swim" : "type=eq.Run";
+      queryUrl = `activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,average_speed,map_summary_polyline&${typeFilter}&order=distance.desc&limit=10`;
+    } else if (tab === "elevation") {
+      const typeFilter = sport === "ride" ? "type=in.(Ride,VirtualRide)" : "type=eq.Run";
+      queryUrl = `activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,average_speed,map_summary_polyline&${typeFilter}&total_elevation_gain=gt.0&order=total_elevation_gain.desc&limit=10`;
+    }
+    if (!queryUrl) { setLoading(false); return; }
+    q(queryUrl).then(data => {
+      setRows(safe(data));
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [sport, tab]);
+
+  useEffect(() => {
+    if (sport === "races") return;
+    if (sport === "ride" || sport === "swim") setTab("longest");
+    else setTab("pbs");
+  }, [sport]);
+
+  const cur = rows[selected];
+  const fmtTime = s => { if (!s) return "—"; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}` : `${m}:${String(sec).padStart(2, "0")}`; };
+  const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+  const fmtPace = (t, d) => { if (!t || !d) return "—"; const s = unitSystem==="imperial" ? t / (d / 1609.34) : t / (d / 1000); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/${unitSystem==="imperial"?"mi":"km"}`; };
+  const fmtSpeed = s => s ? `${unitSystem==="imperial" ? (s*2.237).toFixed(1) : (s*3.6).toFixed(1)} ${unitSystem==="imperial"?"mi/h":"km/h"}` : "—";
+  const fmtSwimPace = (t, d) => { if (!t || !d) return "—"; const s = unitSystem==="imperial" ? t / (d / 91.44) : t / (d / 100); return `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/${unitSystem==="imperial"?"100yd":"100m"}`; };
+
+  const cols = tab === "pbs"
+    ? [{ k: "#", l: "#", w: "40px" }, { k: "date", l: "Date", w: "110px" }, { k: "dist", l: "Distance", w: "100px" }, { k: "time", l: "Time", w: "1fr", mono: true, accent: true }]
+    : tab === "elevation"
+    ? [{ k: "#", l: "#", w: "40px" }, { k: "date", l: "Date", w: "110px" }, { k: "dist", l: "Dist", w: "80px" }, { k: "elev", l: "Elevation", w: "1fr", accent: true }]
+    : [{ k: "#", l: "#", w: "40px" }, { k: "date", l: "Date", w: "110px" }, { k: "dist", l: "Distance", w: "1fr", accent: true }];
+
+  const tableRows = rows.map(r => ({
+    dist: sport === "swim"
+      ? (unitSystem === "imperial" ? Math.round(r.distance * 1.09361) + " yd" : Math.round(r.distance) + " m")
+      : (unitSystem === "imperial" ? (r.distance / 1609.34).toFixed(1) + " mi" : (r.distance / 1000).toFixed(1) + " km"),
+    date: fmtDate(r.start_date_local),
+    time: fmtTime(r.moving_time),
+    elev: unitSystem==="imperial" ? `${Math.round((r.total_elevation_gain||0)*3.28084)} ft` : `${Math.round(r.total_elevation_gain||0)} m`,
+    name: r.name,
+  }));
+
+  const distBuckets = ["1 km","2 km","3 km","4 km","5 km","10 km","15 km","20 km","Half (21k)","30 km","Marathon","50 km","100 km"];
+
+  return (
+    <section id="notable" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
+      <Divider />
+      <SectionNum n={2} />
+      <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 1.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>
+        NOTABLE <span style={{ color: sportColor }}>{sport.toUpperCase()}S</span>
+      </h2>
+
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem" }}>
+        <SportTab label="RACES" active={sport === "races"} onClick={() => setSport("races")} color={C.green} />
+        <SportTab label="RUNS" active={sport === "run"} onClick={() => setSport("run")} color={C.run} />
+        <SportTab label="RIDES" active={sport === "ride"} onClick={() => setSport("ride")} color={C.ride} />
+        <SportTab label="SWIMS" active={sport === "swim"} onClick={() => setSport("swim")} color={C.swim} />
+      </div>
+
+      <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", marginBottom: "0.5rem" }}>
+        {sport === "run" && <SubTab label="PERSONAL BESTS" active={tab === "pbs"} onClick={() => setTab("pbs")} />}
+        <SubTab label="LONGEST" active={tab === "longest"} onClick={() => setTab("longest")} />
+        {sport !== "swim" && <SubTab label="ELEVATION GAIN" active={tab === "elevation"} onClick={() => setTab("elevation")} />}
+      </div>
+
+      <div style={{ fontFamily: F.mono, fontSize: "0.62rem", color: C.faint, marginBottom: "1rem" }}>
+        {tab === "pbs" ? "fastest times across standard running distances" : tab === "longest" ? `my longest ${sport}s on record` : `the most vertical gain in a single ${sport}`}
+      </div>
+
       {loading ? <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint, padding: "3rem 0" }}>loading...</div> : (
   {sport === "races" ? (
         <div style={{ marginTop:"1.5rem" }}>
@@ -377,6 +714,7 @@ function NotableSection({ unitSystem="metric" }) {
         </div>
       )}
     </section>
+      )}
   );
       )}
 }
