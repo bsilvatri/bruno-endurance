@@ -285,7 +285,7 @@ function NotableSection({ unitSystem="metric" }) {
     {race:"IM70.3 Punta del Este",date:"Mar '25",swim:"—",bike:"—",run:"—",finish:"DNF",s:"dnf"},
     {race:"IM70.3 Brasília",date:"Apr '25",swim:"0:28:28",bike:"2:16:45",run:"1:38:18",finish:"4:28:00",s:"fin",pr:true},
     {race:"Challenge Samorin",date:"May '25",swim:"0:10:48",bike:"2:27:18",run:"1:26:20",finish:"DNC",s:"dnc"},
-    {race:"IM70.3 Marbella",date:"Nov '25",swim:"0:30:30",bike:"2:46:13",run:"1:26:48",finish:"4:52:24",s:"fin"},
+    {race:"IM70.3 Marbella World Championship",date:"Nov '25",swim:"0:30:30",bike:"2:46:13",run:"1:26:48",finish:"4:52:24",s:"fin"},
     {race:"IM70.3 Florianópolis",date:"Nov '25",swim:"0:27:45",bike:"2:18:45",run:"1:41:10",finish:"4:32:46",s:"fin"},
     {race:"IM70.3 Curitiba",date:"Mar '26",swim:"0:27:49",bike:"2:42:58",run:"1:33:08",finish:"4:48:41",s:"fin"},
     {race:"IM70.3 Brasília",date:"Apr '26",swim:"0:27:57",bike:"2:14:26",run:"1:30:46",finish:"4:18:09",s:"fin",pr:true},
