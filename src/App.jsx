@@ -778,23 +778,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
             ))}
           </div>
         </ChartBox>
-        <ChartBox title={`Weekly Volume (${distUnit})`} subtitle="km per week over time" minH={310}>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={wvData}>
-              <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="week" tick={false} axisLine={false} tickLine={false} />
-              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
-              <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
-              <defs>
-                <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={sColor} stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor={sColor} stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="km" stroke={sColor} strokeWidth={1.5} fill="url(#wg)" name={distUnit+"/week"} unit={" "+distUnit} dot={false}/>
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartBox>
+
       </div>
 
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
