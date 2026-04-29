@@ -686,8 +686,8 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         </div>
       </div>
 
-      {/* ROW 1 — Distance Dist | Indoor/Outdoor | Pace Dist */}
-      <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
+      {/* ROW 1 — Distance Dist | Indoor/Outdoor | Streaks | Pace Dist */}
+      <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr 1fr", borderTop:"none"}}>
         <ChartBox title="Distance Distribution" subtitle="activity counts by distance" minH={331}>
           {isAll ? (
             <div style={{paddingTop:"0.25rem",position:"relative"}} onMouseLeave={()=>setDistTip(null)}>
@@ -748,37 +748,6 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
               </div>
             </div>
           )}
-        </ChartBox>
-      </div>
-
-      {/* ROW 2 — Yearly Volume | Streak */}
-      <div style={{...G, gridTemplateColumns:"1fr 1fr", borderTop:"none"}}>
-        <ChartBox title="Yearly Volume" subtitle="km per sport per year" minH={310}>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={yearlyData} barSize={isAll?14:10}>
-              <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="year" tick={tickStyle} axisLine={false} tickLine={false} />
-              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} />
-              <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
-              {(isAll||sportFilter==='run')  && <Bar dataKey="run"  fill={C.run}  radius={[2,2,0,0]} name="Run"  stackId={isAll?"a":undefined} />}
-              {(isAll||sportFilter==='ride') && <Bar dataKey="ride" fill={C.ride} radius={isAll?[0,0,0,0]:[2,2,0,0]} name="Ride" stackId={isAll?"a":undefined} />}
-              {(isAll||sportFilter==='swim') && <Bar dataKey="swim" fill={C.swim} radius={isAll?[2,2,0,0]:[2,2,0,0]} name="Swim" stackId={isAll?"a":undefined} />}
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartBox>
-        <ChartBox title="Activity Streaks" subtitle="consecutive days" minH={310}>
-          <div style={{display:"flex",flexDirection:"column",gap:"1rem",paddingTop:"0.5rem"}}>
-            {[
-              {label:"BEST STREAK",value:bestStreak+" days",color:C.run},
-              {label:"CURRENT STREAK",value:liveStreak+" days",color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
-              {label:"ACTIVE DAYS",value:totalDaysWithActivity.toLocaleString(),color:C.ink},
-            ].map(({label,value,color})=>(
-              <div key={label} style={{borderLeft:`3px solid ${color}`,paddingLeft:"0.75rem"}}>
-                <div style={{fontFamily:F.mono,fontSize:"0.45rem",letterSpacing:"0.12em",color:C.faint,marginBottom:"0.2rem"}}>{label}</div>
-                <div style={{fontFamily:F.mono,fontSize:"1.1rem",fontWeight:700,color}}>{value}</div>
-              </div>
-            ))}
-          </div>
         </ChartBox>
       </div>
 
