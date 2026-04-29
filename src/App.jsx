@@ -686,8 +686,8 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         </div>
       </div>
 
-      {/* ROW 1 — Distance Dist | Indoor/Outdoor | Streaks | Pace Dist */}
-      <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr 1fr", borderTop:"none"}}>
+      {/* ROW 1 — Distance Dist | Indoor/Outdoor | Streaks */}
+      <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
         <ChartBox title="Distance Distribution" subtitle="activity counts by distance" minH={331}>
           {isAll ? (
             <div style={{paddingTop:"0.25rem",position:"relative"}} onMouseLeave={()=>setDistTip(null)}>
