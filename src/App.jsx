@@ -1639,4 +1639,18 @@ export default function App() {
 }
 
 // Thu Apr 23 11:48:56 -03 2026
-// bust
+// bust        <ChartBox title="Activity Streaks" subtitle="consecutive days" minH={331}>
+          <div style={{display:"flex",flexDirection:"column",gap:"1.25rem",paddingTop:"0.75rem"}}>
+            {[
+              {label:"BEST STREAK",value:bestStreak+" days",color:C.run},
+              {label:"CURRENT STREAK",value:liveStreak+" days",color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
+              {label:"ACTIVE DAYS",value:totalDaysWithActivity.toLocaleString(),color:C.ink},
+            ].map(({label,value,color})=>(
+              <div key={label} style={{borderLeft:`3px solid ${color}`,paddingLeft:"0.75rem"}}>
+                <div style={{fontFamily:F.mono,fontSize:"0.45rem",letterSpacing:"0.12em",color:C.faint,marginBottom:"0.2rem"}}>{label}</div>
+                <div style={{fontFamily:F.mono,fontSize:"1.1rem",fontWeight:700,color}}>{value}</div>
+              </div>
+            ))}
+          </div>
+        </ChartBox>
+
