@@ -772,7 +772,6 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
           </div>
         </ChartBox>
       </div>
-        </ChartBox>
 
       </div>
 
