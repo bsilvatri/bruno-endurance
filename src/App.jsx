@@ -742,7 +742,11 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
                 {ioData.map(d=>(
                   <div key={d.name} style={{display:"flex",alignItems:"center",gap:4}}>
                     <div style={{width:6,height:6,borderRadius:1,background:d.fill,flexShrink:0}}/>
-             {/* ROW — Yearly Volume | Streak */}
+
+
+      </div>
+
+      {/* ROW 2 — Yearly Volume | Streak */}
       <div style={{...G, gridTemplateColumns:"1fr 1fr", borderTop:"none"}}>
         <ChartBox title="Yearly Volume" subtitle="km per sport per year" minH={310}>
           <ResponsiveContainer width="100%" height={200}>
@@ -771,8 +775,6 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
             ))}
           </div>
         </ChartBox>
-      </div>
-
       </div>
 
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
