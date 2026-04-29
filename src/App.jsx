@@ -742,8 +742,13 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
                 {ioData.map(d=>(
                   <div key={d.name} style={{display:"flex",alignItems:"center",gap:4}}>
                     <div style={{width:6,height:6,borderRadius:1,background:d.fill,flexShrink:0}}/>
-
-
+                    <span style={{fontFamily:F.mono,fontSize:"0.5rem",color:C.faint}}>{d.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </ChartBox>
       </div>
 
       {/* ROW 2 — Yearly Volume | Streak */}
