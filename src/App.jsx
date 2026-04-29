@@ -491,18 +491,53 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
   const ioTitle = sportFilter==="run"?"Indoor vs Outdoor":sportFilter==="ride"?"Indoor vs Outdoor":sportFilter==="swim"?"Pool vs Open Water":"All-time Activities";
   const ioSubtitle = sportFilter==="run"?"road or treadmill":sportFilter==="ride"?"road or trainer":sportFilter==="swim"?"lane or open water":"by sport type";
 
-  // ── Weekly Volume ──
-  const wkMap = {};
-  filtered.forEach(a => {
-    if(!a.start_date_local) return;
-    const d = new Date(a.start_date_local);
-    const day = d.getDay();
-    const monday = new Date(d); monday.setDate(d.getDate()-((day+6)%7));
-    const wk = monday.toISOString().slice(0,10);
-    if(!wkMap[wk]) wkMap[wk]=0;
-    wkMap[wk] += (+a.distance||0)/1000;
+  // ── Yearly Volume (B) ──
+  const yearlyMap = {};
+  acts.forEach(a => {
+    if (!a.start_date_local) return;
+    const yr = new Date(a.start_date_local).getFullYear();
+    if (!yearlyMap[yr]) yearlyMap[yr] = { run:0, ride:0, swim:0 };
+    const km = (+a.distance||0)/1000;
+    if (isRun(a.sport_type)) yearlyMap[yr].run += km;
+    else if (a.sport_type==='Ride'||a.sport_type==='VirtualRide') yearlyMap[yr].ride += km;
+    else if (isSwim(a.sport_type)) yearlyMap[yr].swim += km;
   });
-  const wvData = Object.entries(wkMap).sort(([a],[b])=>a.localeCompare(b)).map(([w,km])=>({week:w,km:toUnitRound(km)})).filter((_,i)=>i%2===0);
+  const yearlyData = Object.entries(yearlyMap).sort(([a],[b])=>+a-+b).map(([yr,v])=>({
+    year: yr,
+    run:  toUnitRound(v.run),
+    ride: toUnitRound(v.ride),
+    swim: toUnitRound(v.swim),
+  }));
+
+  // ── Streak Tracker (C) ──
+  const actDays = new Set(acts.filter(a=>a.start_date_local).map(a=>a.start_date_local.slice(0,10)));
+  const sortedDays = [...actDays].sort();
+  let bestStreak = 0, curStreak = 0, streakEnd = '';
+  for (let i = 0; i < sortedDays.length; i++) {
+    if (i === 0) { curStreak = 1; streakEnd = sortedDays[0]; }
+    else {
+      const prev = new Date(sortedDays[i-1]), curr = new Date(sortedDays[i]);
+      const diff = (curr - prev) / 86400000;
+      if (diff === 1) { curStreak++; streakEnd = sortedDays[i]; }
+      else { curStreak = 1; streakEnd = sortedDays[i]; }
+    }
+    if (curStreak > bestStreak) bestStreak = curStreak;
+  }
+  const today = new Date().toISOString().slice(0,10);
+  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  let liveStreak = 0;
+  for (let i = sortedDays.length-1; i >= 0; i--) {
+    const d = sortedDays[i];
+    if (i === sortedDays.length-1) {
+      if (d !== today && d !== yesterday) break;
+      liveStreak = 1;
+    } else {
+      const next = new Date(sortedDays[i+1]), curr = new Date(d);
+      if ((next - curr) / 86400000 === 1) liveStreak++;
+      else break;
+    }
+  }
+  const totalDaysWithActivity = actDays.size;
 
   // Time of day radar — 24 hours
   const buildTod = (subset) => {
@@ -707,49 +742,36 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
                 {ioData.map(d=>(
                   <div key={d.name} style={{display:"flex",alignItems:"center",gap:4}}>
                     <div style={{width:6,height:6,borderRadius:1,background:d.fill,flexShrink:0}}/>
-                    <span style={{fontFamily:F.mono,fontSize:"0.45rem",color:C.faint}}>{d.name}</span>
-                    <span style={{fontFamily:F.mono,fontSize:"0.45rem",color:C.muted,marginLeft:"auto"}}>{d.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </ChartBox>
-        <ChartBox title="Pace Distribution (min/km)" subtitle="running pace buckets" minH={331}>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={paceData}>
-              <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} />
-              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={28} />
-              <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
-              <defs>
-                <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={C.run} stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor={C.run} stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="count" stroke={C.run} strokeWidth={1.5} fill="url(#pg)" name="runs" dot={false}/>
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartBox>
-      </div>
-
-      {/* ROW 2 — HR Zones | Weekly Volume */}
+             {/* ROW — Yearly Volume | Streak */}
       <div style={{...G, gridTemplateColumns:"1fr 1fr", borderTop:"none"}}>
-        <ChartBox title="Heart Rate Zones" subtitle="~50% easy, the rest is pain" minH={310}>
+        <ChartBox title="Yearly Volume" subtitle="km per sport per year" minH={310}>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={hrData} barSize={32}>
+            <BarChart data={yearlyData} barSize={isAll?14:10}>
               <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="zone" tick={tickStyle} axisLine={false} tickLine={false} />
-              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
+              <XAxis dataKey="year" tick={tickStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} />
               <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
-              <Bar dataKey="count" radius={[2,2,0,0]} name="activities">
-                {hrData.map((_,i)=><Cell key={i} fill={hrColors[i]}/>)}
-              </Bar>
+              {(isAll||sportFilter==='run')  && <Bar dataKey="run"  fill={C.run}  radius={[2,2,0,0]} name="Run"  stackId={isAll?"a":undefined} />}
+              {(isAll||sportFilter==='ride') && <Bar dataKey="ride" fill={C.ride} radius={isAll?[0,0,0,0]:[2,2,0,0]} name="Ride" stackId={isAll?"a":undefined} />}
+              {(isAll||sportFilter==='swim') && <Bar dataKey="swim" fill={C.swim} radius={isAll?[2,2,0,0]:[2,2,0,0]} name="Swim" stackId={isAll?"a":undefined} />}
             </BarChart>
           </ResponsiveContainer>
-          <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap",marginTop:"0.5rem"}}>
-            {["Recovery","Easy","Tempo","Threshold","Max"].map((l,i)=>(
+        </ChartBox>
+        <ChartBox title="Activity Streaks" subtitle="consecutive days" minH={310}>
+          <div style={{display:"flex",flexDirection:"column",gap:"1rem",paddingTop:"0.5rem"}}>
+            {[
+              {label:"BEST STREAK",value:bestStreak+" days",color:C.run},
+              {label:"CURRENT STREAK",value:liveStreak+" days",color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
+              {label:"ACTIVE DAYS",value:totalDaysWithActivity.toLocaleString(),color:C.ink},
+            ].map(({label,value,color})=>(
+              <div key={label} style={{borderLeft:`3px solid ${color}`,paddingLeft:"0.75rem"}}>
+                <div style={{fontFamily:F.mono,fontSize:"0.45rem",letterSpacing:"0.12em",color:C.faint,marginBottom:"0.2rem"}}>{label}</div>
+                <div style={{fontFamily:F.mono,fontSize:"1.1rem",fontWeight:700,color}}>{value}</div>
+              </div>
+            ))}
+          </div>
+        </ChartBox>
+      </div>,"Threshold","Max"].map((l,i)=>(
               <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.48rem",color:C.faint}}>
                 <div style={{width:6,height:6,borderRadius:1,background:hrColors[i]}}/>{l}
               </div>
