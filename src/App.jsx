@@ -772,12 +772,6 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
           </div>
         </ChartBox>
       </div>
-                      {["Easy","Moderate","Threshold","Max"].map((l,i)=>(
-              <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.48rem",color:C.faint}}>
-                <div style={{width:6,height:6,borderRadius:1,background:hrColors[i]}}/>{l}
-              </div>
-            ))}
-          </div>
         </ChartBox>
 
       </div>
