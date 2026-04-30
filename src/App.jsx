@@ -222,7 +222,11 @@ function NotableSection({ unitSystem="metric" }) {
   const [loading, setLoading] = useState(true);
   const [prs, setPrs] = useState([]);
   useEffect(() => {
-    q("best_efforts?select=distance_label,elapsed_time,sport&order=elapsed_time.asc").then(d => setPrs(Array.isArray(d) ? d : []));
+    const distances = [{"label":"400m","lo":350,"hi":450},{"label":"1 km","lo":950,"hi":1100},{"label":"1 mile","lo":1580,"hi":1700},{"label":"5 km","lo":4800,"hi":5500},{"label":"10 km","lo":9700,"hi":10800},{"label":"15 km","lo":14500,"hi":15500},{"label":"20 km","lo":19500,"hi":21000},{"label":"Half Mara","lo":21000,"hi":22000},{"label":"30 km","lo":29500,"hi":31000},{"label":"Marathon","lo":42000,"hi":43500}];
+    Promise.all(distances.map(d =>
+      q(`activities?select=id,name,start_date_local,moving_time&type=eq.Run&distance=gte.${d.lo}&distance=lte.${d.hi}&order=moving_time.asc&limit=1`)
+        .then(rows => ({ label: d.label, row: Array.isArray(rows) && rows.length ? rows[0] : null }))
+    )).then(results => setPrs(results));
   }, []);
   const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
   useEffect(() => {
@@ -332,15 +336,23 @@ function NotableSection({ unitSystem="metric" }) {
             {tab==="pbs"?"fastest times across standard running distances":tab==="longest"?`my longest ${sport}s on record`:`the most vertical gain in a single ${sport}`}
           </div>
           {sport==="run"&&tab==="pbs" ? (
-            <div style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:"1px", background:C.border, border:"1px solid "+C.border }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr auto auto", gap:"1px", background:C.border, border:"1px solid "+C.border }}>
               <div style={{ background:C.surface, padding:"0.5rem 1rem", fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.faint }}>DISTANCE</div>
               <div style={{ background:C.surface, padding:"0.5rem 1rem", fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.faint, textAlign:"right" }}>TIME</div>
-              {prs.filter(p=>p.sport==="run").map((pr,i)=>{
-                const s=pr.elapsed_time, h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=String(s%60).padStart(2,"0");
+              <div style={{ background:C.surface, padding:"0.5rem 1rem", fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.faint, textAlign:"right" }}>DATE</div>
+              {prs.map((pr,i)=>{
+                if (!pr.row) return [
+                  <div key={"l"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>{pr.label}</div>,
+                  <div key={"t"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.faint, textAlign:"right" }}>—</div>,
+                  <div key={"d"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.faint, textAlign:"right" }}>—</div>,
+                ];
+                const s=pr.row.moving_time, h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=String(s%60).padStart(2,"0");
                 const time=h>0?h+":"+String(m).padStart(2,"0")+":"+sec:m+":"+sec;
+                const date=pr.row.start_date_local?new Date(pr.row.start_date_local).toLocaleDateString("en-US",{month:"short",year:"numeric"}):"";
                 return [
-                  <div key={"l"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>{pr.distance_label}</div>,
-                  <div key={"t"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.82rem", fontWeight:700, color:C.run, textAlign:"right" }}>{time}</div>
+                  <div key={"l"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>{pr.label}</div>,
+                  <div key={"t"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.82rem", fontWeight:700, color:C.run, textAlign:"right" }}>{time}</div>,
+                  <div key={"d"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{date}</div>,
                 ];
               })}
             </div>
