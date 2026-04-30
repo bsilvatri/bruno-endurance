@@ -375,7 +375,7 @@ function NotableSection({ unitSystem="metric" }) {
                       {[
                         {l:"DISTANCE", v:prs[selected]._label},
                         {l:"TIME", v:fmtTime(prs[selected]._elapsed)},
-                        {l:"AVG PACE", v:fmtPace(prs[selected].moving_time, prs[selected].distance)},
+                        {l:"AVG PACE", v:fmtPace(prs[selected]._elapsed, prs[selected].distance)},
                         {l:"ELEVATION", v:unitSystem==="imperial"?`${Math.round((prs[selected].total_elevation_gain||0)*3.28084)} ft`:`${Math.round(prs[selected].total_elevation_gain||0)} m`},
                       ].map(({l,v})=>(
                         <div key={l}>
