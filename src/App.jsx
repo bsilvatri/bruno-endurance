@@ -222,12 +222,28 @@ function NotableSection({ unitSystem="metric" }) {
   const [loading, setLoading] = useState(true);
   const [prs, setPrs] = useState([]);
   useEffect(() => {
-    const distances = [{"label":"400m","lo":350,"hi":450},{"label":"1 km","lo":950,"hi":1100},{"label":"1 mile","lo":1580,"hi":1700},{"label":"5 km","lo":4800,"hi":5500},{"label":"10 km","lo":9700,"hi":10800},{"label":"15 km","lo":14500,"hi":15500},{"label":"20 km","lo":19500,"hi":21000},{"label":"Half Mara","lo":21000,"hi":22000},{"label":"30 km","lo":29500,"hi":31000},{"label":"Marathon","lo":42000,"hi":43500}];
+    const ACT_MAP = {"400m":6796419022,"1/2 mile":12017370695,"1K":12017370695,"1 mile":10799004879,"2 mile":10799004879,"5K":10991460408,"10K":14300148280,"15K":14300148280,"10 mile":14300148280,"20K":14300148280,"Half-Marathon":14300148280,"30K":17985954019};
     setLoading(true);
-    Promise.all(distances.map(d =>
-      q(`activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,map_summary_polyline&type=eq.Run&distance=gte.${d.lo}&distance=lte.${d.hi}&order=moving_time.asc&limit=1`)
-        .then(res => { const r = Array.isArray(res)&&res.length ? {...res[0], _label:d.label} : null; return r; })
-    )).then(results => { setPrs(results.filter(Boolean)); setLoading(false); });
+    q("best_efforts?select=distance_label,elapsed_time,sport&sport=eq.run&order=elapsed_time.asc")
+      .then(async bes => {
+        if (!Array.isArray(bes)) { setLoading(false); return; }
+        // Only show distances we have activity IDs for
+        const relevant = bes.filter(b => ACT_MAP[b.distance_label]);
+        // Fetch unique activities
+        const uniqueIds = [...new Set(relevant.map(b => ACT_MAP[b.distance_label]))];
+        const actMap = {};
+        await Promise.all(uniqueIds.map(id =>
+          q(`activities?select=id,name,start_date_local,distance,total_elevation_gain,average_heartrate,map_summary_polyline&id=eq.${id}`)
+            .then(rows => { if (Array.isArray(rows) && rows.length) actMap[id] = rows[0]; })
+        ));
+        const result = relevant.map(b => ({
+          _label: b.distance_label,
+          _elapsed: b.elapsed_time,
+          ...actMap[ACT_MAP[b.distance_label]],
+        }));
+        setPrs(result);
+        setLoading(false);
+      });
   }, []);
   const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
   useEffect(() => {
@@ -343,7 +359,7 @@ function NotableSection({ unitSystem="metric" }) {
               <div style={{ display:"grid", gridTemplateColumns:"300px 1fr 280px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
                 <div style={{ borderRight:`1px solid ${C.border}` }}>
                   <NotableTable
-                    rows={prs.map(r=>({ dist:r._label, date:fmtDate(r.start_date_local), time:fmtTime(r.moving_time), name:r.name }))}
+                    rows={prs.map(r=>({ dist:r._label, date:fmtDate(r.start_date_local), time:fmtTime(r._elapsed), name:r.name }))}
                     cols={[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]}
                     selected={selected} onSelect={setSelected} sportColor={sportColor}
                   />
@@ -358,7 +374,7 @@ function NotableSection({ unitSystem="metric" }) {
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
                       {[
                         {l:"DISTANCE", v:prs[selected]._label},
-                        {l:"TIME", v:fmtTime(prs[selected].moving_time)},
+                        {l:"TIME", v:fmtTime(prs[selected]._elapsed)},
                         {l:"AVG PACE", v:fmtPace(prs[selected].moving_time, prs[selected].distance)},
                         {l:"ELEVATION", v:unitSystem==="imperial"?`${Math.round((prs[selected].total_elevation_gain||0)*3.28084)} ft`:`${Math.round(prs[selected].total_elevation_gain||0)} m`},
                       ].map(({l,v})=>(
