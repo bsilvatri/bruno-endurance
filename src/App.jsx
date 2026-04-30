@@ -838,6 +838,38 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         </ChartBox>
       </div>
 
+
+      {sportFilter==='ride' && (
+        <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
+          <ChartBox title="20' FTP Evolution" subtitle="functional threshold power over time" minH={280}>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={[{"date":"2023-01-17","watts":269},{"date":"2023-02-04","watts":273},{"date":"2023-02-28","watts":273},{"date":"2023-03-15","watts":273},{"date":"2023-03-28","watts":273},{"date":"2023-03-29","watts":273},{"date":"2023-03-30","watts":273},{"date":"2023-05-21","watts":293},{"date":"2023-05-23","watts":300},{"date":"2023-06-20","watts":300},{"date":"2023-07-27","watts":300},{"date":"2023-07-31","watts":310},{"date":"2023-10-06","watts":310},{"date":"2023-10-29","watts":310},{"date":"2024-02-18","watts":319},{"date":"2024-02-29","watts":328},{"date":"2024-05-11","watts":328},{"date":"2024-05-18","watts":328},{"date":"2024-06-14","watts":328},{"date":"2024-09-12","watts":302},{"date":"2024-12-27","watts":302},{"date":"2025-03-18","watts":328},{"date":"2025-04-28","watts":328},{"date":"2025-05-02","watts":328},{"date":"2025-10-27","watts":346}]} margin={{top:4,right:8,left:0,bottom:0}}>
+                <CartesianGrid vertical={false} stroke={C.border} />
+                <XAxis dataKey="date" tick={tickStyle} axisLine={false} tickLine={false}
+                  tickFormatter={d => { const y=d.slice(0,4),m=d.slice(5,7); return m+"/"+y.slice(2); }}
+                  interval={3}
+                />
+                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} domain={['dataMin - 10','dataMax + 10']} />
+                <Tooltip content={({active,payload}) => {
+                  if (!active||!payload?.length) return null;
+                  const {date,watts} = payload[0].payload;
+                  const wkg = (watts/77).toFixed(2);
+                  const d = new Date(date);
+                  const label = d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+                  return (
+                    <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:4,padding:"8px 12px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink}}>
+                      <div style={{color:C.faint,marginBottom:3}}>{label}</div>
+                      <div style={{fontWeight:700,color:C.ride}}>{watts}W <span style={{color:C.muted,fontWeight:400}}>({wkg} w/kg)</span></div>
+                    </div>
+                  );
+                }} />
+                <Line type="monotone" dataKey="watts" stroke={C.ride} strokeWidth={2} dot={{r:3,fill:C.ride,strokeWidth:0}} activeDot={{r:5}} name="FTP" />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartBox>
+        </div>
+      )}
+
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
       {isAll && (
         <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
