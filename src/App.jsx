@@ -375,7 +375,7 @@ function NotableSection({ unitSystem="metric" }) {
                       {[
                         {l:"DISTANCE", v:prs[selected]._label},
                         {l:"TIME", v:fmtTime(prs[selected]._elapsed)},
-                        {l:"AVG PACE", v:fmtPace(prs[selected]._elapsed, prs[selected].distance)},
+                        {l:"AVG PACE", v:(()=>{const dm={"400m":400,"1/2 mile":804,"1K":1000,"1 mile":1609,"2 mile":3218,"5K":5000,"10K":10000,"15K":15000,"10 mile":16093,"20K":20000,"Half-Marathon":21097,"30K":30000}; const d=dm[prs[selected]._label]; if(!d) return "—"; const s=prs[selected]._elapsed/d*(unitSystem==="imperial"?1609.34:1000); return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}/${unitSystem==="imperial"?"mi":"km"}`; })()},
                         {l:"ELEVATION", v:unitSystem==="imperial"?`${Math.round((prs[selected].total_elevation_gain||0)*3.28084)} ft`:`${Math.round(prs[selected].total_elevation_gain||0)} m`},
                       ].map(({l,v})=>(
                         <div key={l}>
