@@ -843,23 +843,18 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
           <ChartBox title="20min FTP Evolution" subtitle="functional threshold power over time" minH={280}>
             <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={[{"date":"2023-01-17","watts":269},{"date":"2023-02-04","watts":273},{"date":"2023-02-28","watts":273},{"date":"2023-03-15","watts":273},{"date":"2023-03-28","watts":273},{"date":"2023-03-29","watts":273},{"date":"2023-03-30","watts":273},{"date":"2023-05-21","watts":293},{"date":"2023-05-23","watts":300},{"date":"2023-06-20","watts":300},{"date":"2023-07-27","watts":300},{"date":"2023-07-31","watts":310},{"date":"2023-10-06","watts":310},{"date":"2023-10-29","watts":310},{"date":"2024-02-18","watts":319},{"date":"2024-02-29","watts":328},{"date":"2024-05-11","watts":328},{"date":"2024-05-18","watts":328},{"date":"2024-06-14","watts":328},{"date":"2024-09-12","watts":302},{"date":"2024-12-27","watts":302},{"date":"2025-03-18","watts":328},{"date":"2025-04-28","watts":328},{"date":"2025-05-02","watts":328},{"date":"2025-10-27","watts":346}]} margin={{top:4,right:8,left:0,bottom:0}}>
+              <LineChart data={[{"date":"Jan 2023","watts":269},{"date":"Feb 2023","watts":273},{"date":"Mar 2023","watts":273},{"date":"May 2023","watts":293},{"date":"May 2023","watts":300},{"date":"Jun 2023","watts":300},{"date":"Jul 2023","watts":300},{"date":"Jul 2023","watts":310},{"date":"Oct 2023","watts":310},{"date":"Oct 2023","watts":310},{"date":"Feb 2024","watts":319},{"date":"Feb 2024","watts":328},{"date":"May 2024","watts":328},{"date":"Jun 2024","watts":328},{"date":"Sep 2024","watts":302},{"date":"Dec 2024","watts":302},{"date":"Mar 2025","watts":328},{"date":"Apr 2025","watts":328},{"date":"May 2025","watts":328},{"date":"Oct 2025","watts":346}]} margin={{top:4,right:8,left:0,bottom:0}}>
                 <CartesianGrid vertical={false} stroke={C.border} />
-                <XAxis dataKey="date" tick={tickStyle} axisLine={false} tickLine={false}
-                  tickFormatter={d => { const y=d.slice(0,4),m=d.slice(5,7); return m+"/"+y.slice(2); }}
-                  interval={3}
-                />
+                <XAxis dataKey="date" tick={tickStyle} axisLine={false} tickLine={false} interval={3} />
                 <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} domain={[250, 360]} />
                 <Tooltip content={({active,payload}) => {
-                  if (!active||!payload?.length) return null;
-                  const {date,watts} = payload[0].payload;
-                  const wkg = (watts/77).toFixed(2);
-                  const d = new Date(date);
-                  const label = d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+                  if (!active||!payload||!payload.length) return null;
+                  const d = payload[0].payload;
+                  const wkg = (d.watts/77).toFixed(2);
                   return (
                     <div style={{background:C.surface,border:"1px solid "+C.border,borderRadius:4,padding:"8px 12px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink}}>
-                      <div style={{color:C.faint,marginBottom:3}}>{label}</div>
-                      <div style={{fontWeight:700,color:C.ride}}>{watts}W <span style={{color:C.muted,fontWeight:400}}>({wkg} w/kg)</span></div>
+                      <div style={{color:C.faint,marginBottom:3}}>{d.date}</div>
+                      <div style={{fontWeight:700,color:C.ride}}>{d.watts}W <span style={{color:C.muted,fontWeight:400}}>({wkg} w/kg)</span></div>
                     </div>
                   );
                 }} />
@@ -869,7 +864,6 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
           </ChartBox>
         </div>
       )}
-
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
       {isAll && (
         <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
