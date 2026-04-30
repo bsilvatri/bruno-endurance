@@ -220,12 +220,16 @@ function NotableSection({ unitSystem="metric" }) {
   const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [prs, setPrs] = useState([]);
+  useEffect(() => {
+    q("best_efforts?select=distance_label,elapsed_time,sport&order=elapsed_time.asc").then(d => setPrs(Array.isArray(d) ? d : []));
+  }, []);
   const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
   useEffect(() => {
     if (sport === "races") { setLoading(false); return; }
     setLoading(true); setSelected(0);
     let queryUrl = "";
-    if (sport === "run" && tab === "pbs") queryUrl = `activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,map_summary_polyline&type=eq.Run&distance=gt.1000&order=moving_time.asc&limit=10`;
+    if (sport === "run" && tab === "pbs") { setLoading(false); return; } // pbs uses best_efforts table instead
     else if (tab === "longest") { const tf = sport==="ride"?"type=in.(Ride,VirtualRide)":sport==="swim"?"type=eq.Swim":"type=eq.Run"; queryUrl=`activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,average_speed,map_summary_polyline&${tf}&order=distance.desc&limit=10`; }
     else if (tab === "elevation") { const tf = sport==="ride"?"type=in.(Ride,VirtualRide)":"type=eq.Run"; queryUrl=`activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,average_speed,map_summary_polyline&${tf}&total_elevation_gain=gt.0&order=total_elevation_gain.desc&limit=10`; }
     if (!queryUrl) { setLoading(false); return; }
@@ -327,7 +331,20 @@ function NotableSection({ unitSystem="metric" }) {
           <div style={{ fontFamily:F.mono, fontSize:"0.62rem", color:C.faint, marginBottom:"1rem" }}>
             {tab==="pbs"?"fastest times across standard running distances":tab==="longest"?`my longest ${sport}s on record`:`the most vertical gain in a single ${sport}`}
           </div>
-          {loading?(<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>):(
+          {sport==="run"&&tab==="pbs" ? (
+            <div style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:"1px", background:C.border, border:"1px solid "+C.border }}>
+              <div style={{ background:C.surface, padding:"0.5rem 1rem", fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.faint }}>DISTANCE</div>
+              <div style={{ background:C.surface, padding:"0.5rem 1rem", fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.faint, textAlign:"right" }}>TIME</div>
+              {prs.filter(p=>p.sport==="run").map((pr,i)=>{
+                const s=pr.elapsed_time, h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=String(s%60).padStart(2,"0");
+                const time=h>0?h+":"+String(m).padStart(2,"0")+":"+sec:m+":"+sec;
+                return [
+                  <div key={"l"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>{pr.distance_label}</div>,
+                  <div key={"t"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.82rem", fontWeight:700, color:C.run, textAlign:"right" }}>{time}</div>
+                ];
+              })}
+            </div>
+          ) : loading?(<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>):(
             <div style={{ display:"grid", gridTemplateColumns:"300px 1fr 280px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
               <div style={{ borderRight:`1px solid ${C.border}` }}><NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} /></div>
               <div><ActivityMap polyline={cur?.map_summary_polyline} type={sport==="run"?"Run":sport==="ride"?"Ride":"Swim"} height={380} /></div>
