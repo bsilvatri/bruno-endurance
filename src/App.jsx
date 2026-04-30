@@ -221,10 +221,6 @@ function NotableSection({ unitSystem="metric" }) {
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(true);
   const [prs, setPrs] = useState([]);
-
-  const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
-
-  // PBS: fetch best_efforts + linked activity details
   useEffect(() => {
     const ACT_MAP = {"400m":6796419022,"1/2 mile":12017370695,"1K":12017370695,"1 mile":10799004879,"2 mile":10799004879,"5K":10991460408,"10K":14300148280,"15K":14300148280,"10 mile":14300148280,"20K":14300148280,"Half-Marathon":14300148280,"30K":17985954019};
     q("best_efforts?select=distance_label,elapsed_time,sport&sport=eq.run&order=elapsed_time.asc")
@@ -237,10 +233,10 @@ function NotableSection({ unitSystem="metric" }) {
           q(`activities?select=id,name,start_date_local,distance,total_elevation_gain,average_heartrate,map_summary_polyline&id=eq.${id}`)
             .then(rows => { if (Array.isArray(rows) && rows.length) actMap[id] = rows[0]; })
         ));
-        setPrs(relevant.map(b => ({ _label: b.distance_label, _elapsed: b.elapsed_time, ...actMap[ACT_MAP[b.distance_label]] })));
+        setPrs(relevant.map(b => ({ _label:b.distance_label, _elapsed:b.elapsed_time, ...actMap[ACT_MAP[b.distance_label]] })));
       });
   }, []);
-
+  const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
   useEffect(() => {
     if (sport === "races") { setLoading(false); return; }
     setLoading(true); setSelected(0);
@@ -251,19 +247,16 @@ function NotableSection({ unitSystem="metric" }) {
     if (!queryUrl) { setLoading(false); return; }
     q(queryUrl).then(data => { setRows(safe(data)); setLoading(false); }).catch(() => setLoading(false));
   }, [sport, tab]);
-
   useEffect(() => {
     if (sport === "races") return;
     if (sport === "ride" || sport === "swim") setTab("longest"); else setTab("pbs");
   }, [sport]);
-
   const cur = rows[selected];
   const fmtTime = s => { if (!s) return "—"; const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60; return h>0?`${h}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`:`${m}:${String(sec).padStart(2,"0")}`; };
   const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "";
   const fmtPace = (t,d) => { if(!t||!d) return "—"; const s=unitSystem==="imperial"?t/(d/1609.34):t/(d/1000); return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}/${unitSystem==="imperial"?"mi":"km"}`; };
   const fmtSpeed = s => s?`${unitSystem==="imperial"?(s*2.237).toFixed(1):(s*3.6).toFixed(1)} ${unitSystem==="imperial"?"mi/h":"km/h"}`:"—";
   const fmtSwimPace = (t,d) => { if(!t||!d) return "—"; const s=unitSystem==="imperial"?t/(d/91.44):t/(d/100); return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}/${unitSystem==="imperial"?"100yd":"100m"}`; };
-
   const cols = tab==="pbs"?[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]:tab==="elevation"?[{k:"#",l:"#",w:"40px"},{k:"date",l:"Date",w:"110px"},{k:"dist",l:"Dist",w:"80px"},{k:"elev",l:"Elevation",w:"1fr",accent:true}]:[{k:"#",l:"#",w:"40px"},{k:"date",l:"Date",w:"110px"},{k:"dist",l:"Distance",w:"1fr",accent:true}];
   const tableRows = rows.map(r => ({
     dist: sport==="swim"?(unitSystem==="imperial"?Math.round(r.distance*1.09361)+" yd":Math.round(r.distance)+" m"):(unitSystem==="imperial"?(r.distance/1609.34).toFixed(1)+" mi":(r.distance/1000).toFixed(1)+" km"),
@@ -271,7 +264,6 @@ function NotableSection({ unitSystem="metric" }) {
     elev: unitSystem==="imperial"?`${Math.round((r.total_elevation_gain||0)*3.28084)} ft`:`${Math.round(r.total_elevation_gain||0)} m`,
     name: r.name,
   }));
-
   const RACES = [
     {race:"IM70.3 Cascais",date:"Oct '22",swim:"0:30:39",bike:"2:33:46",run:"1:35:13",finish:"4:48:04",s:"fin"},
     {race:"IM70.3 Florianópolis",date:"Apr '23",swim:"0:31:25",bike:"2:25:23",run:"1:36:15",finish:"4:39:27",s:"fin"},
@@ -292,7 +284,6 @@ function NotableSection({ unitSystem="metric" }) {
     {race:"IM70.3 Curitiba",date:"Mar '26",swim:"0:27:49",bike:"2:42:58",run:"1:33:08",finish:"4:48:41",s:"fin"},
     {race:"IM70.3 Brasília",date:"Apr '26",swim:"0:27:57",bike:"2:14:26",run:"1:30:46",finish:"4:18:09",s:"fin",pr:1},
   ];
-
   return (
     <section id="notable" style={{ scrollMarginTop:50, paddingBottom:"4rem" }}>
       <Divider />
@@ -353,9 +344,7 @@ function NotableSection({ unitSystem="metric" }) {
             {tab==="pbs"?"fastest times across standard running distances":tab==="longest"?`my longest ${sport}s on record`:`the most vertical gain in a single ${sport}`}
           </div>
           {sport==="run"&&tab==="pbs" ? (
-            prs.length===0 ? (
-              <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>
-            ) : (
+            prs.length===0 ? (<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>) : (
               <div style={{ display:"grid", gridTemplateColumns:"300px 1fr 280px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
                 <div style={{ borderRight:`1px solid ${C.border}` }}>
                   <NotableTable
@@ -385,9 +374,7 @@ function NotableSection({ unitSystem="metric" }) {
                 </div>
               </div>
             )
-          ) : loading ? (
-            <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>
-          ) : (
+          ) : loading?(<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>):(
             <div style={{ display:"grid", gridTemplateColumns:"300px 1fr 280px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
               <div style={{ borderRight:`1px solid ${C.border}` }}><NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} /></div>
               <div><ActivityMap polyline={cur?.map_summary_polyline} type={sport==="run"?"Run":sport==="ride"?"Ride":"Swim"} height={380} /></div>
@@ -493,15 +480,18 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
   }));
 
   // ── Distance Distribution ──
-  const _kmBuckets = isAll||sportFilter==='run'
-    ? [[0,5],[5,10],[10,21],[21,42],[42,999]]
-    : sportFilter==='swim'
-    ? [[0,1],[1,2],[2,3],[3,5],[5,999]]
-    : [[0,30],[30,60],[60,100],[100,150],[150,999]];
+  const [distTip, setDistTip] = useState(null);
+  const mkB = (label,arr,lo,hi) => ({label, count:arr.filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&(hi===999?true:km<hi);}).length});
+  const runActs2 = acts.filter(a=>isRun(a.sport_type));
+  const rideActs2 = acts.filter(a=>a.sport_type==='Ride'||a.sport_type==='VirtualRide');
+  const swimActs2 = acts.filter(a=>isSwim(a.sport_type));
+  const runDist  = [mkB("0-5km",runActs2,0,5),mkB("5-10km",runActs2,5,10),mkB("10-15km",runActs2,10,15),mkB("15-21km",runActs2,15,21),mkB("21-30km",runActs2,21,30),mkB("30-42km",runActs2,30,42)];
+  const rideDist = [mkB("0-20km",rideActs2,0,20),mkB("20-40km",rideActs2,20,40),mkB("40-60km",rideActs2,40,60),mkB("60-80km",rideActs2,60,80),mkB("80-100km",rideActs2,80,100),mkB("100-120km",rideActs2,100,120),mkB("120km+",rideActs2,120,999)];
+  const swimDist = [mkB("0-500m",swimActs2,0,0.5),mkB("500m-1km",swimActs2,0.5,1),mkB("1-2km",swimActs2,1,2),mkB("2-3km",swimActs2,2,3),mkB("3-5km",swimActs2,3,5),mkB("5km+",swimActs2,5,999)];
+  const _kmBuckets = sportFilter==='swim'?[[0,0.5],[0.5,1],[1,2],[2,3],[3,5],[5,999]]:sportFilter==='ride'?[[0,20],[20,40],[40,60],[60,80],[80,100],[100,120],[120,999]]:[[0,5],[5,10],[10,15],[15,21],[21,30],[30,42]];
   const distData = _kmBuckets.map(([lo,hi]) => {
-    const loU = toUnit(lo), hiU = hi===999?999:toUnit(hi);
-    const label = hi===999?`${toUnitRound(lo)}+${distUnit}`:`${toUnitRound(lo)}-${toUnitRound(hi)}${distUnit}`;
-    return { bucket:label, count:filtered.filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&km<hi;}).length };
+    const label = hi===999?`${lo<1?lo*1000+"m":lo+"km"}+`:lo<1&&hi<=1?`${lo*1000}-${hi*1000}m`:`${lo<1?lo*1000+"m":lo+"km"}-${hi<1?hi*1000+"m":hi+"km"}`;
+    return {label, count:filtered.filter(a=>{const km=(+a.distance||0)/1000;return km>=lo&&(hi===999?true:km<hi);}).length};
   });
 
   // ── Pace Distribution (run only, or all running for "all") ──
@@ -548,18 +538,34 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
   const ioTitle = sportFilter==="run"?"Indoor vs Outdoor":sportFilter==="ride"?"Indoor vs Outdoor":sportFilter==="swim"?"Pool vs Open Water":"All-time Activities";
   const ioSubtitle = sportFilter==="run"?"road or treadmill":sportFilter==="ride"?"road or trainer":sportFilter==="swim"?"lane or open water":"by sport type";
 
-  // ── Weekly Volume ──
-  const wkMap = {};
-  filtered.forEach(a => {
-    if(!a.start_date_local) return;
-    const d = new Date(a.start_date_local);
-    const day = d.getDay();
-    const monday = new Date(d); monday.setDate(d.getDate()-((day+6)%7));
-    const wk = monday.toISOString().slice(0,10);
-    if(!wkMap[wk]) wkMap[wk]=0;
-    wkMap[wk] += (+a.distance||0)/1000;
+  // ── Yearly Volume + Streaks ──
+  const yearlyMap = {};
+  acts.forEach(a => {
+    if (!a.start_date_local) return;
+    const yr = new Date(a.start_date_local).getFullYear();
+    if (!yearlyMap[yr]) yearlyMap[yr] = { run:0, ride:0, swim:0 };
+    const km = (+a.distance||0)/1000;
+    if (isRun(a.sport_type)) yearlyMap[yr].run += km;
+    else if (a.sport_type==='Ride'||a.sport_type==='VirtualRide') yearlyMap[yr].ride += km;
+    else if (isSwim(a.sport_type)) yearlyMap[yr].swim += km;
   });
-  const wvData = Object.entries(wkMap).sort(([a],[b])=>a.localeCompare(b)).map(([w,km])=>({week:w,km:toUnitRound(km)})).filter((_,i)=>i%2===0);
+  const yearlyData = Object.entries(yearlyMap).sort(([a],[b])=>+a-+b).map(([yr,v])=>({year:yr,run:toUnitRound(v.run),ride:toUnitRound(v.ride),swim:toUnitRound(v.swim)}));
+  const actDays2 = new Set(acts.filter(a=>a.start_date_local).map(a=>a.start_date_local.slice(0,10)));
+  const sortedDays2 = [...actDays2].sort();
+  let bestStreak=0,curStreak2=0;
+  for(let i=0;i<sortedDays2.length;i++){
+    if(i===0){curStreak2=1;}
+    else{const diff=(new Date(sortedDays2[i])-new Date(sortedDays2[i-1]))/86400000;if(diff===1)curStreak2++;else curStreak2=1;}
+    if(curStreak2>bestStreak)bestStreak=curStreak2;
+  }
+  const today2=new Date().toISOString().slice(0,10);
+  const yesterday2=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  let liveStreak=0;
+  for(let i=sortedDays2.length-1;i>=0;i--){
+    if(i===sortedDays2.length-1){if(sortedDays2[i]!==today2&&sortedDays2[i]!==yesterday2)break;liveStreak=1;}
+    else{const diff=(new Date(sortedDays2[i+1])-new Date(sortedDays2[i]))/86400000;if(diff===1)liveStreak++;else break;}
+  }
+  const totalDaysWithActivity=actDays2.size;
 
   // Time of day radar — 24 hours
   const buildTod = (subset) => {
@@ -710,16 +716,39 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
 
       {/* ROW 1 — Distance Dist | Indoor/Outdoor | Pace Dist */}
       <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
-        <ChartBox title={`Distance Distribution (${distUnit})`} subtitle="activity counts by distance" minH={331}>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={distData} layout="vertical" barSize={14}>
-              <CartesianGrid horizontal={false} stroke={C.border} />
-              <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} width={52} />
-              <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
-              <Bar dataKey="count" fill={sColor} radius={[0,2,2,0]} name="activities" />
-            </BarChart>
-          </ResponsiveContainer>
+        <ChartBox title="Distance Distribution" subtitle="activity counts by distance" minH={331}>
+          {isAll ? (
+            <div style={{paddingTop:"0.25rem",position:"relative"}} onMouseLeave={()=>setDistTip(null)}>
+              {distTip&&<div style={{position:"fixed",pointerEvents:"none",zIndex:9999,background:C.surface,border:"1px solid "+C.border,borderRadius:4,padding:"6px 10px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink,top:distTip.y-40,left:distTip.x+14,whiteSpace:"nowrap",boxShadow:"0 2px 8px rgba(0,0,0,0.1)",display:"flex",gap:"0.4rem",alignItems:"center"}}><span style={{color:distTip.color,fontWeight:700}}>{distTip.label}:</span><span>{distTip.count}</span></div>}
+              {[{label:"RUNS",data:runDist,color:C.run},{label:"RIDES",data:rideDist,color:C.ride},{label:"SWIMS",data:swimDist,color:C.swim}].map(({label,data,color},si)=>(
+                <div key={si} style={{marginBottom:si<2?"0.75rem":"0"}}>
+                  <div style={{fontFamily:F.mono,fontSize:"0.48rem",letterSpacing:"0.1em",color,marginBottom:"0.3rem"}}>{label}</div>
+                  {data.map((d,i)=>{
+                    const max=Math.max(...data.map(x=>x.count),1);
+                    return (
+                      <div key={i} onMouseEnter={e=>setDistTip({label:d.label,count:d.count,color,x:e.clientX,y:e.clientY})} style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.2rem",cursor:"default"}}>
+                        <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.faint,width:60,flexShrink:0,textAlign:"right"}}>{d.label}</div>
+                        <div style={{flex:1,background:C.border,borderRadius:2,height:10,overflow:"hidden"}}>
+                          <div style={{height:"100%",background:color,borderRadius:2,width:d.count>0?Math.max(4,Math.round(d.count/max*100))+"%":"0%",transition:"width 0.3s"}} />
+                        </div>
+                        <div style={{fontFamily:F.mono,fontSize:"0.48rem",color:C.muted,width:24,textAlign:"right"}}>{d.count}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={distData} layout="vertical" barSize={14}>
+                <CartesianGrid horizontal={false} stroke={C.border} />
+                <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} hide />
+                <YAxis type="category" dataKey="label" tick={tickStyle} axisLine={false} tickLine={false} width={60} />
+                <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
+                <Bar dataKey="count" fill={sColor} radius={[0,2,2,0]} name="activities" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </ChartBox>
         <ChartBox title={ioTitle} subtitle={ioSubtitle} minH={331}>
           {ioData.length>0 && (
@@ -768,45 +797,36 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         </ChartBox>
       </div>
 
-      {/* ROW 2 — HR Zones | Weekly Volume */}
+      {/* ROW 2 — HR Zon{/* ROW — Yearly Volume | Streak */}
       <div style={{...G, gridTemplateColumns:"1fr 1fr", borderTop:"none"}}>
-        <ChartBox title="Heart Rate Zones" subtitle="~50% easy, the rest is pain" minH={310}>
+        <ChartBox title="Yearly Volume" subtitle="km per sport per year" minH={310}>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={hrData} barSize={32}>
+            <BarChart data={yearlyData} barSize={isAll?14:10}>
               <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="zone" tick={tickStyle} axisLine={false} tickLine={false} />
-              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
+              <XAxis dataKey="year" tick={tickStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} />
               <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
-              <Bar dataKey="count" radius={[2,2,0,0]} name="activities">
-                {hrData.map((_,i)=><Cell key={i} fill={hrColors[i]}/>)}
-              </Bar>
+              {(isAll||sportFilter==='run')  && <Bar dataKey="run"  fill={C.run}  radius={[2,2,0,0]} name="Run"  stackId={isAll?"a":undefined} />}
+              {(isAll||sportFilter==='ride') && <Bar dataKey="ride" fill={C.ride} radius={isAll?[0,0,0,0]:[2,2,0,0]} name="Ride" stackId={isAll?"a":undefined} />}
+              {(isAll||sportFilter==='swim') && <Bar dataKey="swim" fill={C.swim} radius={isAll?[2,2,0,0]:[2,2,0,0]} name="Swim" stackId={isAll?"a":undefined} />}
             </BarChart>
           </ResponsiveContainer>
-          <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap",marginTop:"0.5rem"}}>
-            {["Recovery","Easy","Tempo","Threshold","Max"].map((l,i)=>(
-              <div key={l} style={{display:"flex",alignItems:"center",gap:3,fontFamily:F.mono,fontSize:"0.48rem",color:C.faint}}>
-                <div style={{width:6,height:6,borderRadius:1,background:hrColors[i]}}/>{l}
+        </ChartBox>
+        <ChartBox title="Activity Streaks" subtitle="consecutive days" minH={310}>
+          <div style={{display:"flex",flexDirection:"column",gap:"1rem",paddingTop:"0.5rem"}}>
+            {[
+              {label:"BEST STREAK",value:bestStreak+" days",color:C.run},
+              {label:"CURRENT STREAK",value:liveStreak+" days",color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
+              {label:"ACTIVE DAYS",value:totalDaysWithActivity.toLocaleString(),color:C.ink},
+            ].map(({label,value,color})=>(
+              <div key={label} style={{borderLeft:"3px solid "+color,paddingLeft:"0.75rem"}}>
+                <div style={{fontFamily:F.mono,fontSize:"0.45rem",letterSpacing:"0.12em",color:C.faint,marginBottom:"0.2rem"}}>{label}</div>
+                <div style={{fontFamily:F.mono,fontSize:"1.1rem",fontWeight:700,color}}>{value}</div>
               </div>
             ))}
           </div>
         </ChartBox>
-        <ChartBox title={`Weekly Volume (${distUnit})`} subtitle="km per week over time" minH={310}>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={wvData}>
-              <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="week" tick={false} axisLine={false} tickLine={false} />
-              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={30} />
-              <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
-              <defs>
-                <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={sColor} stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor={sColor} stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="km" stroke={sColor} strokeWidth={1.5} fill="url(#wg)" name={distUnit+"/week"} unit={" "+distUnit} dot={false}/>
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartBox>
+      </div>
       </div>
 
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
