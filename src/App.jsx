@@ -21,12 +21,12 @@ const C = {
   dim: "#3A3A36",
   muted: "#6B6860",
   faint: "#9A9488",
-  green: "#2D4A35",
-  greenMid: "#3D6048",
-  greenLight: "#4A7A58",
-  run: "#2D4A35",
-  ride: "#8B4513",
-  swim: "#2B5BA0",
+  green: "#4A7A5A",
+  greenMid: "#5C7A45",
+  greenLight: "#5C7A45",
+  run: "#5C7A45",
+  ride: "#C4622D",
+  swim: "#2E7DA6",
   white: "#FFFFFF",
 };
 
