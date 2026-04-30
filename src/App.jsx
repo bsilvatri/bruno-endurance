@@ -223,10 +223,11 @@ function NotableSection({ unitSystem="metric" }) {
   const [prs, setPrs] = useState([]);
   useEffect(() => {
     const distances = [{"label":"400m","lo":350,"hi":450},{"label":"1 km","lo":950,"hi":1100},{"label":"1 mile","lo":1580,"hi":1700},{"label":"5 km","lo":4800,"hi":5500},{"label":"10 km","lo":9700,"hi":10800},{"label":"15 km","lo":14500,"hi":15500},{"label":"20 km","lo":19500,"hi":21000},{"label":"Half Mara","lo":21000,"hi":22000},{"label":"30 km","lo":29500,"hi":31000},{"label":"Marathon","lo":42000,"hi":43500}];
+    setLoading(true);
     Promise.all(distances.map(d =>
-      q(`activities?select=id,name,start_date_local,moving_time&type=eq.Run&distance=gte.${d.lo}&distance=lte.${d.hi}&order=moving_time.asc&limit=1`)
-        .then(rows => ({ label: d.label, row: Array.isArray(rows) && rows.length ? rows[0] : null }))
-    )).then(results => setPrs(results));
+      q(`activities?select=id,name,start_date_local,distance,moving_time,total_elevation_gain,average_heartrate,map_summary_polyline&type=eq.Run&distance=gte.${d.lo}&distance=lte.${d.hi}&order=moving_time.asc&limit=1`)
+        .then(res => { const r = Array.isArray(res)&&res.length ? {...res[0], _label:d.label} : null; return r; })
+    )).then(results => { setPrs(results.filter(Boolean)); setLoading(false); });
   }, []);
   const sportColor = sport === "run" ? C.run : sport === "ride" ? C.ride : C.swim;
   useEffect(() => {
@@ -336,26 +337,53 @@ function NotableSection({ unitSystem="metric" }) {
             {tab==="pbs"?"fastest times across standard running distances":tab==="longest"?`my longest ${sport}s on record`:`the most vertical gain in a single ${sport}`}
           </div>
           {sport==="run"&&tab==="pbs" ? (
-            <div style={{ display:"grid", gridTemplateColumns:"1fr auto auto", gap:"1px", background:C.border, border:"1px solid "+C.border }}>
-              <div style={{ background:C.surface, padding:"0.5rem 1rem", fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.faint }}>DISTANCE</div>
-              <div style={{ background:C.surface, padding:"0.5rem 1rem", fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.faint, textAlign:"right" }}>TIME</div>
-              <div style={{ background:C.surface, padding:"0.5rem 1rem", fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.faint, textAlign:"right" }}>DATE</div>
-              {prs.map((pr,i)=>{
-                if (!pr.row) return [
-                  <div key={"l"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>{pr.label}</div>,
-                  <div key={"t"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.faint, textAlign:"right" }}>—</div>,
-                  <div key={"d"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.faint, textAlign:"right" }}>—</div>,
-                ];
-                const s=pr.row.moving_time, h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=String(s%60).padStart(2,"0");
-                const time=h>0?h+":"+String(m).padStart(2,"0")+":"+sec:m+":"+sec;
-                const date=pr.row.start_date_local?new Date(pr.row.start_date_local).toLocaleDateString("en-US",{month:"short",year:"numeric"}):"";
-                return [
-                  <div key={"l"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>{pr.label}</div>,
-                  <div key={"t"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.82rem", fontWeight:700, color:C.run, textAlign:"right" }}>{time}</div>,
-                  <div key={"d"+i} style={{ background:i%2===0?C.bg:C.surface, padding:"0.6rem 1rem", fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, textAlign:"right" }}>{date}</div>,
-                ];
-              })}
-            </div>
+            loading ? (
+              <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>
+            ) : (
+              <div style={{ display:"grid", gridTemplateColumns:"300px 1fr 280px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
+                <div style={{ borderRight:`1px solid ${C.border}` }}>
+                  <NotableTable
+                    rows={prs.map(r=>({ dist:r._label, date:fmtDate(r.start_date_local), time:fmtTime(r.moving_time), name:r.name }))}
+                    cols={[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]}
+                    selected={selected} onSelect={setSelected} sportColor={sportColor}
+                  />
+                </div>
+                <div>
+                  <ActivityMap polyline={prs[selected]?.map_summary_polyline} type="Run" height={380} />
+                </div>
+                <div style={{ padding:"1.25rem", borderLeft:`1px solid ${C.border}`, display:"flex", flexDirection:"column", gap:"0.1rem" }}>
+                  {prs[selected] && (<>
+                    <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"0.5rem" }}>{fmtDate(prs[selected].start_date_local)}</div>
+                    <div style={{ fontFamily:F.heading, fontSize:"1.1rem", fontWeight:700, color:C.ink, marginBottom:"1rem", lineHeight:1.2 }}>{prs[selected].name}</div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
+                      {[
+                        {l:"DISTANCE", v:prs[selected]._label},
+                        {l:"TIME", v:fmtTime(prs[selected].moving_time)},
+                        {l:"AVG PACE", v:fmtPace(prs[selected].moving_time, prs[selected].distance)},
+                        {l:"ELEVATION", v:unitSystem==="imperial"?`${Math.round((prs[selected].total_elevation_gain||0)*3.28084)} ft`:`${Math.round(prs[selected].total_elevation_gain||0)} m`},
+                      ].map(({l,v})=>(
+                        <div key={l}>
+                          <div style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint, marginBottom:2 }}>{l}</div>
+                          <div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:C.ink }}>{v}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {prs[selected].average_heartrate && (
+                      <div>
+                        <div style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint, marginBottom:2 }}>AVG HR (BPM)</div>
+                        <div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:C.ink }}>{Math.round(prs[selected].average_heartrate)}</div>
+                      </div>
+                    )}
+                    <div style={{ marginTop:"auto", paddingTop:"1rem", borderTop:`1px solid ${C.border}` }}>
+                      <a href={`https://www.strava.com/activities/${prs[selected].id}`} target="_blank" rel="noopener noreferrer"
+                        style={{ fontFamily:F.mono, fontSize:"0.58rem", letterSpacing:"0.1em", color:C.muted, textDecoration:"none" }}>
+                        VIEW ON STRAVA →
+                      </a>
+                    </div>
+                  </>)}
+                </div>
+              </div>
+            )
           ) : loading?(<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>):(
             <div style={{ display:"grid", gridTemplateColumns:"300px 1fr 280px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
               <div style={{ borderRight:`1px solid ${C.border}` }}><NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} /></div>
