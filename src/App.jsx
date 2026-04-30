@@ -827,7 +827,6 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
           </div>
         </ChartBox>
       </div>
-      </div>
 
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
       {isAll && (
