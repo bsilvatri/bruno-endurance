@@ -828,6 +828,31 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         </ChartBox>
       </div>
 
+      {sportFilter==='ride' && (
+        <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
+          <ChartBox title="FTP Evolution" subtitle="20min functional threshold power" minH={280}>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={[{d:"Jan 23",w:269},{d:"Feb 23",w:273},{d:"Mar 23",w:273},{d:"May 23",w:293},{d:"May 23",w:300},{d:"Jun 23",w:300},{d:"Jul 23",w:300},{d:"Jul 23",w:310},{d:"Oct 23",w:310},{d:"Oct 23",w:310},{d:"Feb 24",w:319},{d:"Feb 24",w:328},{d:"May 24",w:328},{d:"Jun 24",w:328},{d:"Sep 24",w:302},{d:"Dec 24",w:302},{d:"Mar 25",w:328},{d:"Apr 25",w:328},{d:"May 25",w:328},{d:"Oct 25",w:346}]} margin={{top:4,right:8,left:0,bottom:0}}>
+                <CartesianGrid vertical={false} stroke={C.border} />
+                <XAxis dataKey="d" tick={tickStyle} axisLine={false} tickLine={false} interval={3} />
+                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} domain={[250, 360]} />
+                <Tooltip content={({active,payload}) => {
+                  if (!active || !payload || !payload.length) return null;
+                  const p = payload[0].payload;
+                  const wkg = (p.w / 77).toFixed(2);
+                  return (
+                    <div style={{background:C.surface, border:"1px solid "+C.border, borderRadius:4, padding:"8px 12px", fontFamily:F.mono, fontSize:"0.65rem", color:C.ink}}>
+                      <div style={{color:C.faint, marginBottom:3}}>{p.d}</div>
+                      <div style={{fontWeight:700, color:C.ride}}>{p.w}W <span style={{color:C.muted, fontWeight:400}}>({wkg} w/kg)</span></div>
+                    </div>
+                  );
+                }} />
+                <Line type="monotone" dataKey="w" stroke={C.ride} strokeWidth={2} dot={{r:3, fill:C.ride, strokeWidth:0}} activeDot={{r:5}} name="FTP" />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartBox>
+        </div>
+      )}
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
       {isAll && (
         <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
