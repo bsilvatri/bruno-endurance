@@ -379,7 +379,7 @@ function NotableSection({ unitSystem="metric" }) {
                 </div>
                 <div><ActivityMap polyline={(sport==="ride"?ridePbs:prs)[selected]?.map_summary_polyline} type={sport==="ride"?"Ride":"Run"} height={380} /></div>
                 <div style={{ padding:"1.25rem", borderLeft:`1px solid ${C.border}`, display:"flex", flexDirection:"column", gap:"0.1rem" }}>
-                  {prs[selected]&&(<>
+                  {(sport==="ride"?ridePbs:prs)[selected]&&(<>
                     <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"0.5rem" }}>{fmtDate((sport==="ride"?ridePbs:prs)[selected].start_date_local)}</div>
                     <div style={{ fontFamily:F.heading, fontSize:"1.1rem", fontWeight:700, color:C.ink, marginBottom:"1rem", lineHeight:1.2 }}>{(sport==="ride"?ridePbs:prs)[selected].name}</div>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
