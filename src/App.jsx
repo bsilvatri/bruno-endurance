@@ -193,15 +193,15 @@ const Tip = ({ active, payload, label }) => {
 
 
 
-function NotableTable({ rows, cols, selected, onSelect, sportColor }) {
+function NotableTable({ rows, cols, selected, onSelect, sportColor, colGap="0" }) {
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), columnGap: "0.6rem", padding: "0.4rem 0.75rem", borderBottom: `1px solid ${C.border}` }}>
+      <div style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), columnGap: colGap, padding: "0.4rem 0.75rem", borderBottom: `1px solid ${C.border}` }}>
         {cols.map(c => <div key={c.k} style={{ fontFamily: F.mono, fontSize: "0.52rem", letterSpacing: "0.12em", textTransform: "uppercase", color: C.faint }}>{c.l}</div>)}
       </div>
       {rows.map((r, i) => (
         <div key={i} onClick={() => onSelect(i)}
-          style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), columnGap: "0.6rem", padding: "0.7rem 0.75rem", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selected === i ? C.card : "transparent", transition: "background 0.12s" }}>
+          style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), columnGap: colGap, padding: "0.7rem 0.75rem", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selected === i ? C.card : "transparent", transition: "background 0.12s" }}>
           {cols.map(c => (
             <div key={c.k} style={{ fontFamily: F.mono, fontSize: "0.82rem", color: c.accent ? sportColor : C.ink, fontWeight: c.bold ? 600 : 400 }}>
               {c.k === "#" ? `#${i + 1}` : r[c.k]}
@@ -281,7 +281,7 @@ function NotableSection({ unitSystem="metric" }) {
   const fmtPace = (t,d) => { if(!t||!d) return "—"; const s=unitSystem==="imperial"?t/(d/1609.34):t/(d/1000); return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}/${unitSystem==="imperial"?"mi":"km"}`; };
   const fmtSpeed = s => s?`${unitSystem==="imperial"?(s*2.237).toFixed(1):(s*3.6).toFixed(1)} ${unitSystem==="imperial"?"mi/h":"km/h"}`:"—";
   const fmtSwimPace = (t,d) => { if(!t||!d) return "—"; const s=unitSystem==="imperial"?t/(d/91.44):t/(d/100); return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}/${unitSystem==="imperial"?"100yd":"100m"}`; };
-  const cols = tab==="pbs"?[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]:tab==="elevation"?[{k:"#",l:"#",w:"30px"},{k:"date",l:"Date",w:"95px"},{k:"dist",l:"Dist",w:"70px"},{k:"elev",l:"Elevation",w:"85px",accent:true}]:[{k:"#",l:"#",w:"40px"},{k:"date",l:"Date",w:"110px"},{k:"dist",l:"Distance",w:"1fr",accent:true}];
+  const cols = tab==="pbs"?[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]:tab==="elevation"?[{k:"#",l:"#",w:"30px"},{k:"date",l:"Date",w:"110px"},{k:"dist",l:"Dist",w:"80px"},{k:"elev",l:"Elevation",w:"85px",accent:true}]:[{k:"#",l:"#",w:"40px"},{k:"date",l:"Date",w:"110px"},{k:"dist",l:"Distance",w:"1fr",accent:true}];
   const tableRows = rows.map(r => ({
     dist: sport==="swim"?(unitSystem==="imperial"?Math.round(r.distance*1.09361)+" yd":Math.round(r.distance)+" m"):(unitSystem==="imperial"?(r.distance/1609.34).toFixed(1)+" mi":(r.distance/1000).toFixed(1)+" km"),
     date: fmtDate(r.start_date_local), time: fmtTime(r.moving_time),
@@ -402,7 +402,7 @@ function NotableSection({ unitSystem="metric" }) {
             )
           ) : loading?(<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>):(
             <div style={{ display:"grid", gridTemplateColumns:"300px 1fr 280px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
-              <div style={{ borderRight:`1px solid ${C.border}` }}><NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} /></div>
+              <div style={{ borderRight:`1px solid ${C.border}` }}><NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} colGap={tab==="elevation"?"0.75rem":"0"} /></div>
               <div><ActivityMap polyline={cur?.map_summary_polyline} type={sport==="run"?"Run":sport==="ride"?"Ride":"Swim"} height={380} /></div>
               <div style={{ padding:"1.25rem", borderLeft:`1px solid ${C.border}`, display:"flex", flexDirection:"column", gap:"0.1rem" }}>
                 {cur&&(<>
