@@ -778,6 +778,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
             </div>
           )}
         </ChartBox>
+{!isAll && (
         <ChartBox title="Pace Distribution (min/km)" subtitle="running pace buckets" minH={331}>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={paceData}>
@@ -795,6 +796,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
             </AreaChart>
           </ResponsiveContainer>
         </ChartBox>
+        )}
       </div>
 
       {/* ROW 2 — HR Zon{!isAll && (
