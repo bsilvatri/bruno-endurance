@@ -714,8 +714,8 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         </div>
       </div>
 
-      {/* ROW 1 — Distance Dist | Indoor/Outdoor | Pace Dist */}
-      <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
+      {/* ROW 1 — Distance Dist | Indoor/Outdoor | Pace Dist (Run) or Streaks (All) */}
+      <div style={{...G, gridTemplateColumns:(isAll||sportFilter==='run')?"1fr 1fr 1fr":"1fr 1fr", borderTop:"none"}}>
         <ChartBox title="Distance Distribution" subtitle="activity counts by distance" minH={331}>
           {isAll ? (
             <div style={{paddingTop:"0.25rem",position:"relative"}} onMouseLeave={()=>setDistTip(null)}>
@@ -778,7 +778,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
             </div>
           )}
         </ChartBox>
-        {isAll ? (
+        {(isAll || sportFilter==='run') && (isAll ? (
           <ChartBox title="Activity Streaks" subtitle="consecutive days" minH={331}>
             <div style={{display:"flex",flexDirection:"column",gap:"1.25rem",paddingTop:"0.75rem"}}>
               {[
@@ -811,7 +811,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
               </AreaChart>
             </ResponsiveContainer>
           </ChartBox>
-        )}
+        ))}
       </div>
 
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
