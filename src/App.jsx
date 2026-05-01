@@ -196,12 +196,12 @@ const Tip = ({ active, payload, label }) => {
 function NotableTable({ rows, cols, selected, onSelect, sportColor }) {
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), padding: "0.4rem 0.75rem", borderBottom: `1px solid ${C.border}` }}>
+      <div style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), columnGap: "0.6rem", padding: "0.4rem 0.75rem", borderBottom: `1px solid ${C.border}` }}>
         {cols.map(c => <div key={c.k} style={{ fontFamily: F.mono, fontSize: "0.52rem", letterSpacing: "0.12em", textTransform: "uppercase", color: C.faint }}>{c.l}</div>)}
       </div>
       {rows.map((r, i) => (
         <div key={i} onClick={() => onSelect(i)}
-          style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), padding: "0.7rem 0.75rem", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selected === i ? C.card : "transparent", transition: "background 0.12s" }}>
+          style={{ display: "grid", gridTemplateColumns: cols.map(c => c.w).join(" "), columnGap: "0.6rem", padding: "0.7rem 0.75rem", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selected === i ? C.card : "transparent", transition: "background 0.12s" }}>
           {cols.map(c => (
             <div key={c.k} style={{ fontFamily: F.mono, fontSize: "0.82rem", color: c.accent ? sportColor : C.ink, fontWeight: c.bold ? 600 : 400 }}>
               {c.k === "#" ? `#${i + 1}` : r[c.k]}
