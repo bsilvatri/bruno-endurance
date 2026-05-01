@@ -369,11 +369,11 @@ function NotableSection({ unitSystem="metric" }) {
           </div>
           {(sport==="run"||sport==="ride")&&tab==="pbs" ? (
             (sport==="ride"?ridePbs:prs).length===0 ? (<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>) : (
-              <div style={{ display:"grid", gridTemplateColumns:"300px 1fr 280px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
+              <div style={{ display:"grid", gridTemplateColumns:"330px 1fr 250px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
                 <div style={{ borderRight:`1px solid ${C.border}` }}>
                   <NotableTable
                     rows={(sport==="ride"?ridePbs:prs).map(r=>{const dm={"5 mile":8046,"10K":10000,"10 mile":16093,"20K":20000,"30K":30000,"40K":40000,"50K":50000,"80K":80000,"50 mile":80467,"90K":90000,"100K":100000,"100 mile":160934,"180K":180000};const d=dm[r._label];const spd=d&&r._elapsed?(((d/r._elapsed)*3.6).toFixed(1)+" km/h"):"—";return { dist:r._label, date:fmtDate(r.start_date_local), time:fmtTime(r._elapsed), speed:sport==="ride"?spd:undefined, name:r.name };})}
-                    cols={sport==="ride"?[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"100px"},{k:"time",l:"Time",w:"80px",mono:true,accent:true},{k:"speed",l:"Speed",w:"90px",mono:true}]:[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]}
+                    cols={sport==="ride"?[{k:"#",l:"#",w:"30px"},{k:"dist",l:"Distance",w:"95px"},{k:"time",l:"Time",w:"80px",mono:true,accent:true},{k:"speed",l:"Speed",w:"100px",mono:true}]:[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]}
                     selected={selected} onSelect={setSelected} sportColor={sportColor}
                   />
                 </div>
