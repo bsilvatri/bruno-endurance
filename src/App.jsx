@@ -797,7 +797,8 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         </ChartBox>
       </div>
 
-      {/* ROW 2 — HR Zon{/* ROW — Yearly Volume | Streak */}
+      {/* ROW 2 — HR Zon{!isAll && (
+      {/* ROW — Yearly Volume | Streak */}
       <div style={{...G, gridTemplateColumns:"1fr 1fr", borderTop:"none"}}>
         <ChartBox title="Yearly Volume" subtitle="km per sport per year" minH={310}>
           <ResponsiveContainer width="100%" height={200}>
@@ -827,6 +828,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
           </div>
         </ChartBox>
       </div>
+      )}
 
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
       {isAll && (
