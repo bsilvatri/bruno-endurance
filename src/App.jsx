@@ -778,6 +778,8 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
             </div>
           )}
         </ChartBox>
+      </div>
+
       {!isAll && (
         <ChartBox title="Pace Distribution (min/km)" subtitle="running pace buckets" minH={331}>
           <ResponsiveContainer width="100%" height={220}>
@@ -797,8 +799,6 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
           </ResponsiveContainer>
         </ChartBox>
       )}
-        )}
-      </div>
 
       {/* ROW 2 — HR Zones | Streak */}
       {!isAll && (
