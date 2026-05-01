@@ -778,40 +778,40 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
             </div>
           )}
         </ChartBox>
-        <ChartBox title="Pace Distribution (min/km)" subtitle="running pace buckets" minH={331}>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={paceData}>
-              <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} />
-              <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={28} />
-              <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
-              <defs>
-                <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={C.run} stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor={C.run} stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="count" stroke={C.run} strokeWidth={1.5} fill="url(#pg)" name="runs" dot={false}/>
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartBox>
-      </div>
-
-      <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
-        <ChartBox title="Activity Streaks" subtitle="consecutive days" minH={200}>
-          <div style={{display:"flex",flexDirection:"row",gap:"2rem",paddingTop:"0.5rem"}}>
-            {[
-              {label:"BEST STREAK",value:bestStreak+" days",color:C.run},
-              {label:"CURRENT STREAK",value:liveStreak+" days",color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
-              {label:"ACTIVE DAYS",value:totalDaysWithActivity.toLocaleString(),color:C.ink},
-            ].map(({label,value,color})=>(
-              <div key={label} style={{borderLeft:"3px solid "+color,paddingLeft:"0.75rem"}}>
-                <div style={{fontFamily:F.mono,fontSize:"0.45rem",letterSpacing:"0.12em",color:C.faint,marginBottom:"0.2rem"}}>{label}</div>
-                <div style={{fontFamily:F.mono,fontSize:"1.1rem",fontWeight:700,color}}>{value}</div>
-              </div>
-            ))}
-          </div>
-        </ChartBox>
+        {isAll ? (
+          <ChartBox title="Activity Streaks" subtitle="consecutive days" minH={331}>
+            <div style={{display:"flex",flexDirection:"column",gap:"1.25rem",paddingTop:"0.75rem"}}>
+              {[
+                {label:"BEST STREAK",value:bestStreak+" days",color:C.run},
+                {label:"CURRENT STREAK",value:liveStreak+" days",color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
+                {label:"ACTIVE DAYS",value:totalDaysWithActivity.toLocaleString(),color:C.ink},
+              ].map(({label,value,color})=>(
+                <div key={label} style={{borderLeft:"3px solid "+color,paddingLeft:"0.75rem"}}>
+                  <div style={{fontFamily:F.mono,fontSize:"0.45rem",letterSpacing:"0.12em",color:C.faint,marginBottom:"0.2rem"}}>{label}</div>
+                  <div style={{fontFamily:F.mono,fontSize:"1.1rem",fontWeight:700,color}}>{value}</div>
+                </div>
+              ))}
+            </div>
+          </ChartBox>
+        ) : (
+          <ChartBox title="Pace Distribution (min/km)" subtitle="running pace buckets" minH={331}>
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={paceData}>
+                <CartesianGrid vertical={false} stroke={C.border} />
+                <XAxis dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} />
+                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={28} />
+                <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
+                <defs>
+                  <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={C.run} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={C.run} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="count" stroke={C.run} strokeWidth={1.5} fill="url(#pg)" name="runs" dot={false}/>
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartBox>
+        )}
       </div>
 
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
