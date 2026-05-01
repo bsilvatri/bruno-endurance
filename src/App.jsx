@@ -281,7 +281,7 @@ function NotableSection({ unitSystem="metric" }) {
   const fmtPace = (t,d) => { if(!t||!d) return "—"; const s=unitSystem==="imperial"?t/(d/1609.34):t/(d/1000); return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}/${unitSystem==="imperial"?"mi":"km"}`; };
   const fmtSpeed = s => s?`${unitSystem==="imperial"?(s*2.237).toFixed(1):(s*3.6).toFixed(1)} ${unitSystem==="imperial"?"mi/h":"km/h"}`:"—";
   const fmtSwimPace = (t,d) => { if(!t||!d) return "—"; const s=unitSystem==="imperial"?t/(d/91.44):t/(d/100); return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}/${unitSystem==="imperial"?"100yd":"100m"}`; };
-  const cols = tab==="pbs"?[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]:tab==="elevation"?[{k:"#",l:"#",w:"40px"},{k:"date",l:"Date",w:"110px"},{k:"dist",l:"Dist",w:"80px"},{k:"elev",l:"Elevation",w:"1fr",accent:true}]:[{k:"#",l:"#",w:"40px"},{k:"date",l:"Date",w:"110px"},{k:"dist",l:"Distance",w:"1fr",accent:true}];
+  const cols = tab==="pbs"?[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]:tab==="elevation"?[{k:"#",l:"#",w:"30px"},{k:"date",l:"Date",w:"95px"},{k:"dist",l:"Dist",w:"70px"},{k:"elev",l:"Elevation",w:"85px",accent:true}]:[{k:"#",l:"#",w:"40px"},{k:"date",l:"Date",w:"110px"},{k:"dist",l:"Distance",w:"1fr",accent:true}];
   const tableRows = rows.map(r => ({
     dist: sport==="swim"?(unitSystem==="imperial"?Math.round(r.distance*1.09361)+" yd":Math.round(r.distance)+" m"):(unitSystem==="imperial"?(r.distance/1609.34).toFixed(1)+" mi":(r.distance/1000).toFixed(1)+" km"),
     date: fmtDate(r.start_date_local), time: fmtTime(r.moving_time),
