@@ -780,6 +780,8 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         </ChartBox>
       </div>
 
+      </div>
+
       {!isAll && (
         <ChartBox title="Pace Distribution (min/km)" subtitle="running pace buckets" minH={331}>
           <ResponsiveContainer width="100%" height={220}>
@@ -800,7 +802,6 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         </ChartBox>
       )}
 
-      {/* ROW 2 — HR Zones | Streak */}
       {!isAll && (
       {/* ROW — Yearly Volume | Streak */}
       <div style={{...G, gridTemplateColumns:"1fr 1fr", borderTop:"none"}}>
@@ -832,7 +833,6 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
           </div>
         </ChartBox>
       </div>
-      )}
       )}
 
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
