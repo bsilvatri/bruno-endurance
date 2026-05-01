@@ -780,10 +780,9 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
         </ChartBox>
       </div>
 
-      </div>
-
       {!isAll && (
-        <ChartBox title="Pace Distribution (min/km)" subtitle="running pace buckets" minH={331}>
+        <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
+          <ChartBox title="Pace Distribution (min/km)" subtitle="running pace buckets" minH={331}>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={paceData}>
               <CartesianGrid vertical={false} stroke={C.border} />
@@ -800,6 +799,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
             </AreaChart>
           </ResponsiveContainer>
         </ChartBox>
+        </div>
       )}
 
       {!isAll && (
