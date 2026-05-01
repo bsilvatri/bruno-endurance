@@ -528,8 +528,8 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
   // ── Swim Pace Distribution (mm:ss/100m) ──
   const swimActs = acts.filter(a=>isSwim(a.sport_type));
   const swimPaceBuckets = [
-    {bucket:"<1:30",lo:0,hi:90},{bucket:"1:30-1:45",lo:90,hi:105},{bucket:"1:45-2:00",lo:105,hi:120},
-    {bucket:"2:00-2:15",lo:120,hi:135},{bucket:"2:15-2:30",lo:135,hi:150},{bucket:"2:30+",lo:150,hi:999}
+    {bucket:"1:00",lo:60,hi:70},{bucket:"1:10",lo:70,hi:80},{bucket:"1:20",lo:80,hi:90},
+    {bucket:"1:30",lo:90,hi:100},{bucket:"1:40",lo:100,hi:110},{bucket:"1:50",lo:110,hi:120},{bucket:"2:00+",lo:120,hi:999}
   ];
   const swimPaceData = swimPaceBuckets.map(b => ({
     bucket: b.bucket,
