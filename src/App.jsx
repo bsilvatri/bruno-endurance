@@ -510,6 +510,36 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
     }).length
   }));
 
+  // ── Ride Speed Distribution (km/h) ──
+  const rideActs = acts.filter(a=>a.sport_type==='Ride'||a.sport_type==='VirtualRide');
+  const speedBuckets = [
+    {bucket:"<20",lo:0,hi:20},{bucket:"20-25",lo:20,hi:25},{bucket:"25-30",lo:25,hi:30},
+    {bucket:"30-35",lo:30,hi:35},{bucket:"35-40",lo:35,hi:40},{bucket:"40+",lo:40,hi:999}
+  ];
+  const speedData = speedBuckets.map(b => ({
+    bucket: b.bucket,
+    count: rideActs.filter(a => {
+      if(!a.average_speed||+a.average_speed===0) return false;
+      const kmh = +a.average_speed * 3.6;
+      return kmh >= b.lo && kmh < b.hi;
+    }).length
+  }));
+
+  // ── Swim Pace Distribution (mm:ss/100m) ──
+  const swimActs = acts.filter(a=>isSwim(a.sport_type));
+  const swimPaceBuckets = [
+    {bucket:"<1:30",lo:0,hi:90},{bucket:"1:30-1:45",lo:90,hi:105},{bucket:"1:45-2:00",lo:105,hi:120},
+    {bucket:"2:00-2:15",lo:120,hi:135},{bucket:"2:15-2:30",lo:135,hi:150},{bucket:"2:30+",lo:150,hi:999}
+  ];
+  const swimPaceData = swimPaceBuckets.map(b => ({
+    bucket: b.bucket,
+    count: swimActs.filter(a => {
+      if(!a.average_speed||+a.average_speed===0||!a.distance) return false;
+      const secPer100m = 100 / +a.average_speed;
+      return secPer100m >= b.lo && secPer100m < b.hi;
+    }).length
+  }));
+
   // ── HR Zones ──
   const hrBounds = [[0,100],[100,120],[120,140],[140,160],[160,999]];
   const hrData = [
@@ -794,22 +824,33 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
             </div>
           </ChartBox>
         ) : (
-          <ChartBox title="Pace Distribution (min/km)" subtitle="running pace buckets" minH={331}>
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={paceData}>
-                <CartesianGrid vertical={false} stroke={C.border} />
-                <XAxis dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} />
-                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={28} />
-                <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
-                <defs>
-                  <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor={C.run} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={C.run} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="count" stroke={C.run} strokeWidth={1.5} fill="url(#pg)" name="runs" dot={false}/>
-              </AreaChart>
-            </ResponsiveContainer>
+          <ChartBox
+            title={sportFilter==='ride' ? "Speed Distribution (km/h)" : sportFilter==='swim' ? "Pace Distribution (min/100m)" : "Pace Distribution (min/km)"}
+            subtitle={sportFilter==='ride' ? "ride speed buckets" : sportFilter==='swim' ? "swim pace buckets" : "running pace buckets"}
+            minH={331}
+          >
+            {(() => {
+              const chartData = sportFilter==='ride' ? speedData : sportFilter==='swim' ? swimPaceData : paceData;
+              const color = sportFilter==='ride' ? C.ride : sportFilter==='swim' ? C.swim : C.run;
+              const gradId = sportFilter==='ride' ? "pg-ride" : sportFilter==='swim' ? "pg-swim" : "pg";
+              return (
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={chartData}>
+                    <CartesianGrid vertical={false} stroke={C.border} />
+                    <XAxis dataKey="bucket" tick={tickStyle} axisLine={false} tickLine={false} />
+                    <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={28} />
+                    <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
+                    <defs>
+                      <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor={color} stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor={color} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <Area type="monotone" dataKey="count" stroke={color} strokeWidth={1.5} fill={`url(#${gradId})`} name="activities" dot={false}/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              );
+            })()}
           </ChartBox>
         ))}
       </div>
