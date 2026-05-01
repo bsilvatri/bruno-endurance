@@ -372,8 +372,8 @@ function NotableSection({ unitSystem="metric" }) {
               <div style={{ display:"grid", gridTemplateColumns:"300px 1fr 280px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
                 <div style={{ borderRight:`1px solid ${C.border}` }}>
                   <NotableTable
-                    rows={(sport==="ride"?ridePbs:prs).map(r=>({ dist:r._label, date:fmtDate(r.start_date_local), time:fmtTime(r._elapsed), name:r.name }))}
-                    cols={[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]}
+                    rows={(sport==="ride"?ridePbs:prs).map(r=>{const dm={"5 mile":8046,"10K":10000,"10 mile":16093,"20K":20000,"30K":30000,"40K":40000,"50K":50000,"80K":80000,"50 mile":80467,"90K":90000,"100K":100000,"100 mile":160934,"180K":180000};const d=dm[r._label];const spd=d&&r._elapsed?(((d/r._elapsed)*3.6).toFixed(1)+" km/h"):"—";return { dist:r._label, date:fmtDate(r.start_date_local), time:fmtTime(r._elapsed), speed:sport==="ride"?spd:undefined, name:r.name };})}
+                    cols={sport==="ride"?[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"110px"},{k:"time",l:"Time",w:"90px",mono:true,accent:true},{k:"speed",l:"Speed",w:"1fr",mono:true}]:[{k:"#",l:"#",w:"40px"},{k:"dist",l:"Distance",w:"120px"},{k:"time",l:"Time",w:"1fr",mono:true,accent:true}]}
                     selected={selected} onSelect={setSelected} sportColor={sportColor}
                   />
                 </div>
@@ -387,11 +387,8 @@ function NotableSection({ unitSystem="metric" }) {
                         {l:"DISTANCE",v:(sport==="ride"?ridePbs:prs)[selected]._label},
                         {l:"TIME",v:fmtTime((sport==="ride"?ridePbs:prs)[selected]._elapsed)},
                         sport==="ride"
-                          ? {l:"RIDE AVG SPEED",v:fmtSpeed((sport==="ride"?ridePbs:prs)[selected].average_speed)}
+                          ? {l:"AVG SPEED",v:fmtSpeed((sport==="ride"?ridePbs:prs)[selected].average_speed)}
                           : {l:"AVG PACE",v:(()=>{const pb=(sport==="ride"?ridePbs:prs)[selected];const dm={"400m":400,"1/2 mile":804,"1K":1000,"1 mile":1609,"2 mile":3218,"5K":5000,"10K":10000,"15K":15000,"10 mile":16093,"20K":20000,"Half-Marathon":21097,"30K":30000};const d=dm[pb._label];if(!d)return"—";const s=pb._elapsed/d*(unitSystem==="imperial"?1609.34:1000);return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}/${unitSystem==="imperial"?"mi":"km"}`;})()},
-                        sport==="ride"
-                          ? {l:"SEGMENT SPEED",v:(()=>{const pb=ridePbs[selected];const dm={"5 mile":8046,"10K":10000,"10 mile":16093,"20K":20000,"30K":30000,"40K":40000,"50K":50000,"80K":80000,"50 mile":80467,"90K":90000,"100K":100000,"100 mile":160934,"180K":180000};const d=dm[pb._label];if(!d||!pb._elapsed)return"—";const kmh=(d/pb._elapsed)*3.6;return unitSystem==="imperial"?`${(kmh*0.621371).toFixed(1)} mi/h`:`${kmh.toFixed(1)} km/h`;})()}
-                          : null,
                         {l:"ELEVATION",v:unitSystem==="imperial"?`${Math.round(((sport==="ride"?ridePbs:prs)[selected].total_elevation_gain||0)*3.28084)} ft`:`${Math.round((sport==="ride"?ridePbs:prs)[selected].total_elevation_gain||0)} m`},
                       ].filter(Boolean).map(({l,v})=>(<div key={l}><div style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint, marginBottom:2 }}>{l}</div><div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:C.ink }}>{v}</div></div>))}
                     </div>
