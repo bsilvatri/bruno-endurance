@@ -1997,9 +1997,9 @@ export default function App() {
           {sports && (
             <div style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1rem" }}>
               {[
-                { l: "SWIM", c: sports.swim?.count, km: sports.swim?.km, h: sports.swim?.hours, col: C.swim },
-                { l: "RIDE", c: sports.ride?.count, km: sports.ride?.km, h: sports.ride?.hours, col: C.ride },
-                { l: "RUN", c: sports.run?.count, km: sports.run?.km, h: sports.run?.hours, col: C.run },
+                { l: T[lang].swims, c: sports.swim?.count, km: sports.swim?.km, h: sports.swim?.hours, col: C.swim },
+                { l: T[lang].rides, c: sports.ride?.count, km: sports.ride?.km, h: sports.ride?.hours, col: C.ride },
+                { l: T[lang].runs, c: sports.run?.count, km: sports.run?.km, h: sports.run?.hours, col: C.run },
               ].map(s => (
                 <div key={s.l} style={{ borderTop: `2px solid ${s.col}`, paddingTop: "0.75rem" }}>
                   <div style={{ fontFamily: F.mono, fontSize: "0.55rem", letterSpacing: "0.15em", color: s.col, marginBottom: "0.3rem" }}>{s.l}</div>
