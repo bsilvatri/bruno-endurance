@@ -87,7 +87,7 @@ const T = {
     daysWord: "days",
     translateCountry: (c) => c,
     dnfNote: "DNF — Did not finish | DNS — Did not start | DNC — Did not count",
-    annualDist: "Annual Distance", ftpTitle: "FTP Evolution", ftpSub: "functional threshold power over time", sectionNotable: "NOTABLE", sectionStats: "Statistics", sectionGeo: "GEOGRAPHY", sectionProg: "PROGRESSION",
+    annualDist: "Annual Distance", ftpTitle: "FTP Evolution", ftpSub: "functional threshold power over time", ftpTitle: "FTP Evolution", ftpSub: "functional threshold power over time", sectionNotable: "NOTABLE", sectionStats: "Statistics", sectionGeo: "GEOGRAPHY", sectionProg: "PROGRESSION",
     statsSubtitle: (tab) => `${tab.charAt(0).toUpperCase()+tab.slice(1)}`,
   },
   pt: {
@@ -146,7 +146,7 @@ const T = {
     daysWord: "dias",
     translateCountry: (c) => ({ "Brazil":"Brasil","Portugal":"Portugal","United States":"Estados Unidos","Argentina":"Argentina","Uruguay":"Uruguai","Chile":"Chile","Colombia":"Colômbia","Peru":"Peru","France":"França","Spain":"Espanha","Italy":"Itália","Germany":"Alemanha","United Kingdom":"Reino Unido","Japan":"Japão","Mexico":"México","Panama":"Panamá","Australia":"Austrália","Netherlands":"Holanda","Switzerland":"Suíça","Austria":"Áustria","Belgium":"Bélgica","Sweden":"Suécia","Norway":"Noruega","Denmark":"Dinamarca","Finland":"Finlândia","Ireland":"Irlanda","Greece":"Grécia","Croatia":"Croácia","Czech Republic":"República Checa","Poland":"Polônia","Hungary":"Hungria","Romania":"Romênia","South Africa":"África do Sul","New Zealand":"Nova Zelândia","Canada":"Canadá","Singapore":"Singapura","Thailand":"Tailândia" })[c] || c,
     dnfNote: "DNF — Não concluiu | DNS — Não largou | DNC — Não contabilizado",
-    annualDist: "Distância Anual", ftpTitle: "Evolução do FTP", ftpSub: "potência de limiar funcional ao longo do tempo", sectionNotable: "DESTAQUES", sectionStats: "Estatísticas", sectionGeo: "GEOGRAFIA", sectionProg: "PROGRESSÃO",
+    annualDist: "Distância Anual", ftpTitle: "Evolução do FTP", ftpSub: "potência no limiar funcional ao longo do tempo", ftpTitle: "Evolução do FTP", ftpSub: "potência de limiar funcional ao longo do tempo", sectionNotable: "DESTAQUES", sectionStats: "Estatísticas", sectionGeo: "GEOGRAFIA", sectionProg: "PROGRESSÃO",
     statsSubtitle: (tab) => tab==="all"?"Geral":tab==="run"?"Corrida":tab==="ride"?"Pedais":"Natação",
   },
 };
@@ -1079,7 +1079,7 @@ function StatsSection({
       {/* FTP Evolution — Ride tab only */}
       {sportFilter === "ride" && (
         <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
-          <ChartBox title="FTP Evolution" subtitle="functional threshold power over time" minH={280}>
+          <ChartBox title={T[lang].ftpTitle} subtitle={T[lang].ftpSub} minH={280}>
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={[
                 {date:"Jan 2023", ftp:269},
