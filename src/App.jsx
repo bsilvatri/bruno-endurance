@@ -67,7 +67,7 @@ const T = {
     thisWeek: "THIS WEEK", lastWeek: "LAST WEEK", thisMonth: "THIS MONTH",
     last60: "LAST 60 DAYS", ytd: "YEAR TO DATE",
     dnfNote: "DNF — Did not finish | DNS — Did not start | DNC — Did not count",
-    sectionNotable: "NOTABLE", sectionStats: "Statistics", sectionGeo: "GEOGRAPHY", sectionProg: "PROGRESSION",
+    annualDist: "Annual Distance", sectionNotable: "NOTABLE", sectionStats: "Statistics", sectionGeo: "GEOGRAPHY", sectionProg: "PROGRESSION",
     statsSubtitle: (tab) => `${tab.charAt(0).toUpperCase()+tab.slice(1)}`,
   },
   pt: {
@@ -124,7 +124,7 @@ const T = {
     thisWeek: "ESTA SEMANA", lastWeek: "SEMANA PASSADA", thisMonth: "ESTE MÊS",
     last60: "ÚLTIMOS 60 DIAS", ytd: "ANO ATÉ HOJE",
     dnfNote: "DNF — Não concluiu | DNS — Não largou | DNC — Não contabilizado",
-    sectionNotable: "DESTAQUES", sectionStats: "Estatísticas", sectionGeo: "GEOGRAFIA", sectionProg: "PROGRESSÃO",
+    annualDist: "Distância Anual", sectionNotable: "DESTAQUES", sectionStats: "Estatísticas", sectionGeo: "GEOGRAFIA", sectionProg: "PROGRESSÃO",
     statsSubtitle: (tab) => tab==="all"?"Geral":tab==="run"?"Corrida":tab==="ride"?"Ciclismo":"Natação",
   },
 };
@@ -815,7 +815,7 @@ function StatsSection({
     <div>
       {/* ROW 0 — Annual Distance | Time of Day + Avg Dist */}
       <div style={{ ...G, gridTemplateColumns:"1fr 2fr" }}>
-        <ChartBox title={`Annual Distance (${distUnit})`} subtitle={isAll?"all sports by year":sportFilter+" distance"} minH={310}>
+        <ChartBox title={`${T[lang].annualDist} (${distUnit})`} subtitle={isAll?T[lang].bySportType:sportFilter+" distance"} minH={310}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={annData} barSize={isAll?16:22}>
               <CartesianGrid vertical={false} stroke={C.border} />
@@ -1111,7 +1111,10 @@ function GeoSection() {
   const [openDrop,   setOpenDrop]   = useState(null); // "locations"|"countries"|"continents"
   const MAPBOX_TOKEN = "pk.eyJ1IjoiYnNpbHZhdHJpIiwiYSI6ImNtbzdya3Z0MDA0aHoycnB1YnppbjQzNHIifQ.H3LhZboOiWyoKH_8p7YegA";
 
-  const CONT = {
+  const CONT = lang==="pt" ? {
+    SA: "América do Sul", NA: "América do Norte", EU: "Europa",
+    AS: "Ásia", OC: "Oceania", AF: "África",
+  } : {
     SA: "South America", NA: "North America", EU: "Europe",
     AS: "Asia", OC: "Oceania", AF: "Africa",
   };
@@ -1335,7 +1338,7 @@ function GeoSection() {
               color: contFilter===k ? "#fff" : C.muted,
               cursor:"pointer", borderRadius:2, whiteSpace:"nowrap",
             }}>
-              {k === "ALL" ? "ALL" : CONT[k]} ({cnt})
+              {k === "ALL" ? (lang==="pt"?"TODOS":"ALL") : CONT[k]} ({cnt})
             </button>
           );
         })}
@@ -1638,7 +1641,7 @@ function RecentSection({
 /* ─── PROGRESSION ─── */
 function ProgressionSection() {
   const lang = useLang();
-  const YEARS = ["All time","Last 365","2026","2025","2024","2023","2022","2021","2020","2019"];
+  const YEARS = [lang==="pt"?"Todo o tempo":"All time",lang==="pt"?"Últimos 365":"Last 365","2026","2025","2024","2023","2022","2021","2020","2019"];
   const [period, setPeriod] = useState("Last 365");
   const [actDays, setActDays] = useState({});
   const [loading, setLoading] = useState(true);
@@ -2026,7 +2029,7 @@ export default function App() {
             </h2>
             <div style={{ display: "flex", gap: "0.4rem" }}>
               {["all", "run", "ride", "swim"].map(s => (
-                <SubTab key={s} label={s.toUpperCase()} active={statsTab === s} onClick={() => setStatsTab(s)} />
+                <SubTab key={s} label={s==="all"?"ALL":s==="run"?T[lang].runs:s==="ride"?T[lang].rides:T[lang].swims} active={statsTab === s} onClick={() => setStatsTab(s)} />
               ))}
             </div>
           </div>
