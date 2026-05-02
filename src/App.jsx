@@ -962,7 +962,7 @@ function GeoSection() {
       let all = [], offset = 0;
       while (true) {
         const page = await fetch(
-          `${SB_URL}/rest/v1/activities?select=start_latlng&start_latlng=not.is.null&limit=${PAGE}&offset=${offset}`,
+          `${SB_URL}/rest/v1/activities?select=start_latlng&start_latlng=not.is.null&sport_type=neq.VirtualRide&limit=${PAGE}&offset=${offset}`,
           { headers: SBH }
         ).then(r => r.json());
         if (!Array.isArray(page) || !page.length) break;
@@ -996,7 +996,7 @@ function GeoSection() {
     if (!clusters.length) return;
     const top = [...clusters].sort((a, b) => b.count - a.count).slice(0, 50);
     Promise.all(top.map(c =>
-      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${c.lng},${c.lat}.json?types=place,locality&access_token=${MAPBOX_TOKEN}`)
+      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${c.lng},${c.lat}.json?types=place&access_token=${MAPBOX_TOKEN}`)
         .then(r => r.json())
         .then(d => {
           const feat = d.features?.[0];
