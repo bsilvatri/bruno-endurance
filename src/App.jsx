@@ -382,7 +382,7 @@ function NotableSection({ unitSystem="metric" }) {
                   {(sport==="ride"?ridePbs:prs)[selected]&&(<>
                     <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"0.5rem" }}>{fmtDate((sport==="ride"?ridePbs:prs)[selected].start_date_local)}</div>
                     <div style={{ fontFamily:F.heading, fontSize:"1.1rem", fontWeight:700, color:C.ink, marginBottom:"1rem", lineHeight:1.2 }}>{(sport==="ride"?ridePbs:prs)[selected].name}</div>
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0" }}>
                       {[
                         {l:"DISTANCE",v:(sport==="ride"?ridePbs:prs)[selected]._label},
                         {l:"TIME",v:fmtTime((sport==="ride"?ridePbs:prs)[selected]._elapsed)},
@@ -408,7 +408,7 @@ function NotableSection({ unitSystem="metric" }) {
                 {cur&&(<>
                   <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"0.5rem" }}>{fmtDate(cur.start_date_local)}</div>
                   <div style={{ fontFamily:F.heading, fontSize:"1.1rem", fontWeight:700, color:C.ink, marginBottom:"1rem", lineHeight:1.2 }}>{cur.name}</div>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0", borderLeft:`1px solid ${C.border}`, borderRight:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}` }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0" }}>
                     {[
                       {l:unitSystem==="imperial"?"MILES":"KILOMETERS",v:unitSystem==="imperial"?`${(cur.distance/1609.34).toFixed(1)} mi`:`${(cur.distance/1000).toFixed(1)} km`},
                       {l:"TIME",v:fmtTime(cur.moving_time)},
