@@ -935,16 +935,17 @@ function GeoSection() {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const [clusters, setClusters] = useState([]);
-  const [tip, setTip] = useState(null);
+  const [named, setNamed] = useState([]);   // [{lat,lng,count,city,country,continent}]
   const [loaded, setLoaded] = useState(false);
+  const [continentFilter, setContinentFilter] = useState("ALL");
+  const MAPBOX_TOKEN = "pk.eyJ1IjoiYnNpbHZhdHJpIiwiYSI6ImNtbzdya3Z0MDA0aHoycnB1YnppbjQzNHIifQ.H3LhZboOiWyoKH_8p7YegA";
 
-  // Fetch all activities with coordinates, page through all results
+  // Step 1: fetch all GPS coordinates and cluster
   useEffect(() => {
     const PAGE = 1000;
     const fetchPage = (offset) =>
       fetch(`${SB_URL}/rest/v1/activities?select=start_latlng&start_latlng=not.is.null&limit=${PAGE}&offset=${offset}`, { headers: SBH })
         .then(r => r.json());
-
     (async () => {
       let all = [], offset = 0, page;
       do {
@@ -953,8 +954,6 @@ function GeoSection() {
         all = all.concat(page);
         offset += PAGE;
       } while (page.length === PAGE);
-
-      // Cluster by rounding to 0.5 degree grid (~55km cells)
       const map = {};
       all.forEach(({ start_latlng }) => {
         if (!start_latlng || start_latlng.length < 2) return;
@@ -967,88 +966,137 @@ function GeoSection() {
     })();
   }, []);
 
-  // Build map once clusters are ready
+  // Step 2: reverse-geocode top clusters via Mapbox
   useEffect(() => {
-    if (loaded || !containerRef.current || clusters.length === 0) return;
+    if (!clusters.length) return;
+    const top = [...clusters].sort((a, b) => b.count - a.count).slice(0, 40);
+    const CONTINENT_MAP = {
+      "BR": "SA", "AR": "SA", "UY": "SA", "CL": "SA", "CO": "SA", "PE": "SA", "VE": "SA", "EC": "SA", "BO": "SA", "PY": "SA",
+      "US": "NA", "CA": "NA", "MX": "NA", "PA": "NA", "CR": "NA", "GT": "NA", "HN": "NA", "SV": "NA", "NI": "NA", "CU": "NA",
+      "PT": "EU", "ES": "EU", "FR": "EU", "IT": "EU", "DE": "EU", "GB": "EU", "NL": "EU", "BE": "EU", "CH": "EU", "AT": "EU",
+      "PL": "EU", "SE": "EU", "NO": "EU", "DK": "EU", "FI": "EU", "IE": "EU", "CZ": "EU", "HU": "EU", "RO": "EU", "HR": "EU",
+      "JP": "AS", "CN": "AS", "KR": "AS", "IN": "AS", "TH": "AS", "VN": "AS", "SG": "AS", "MY": "AS", "ID": "AS", "PH": "AS",
+      "AU": "OC", "NZ": "OC",
+      "ZA": "AF", "KE": "AF", "MA": "AF", "EG": "AF", "NG": "AF", "ET": "AF",
+    };
+    Promise.all(top.map(c =>
+      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${c.lng},${c.lat}.json?types=place,locality,neighborhood&access_token=${MAPBOX_TOKEN}`)
+        .then(r => r.json())
+        .then(d => {
+          const feat = d.features?.[0];
+          if (!feat) return { ...c, city: `${c.lat.toFixed(1)}°, ${c.lng.toFixed(1)}°`, country: "—", continent: "?" };
+          const countryCode = feat.context?.find(x => x.id.startsWith("country"))?.short_code?.toUpperCase() || "";
+          const country = feat.context?.find(x => x.id.startsWith("country"))?.text || "—";
+          const city = feat.text || feat.place_name?.split(",")[0] || "—";
+          const continent = CONTINENT_MAP[countryCode] || "?";
+          return { ...c, city, country, continent };
+        })
+    )).then(results => setNamed(results));
+  }, [clusters]);
+
+  // Step 3: build map once named locations ready
+  useEffect(() => {
+    if (loaded || !containerRef.current || !named.length) return;
     loadMapbox(() => {
       if (mapRef.current) return;
       const map = new window.mapboxgl.Map({
         container: containerRef.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
+        style: "mapbox://styles/mapbox/dark-v11",
         center: [-20, 10], zoom: 1.2, attributionControl: false
       });
       mapRef.current = map;
-
-      map.on('load', () => {
+      map.on("load", () => {
         const geojson = {
-          type: 'FeatureCollection',
+          type: "FeatureCollection",
           features: clusters.map(c => ({
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [c.lng, c.lat] },
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [c.lng, c.lat] },
             properties: { count: c.count }
           }))
         };
-
-        map.addSource('clusters', { type: 'geojson', data: geojson });
-
-        map.addLayer({ id: 'cluster-glow', type: 'circle', source: 'clusters', paint: {
-          'circle-radius': ['interpolate', ['linear'], ['get', 'count'], 1, 10, 50, 16, 200, 22],
-          'circle-color': C.green, 'circle-opacity': 0.12, 'circle-blur': 1
+        map.addSource("clusters", { type: "geojson", data: geojson });
+        map.addLayer({ id: "cluster-glow", type: "circle", source: "clusters", paint: {
+          "circle-radius": ["interpolate", ["linear"], ["get", "count"], 1, 10, 50, 16, 200, 22],
+          "circle-color": C.green, "circle-opacity": 0.12, "circle-blur": 1
         }});
-
-        map.addLayer({ id: 'cluster-dots', type: 'circle', source: 'clusters', paint: {
-          'circle-radius': ['interpolate', ['linear'], ['get', 'count'], 1, 4, 50, 7, 200, 11, 500, 14],
-          'circle-color': C.green, 'circle-opacity': 0.9,
-          'circle-stroke-width': 1.5, 'circle-stroke-color': 'rgba(255,255,255,0.6)'
+        map.addLayer({ id: "cluster-dots", type: "circle", source: "clusters", paint: {
+          "circle-radius": ["interpolate", ["linear"], ["get", "count"], 1, 4, 50, 7, 200, 11, 500, 14],
+          "circle-color": C.green, "circle-opacity": 0.9,
+          "circle-stroke-width": 1.5, "circle-stroke-color": "rgba(255,255,255,0.6)"
         }});
-
-        map.on('mouseenter', 'cluster-dots', e => {
-          map.getCanvas().style.cursor = 'pointer';
-          const { count } = e.features[0].properties;
-          const [lng, lat] = e.features[0].geometry.coordinates;
-          setTip({ lat: lat.toFixed(1), lng: lng.toFixed(1), count });
-        });
-        map.on('mouseleave', 'cluster-dots', () => {
-          map.getCanvas().style.cursor = '';
-          setTip(null);
-        });
-        map.on('click', 'cluster-dots', e => {
+        map.on("click", "cluster-dots", e => {
           const [lng, lat] = e.features[0].geometry.coordinates;
           map.flyTo({ center: [lng, lat], zoom: 8, duration: 1200 });
         });
-
         setLoaded(true);
       });
     });
-  }, [clusters]);
+  }, [named]);
 
   const total = clusters.reduce((s, c) => s + c.count, 0);
+  const countries = [...new Set(named.map(n => n.country).filter(c => c !== "—"))];
+  const continents = [...new Set(named.map(n => n.continent).filter(c => c !== "?"))];
+  const CONT_LABELS = { ALL: "All", SA: "South America", NA: "North America", EU: "Europe", AS: "Asia", OC: "Oceania", AF: "Africa" };
+  const availContinents = ["ALL", ...Object.keys(CONT_LABELS).filter(k => k !== "ALL" && continents.includes(k))];
+  const filtered = continentFilter === "ALL" ? named : named.filter(n => n.continent === continentFilter);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: '1.5rem', alignItems: 'start' }}>
-      <div style={{ position: 'relative', height: 420, background: '#1a1a2e', borderRadius: 4, overflow: 'hidden' }} ref={containerRef}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      {/* Map */}
+      <div style={{ position: "relative", height: 400, background: "#1a1a2e", borderRadius: 4, overflow: "hidden" }} ref={containerRef}>
         {!loaded && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontFamily: F.mono, fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>loading map…</span>
-          </div>
-        )}
-        {tip && (
-          <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.75)', padding: '0.5rem 0.75rem', borderRadius: 4, pointerEvents: 'none' }}>
-            <div style={{ fontFamily: F.mono, fontSize: '0.55rem', color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{tip.lat}°, {tip.lng}°</div>
-            <div style={{ fontFamily: F.mono, fontSize: '0.85rem', fontWeight: 700, color: C.green }}>{tip.count.toLocaleString()} activities</div>
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontFamily: F.mono, fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em" }}>loading map…</span>
           </div>
         )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-        <div style={{ fontFamily: F.mono, fontSize: '0.45rem', letterSpacing: '0.12em', color: C.faint, marginBottom: '0.75rem', textTransform: 'uppercase' }}>
-          {total.toLocaleString()} activities with GPS · {clusters.length} locations
-        </div>
-        {[...clusters].sort((a, b) => b.count - a.count).slice(0, 12).map((c, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.35rem 0', borderBottom: `1px solid ${C.border}` }}>
-            <span style={{ fontFamily: F.mono, fontSize: '0.6rem', color: C.muted }}>{c.lat.toFixed(1)}°, {c.lng.toFixed(1)}°</span>
-            <span style={{ fontFamily: F.mono, fontSize: '0.6rem', color: C.green, fontWeight: 600 }}>{c.count.toLocaleString()}</span>
+
+      {/* Facts row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1px", background: C.border, border: `1px solid ${C.border}` }}>
+        {[
+          { l: "GPS ACTIVITIES", v: total.toLocaleString() },
+          { l: "UNIQUE LOCATIONS", v: named.length.toLocaleString() },
+          { l: "COUNTRIES", v: countries.length.toLocaleString() },
+          { l: "CONTINENTS", v: continents.length.toLocaleString() },
+        ].map(({ l, v }) => (
+          <div key={l} style={{ background: C.surface, padding: "1rem 1.25rem" }}>
+            <div style={{ fontFamily: F.mono, fontSize: "0.45rem", letterSpacing: "0.12em", color: C.faint, marginBottom: "0.4rem" }}>{l}</div>
+            <div style={{ fontFamily: F.heading, fontSize: "1.4rem", fontWeight: 700, color: C.ink }}>{v}</div>
           </div>
         ))}
+      </div>
+
+      {/* Continent filter + location list */}
+      <div>
+        {/* Filter tabs */}
+        <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1rem" }}>
+          {availContinents.map(k => (
+            <button key={k} onClick={() => setContinentFilter(k)} style={{
+              fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.1em",
+              padding: "0.3rem 0.6rem", border: `1px solid ${continentFilter === k ? C.green : C.border}`,
+              background: continentFilter === k ? C.green : "transparent",
+              color: continentFilter === k ? "#fff" : C.muted,
+              cursor: "pointer", borderRadius: 2
+            }}>{k === "ALL" ? `ALL (${named.length})` : `${k} (${named.filter(n => n.continent === k).length})`}</button>
+          ))}
+        </div>
+
+        {/* Location rows */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+          {filtered.map((n, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0", borderBottom: `1px solid ${C.border}` }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem" }}>
+                <span style={{ fontFamily: F.mono, fontSize: "0.5rem", color: C.faint, width: "1.2rem" }}>{i + 1}</span>
+                <div>
+                  <span style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.ink }}>{n.city}</span>
+                  <span style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.muted, marginLeft: "0.4rem" }}>{n.country}</span>
+                </div>
+              </div>
+              <span style={{ fontFamily: F.mono, fontSize: "0.65rem", color: C.green, fontWeight: 600 }}>{n.count.toLocaleString()} activities</span>
+            </div>
+          ))}
+          {!named.length && <div style={{ fontFamily: F.mono, fontSize: "0.65rem", color: C.faint, padding: "2rem 0" }}>loading locations…</div>}
+        </div>
       </div>
     </div>
   );
