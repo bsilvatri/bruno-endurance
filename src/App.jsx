@@ -1424,28 +1424,6 @@ function GeoSection() {
         );
       })()}
     </div>
-      {sportFilter === "ride" && (
-        <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
-          <ChartBox title={T[lang].ftpTitle} subtitle={T[lang].ftpSub} minH={280}>
-            <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={FTP_DATA} margin={{top:4,right:8,left:0,bottom:0}}>
-                <CartesianGrid vertical={false} stroke={C.border} />
-                <XAxis dataKey="date" tick={tickStyle} axisLine={false} tickLine={false} interval={2} />
-                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} domain={[240,380]} unit="W" />
-                <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
-                <defs>
-                  <linearGradient id="ftp-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={C.ride} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={C.ride} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Area type="stepAfter" dataKey="ftp" stroke={C.ride} strokeWidth={2} fill="url(#ftp-grad)" name="FTP" unit="W" dot={{r:3, fill:C.ride, strokeWidth:0}} activeDot={{r:5}}/>
-              </AreaChart>
-            </ResponsiveContainer>
-          </ChartBox>
-        </div>
-      )}
-
   );
 }
 
