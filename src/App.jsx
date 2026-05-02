@@ -369,7 +369,7 @@ function NotableSection({ unitSystem="metric" }) {
           </div>
           {(sport==="run"||sport==="ride")&&tab==="pbs" ? (
             (sport==="ride"?ridePbs:prs).length===0 ? (<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>) : (
-              <div style={{ display:"grid", gridTemplateColumns:"330px 1fr 250px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
+              <div style={{ display:"grid", gridTemplateColumns:"330px 1fr 250px", gap:"0", overflow:"hidden", background:C.surface }}>
                 <div style={{ borderRight:`1px solid ${C.border}` }}>
                   <NotableTable
                     rows={(sport==="ride"?ridePbs:prs).map(r=>{const dm={"5 mile":8046,"10K":10000,"10 mile":16093,"20K":20000,"30K":30000,"40K":40000,"50K":50000,"80K":80000,"50 mile":80467,"90K":90000,"100K":100000,"100 mile":160934,"180K":180000};const d=dm[r._label];const spd=d&&r._elapsed?(((d/r._elapsed)*3.6).toFixed(1)+" km/h"):"—";return { dist:r._label, date:fmtDate(r.start_date_local), time:fmtTime(r._elapsed), speed:sport==="ride"?spd:undefined, name:r.name };})}
@@ -401,7 +401,7 @@ function NotableSection({ unitSystem="metric" }) {
               </div>
             )
           ) : loading?(<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>):(
-            <div style={{ display:"grid", gridTemplateColumns:"330px 1fr 250px", gap:"0", border:`1px solid ${C.border}`, borderRadius:4, overflow:"hidden", background:C.surface }}>
+            <div style={{ display:"grid", gridTemplateColumns:"330px 1fr 250px", gap:"0", overflow:"hidden", background:C.surface }}>
               <div style={{ borderRight:`1px solid ${C.border}` }}><NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} colGap={tab==="elevation"?"0.75rem":"0"} /></div>
               <div><ActivityMap polyline={cur?.map_summary_polyline} type={sport==="run"?"Run":sport==="ride"?"Ride":"Swim"} height={380} /></div>
               <div style={{ padding:"1.25rem", borderLeft:`1px solid ${C.border}`, display:"flex", flexDirection:"column", gap:"0.1rem" }}>
