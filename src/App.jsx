@@ -9,6 +9,24 @@ const MB_TOKEN = import.meta.env.VITE_MB_TOKEN;
 const SBH = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "application/json" };
 
 // ── Language context ──────────────────────────────────────────────────────
+
+const FTP_DATA = [
+  {date:"Jan '23", ftp:269},
+  {date:"Feb '23", ftp:273},
+  {date:"Mar '23", ftp:273},
+  {date:"May '23", ftp:293},
+  {date:"Jun '23", ftp:300},
+  {date:"Jul '23", ftp:310},
+  {date:"Oct '23", ftp:310},
+  {date:"Feb '24", ftp:319},
+  {date:"Mar '24", ftp:328},
+  {date:"Jun '24", ftp:328},
+  {date:"Sep '24", ftp:302},
+  {date:"Dec '24", ftp:302},
+  {date:"Mar '25", ftp:328},
+  {date:"Oct '25", ftp:346},
+];
+
 const LangContext = createContext("en");
 const useLang = () => useContext(LangContext);
 
@@ -69,7 +87,7 @@ const T = {
     daysWord: "days",
     translateCountry: (c) => c,
     dnfNote: "DNF — Did not finish | DNS — Did not start | DNC — Did not count",
-    annualDist: "Annual Distance", sectionNotable: "NOTABLE", sectionStats: "Statistics", sectionGeo: "GEOGRAPHY", sectionProg: "PROGRESSION",
+    annualDist: "Annual Distance", ftpTitle: "FTP Evolution", ftpSub: "functional threshold power over time", sectionNotable: "NOTABLE", sectionStats: "Statistics", sectionGeo: "GEOGRAPHY", sectionProg: "PROGRESSION",
     statsSubtitle: (tab) => `${tab.charAt(0).toUpperCase()+tab.slice(1)}`,
   },
   pt: {
@@ -128,7 +146,7 @@ const T = {
     daysWord: "dias",
     translateCountry: (c) => ({ "Brazil":"Brasil","Portugal":"Portugal","United States":"Estados Unidos","Argentina":"Argentina","Uruguay":"Uruguai","Chile":"Chile","Colombia":"Colômbia","Peru":"Peru","France":"França","Spain":"Espanha","Italy":"Itália","Germany":"Alemanha","United Kingdom":"Reino Unido","Japan":"Japão","Mexico":"México","Panama":"Panamá","Australia":"Austrália","Netherlands":"Holanda","Switzerland":"Suíça","Austria":"Áustria","Belgium":"Bélgica","Sweden":"Suécia","Norway":"Noruega","Denmark":"Dinamarca","Finland":"Finlândia","Ireland":"Irlanda","Greece":"Grécia","Croatia":"Croácia","Czech Republic":"República Checa","Poland":"Polônia","Hungary":"Hungria","Romania":"Romênia","South Africa":"África do Sul","New Zealand":"Nova Zelândia","Canada":"Canadá","Singapore":"Singapura","Thailand":"Tailândia" })[c] || c,
     dnfNote: "DNF — Não concluiu | DNS — Não largou | DNC — Não contabilizado",
-    annualDist: "Distância Anual", sectionNotable: "DESTAQUES", sectionStats: "Estatísticas", sectionGeo: "GEOGRAFIA", sectionProg: "PROGRESSÃO",
+    annualDist: "Distância Anual", ftpTitle: "Evolução do FTP", ftpSub: "potência de limiar funcional ao longo do tempo", sectionNotable: "DESTAQUES", sectionStats: "Estatísticas", sectionGeo: "GEOGRAFIA", sectionProg: "PROGRESSÃO",
     statsSubtitle: (tab) => tab==="all"?"Geral":tab==="run"?"Corrida":tab==="ride"?"Pedais":"Natação",
   },
 };
@@ -1057,6 +1075,46 @@ function StatsSection({
           </ChartBox>
         </div>
       )}
+
+      {/* FTP Evolution — Ride tab only */}
+      {sportFilter === "ride" && (
+        <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
+          <ChartBox title="FTP Evolution" subtitle="functional threshold power over time" minH={280}>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={[
+                {date:"Jan 2023", ftp:269},
+                {date:"Mar 2023", ftp:273},
+                {date:"May 2023", ftp:293},
+                {date:"Jul 2023", ftp:300},
+                {date:"Oct 2023", ftp:310},
+                {date:"Feb 2024", ftp:319},
+                {date:"May 2025", ftp:328},
+                {date:"Oct 2025", ftp:346},
+              ]} margin={{top:4,right:8,left:0,bottom:0}}>
+                <CartesianGrid vertical={false} stroke={C.border} />
+                <XAxis dataKey="date" tick={tickStyle} axisLine={false} tickLine={false} />
+                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} domain={[250, 360]} />
+                <Tooltip content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  return (
+                    <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:4,padding:"8px 12px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink}}>
+                      <div style={{color:C.faint,marginBottom:4}}>{payload[0].payload.date}</div>
+                      <div style={{color:C.ride,fontWeight:700}}>{payload[0].value} W</div>
+                    </div>
+                  );
+                }} cursor={{stroke:C.border}} />
+                <defs>
+                  <linearGradient id="ftp-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={C.ride} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={C.ride} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="ftp" stroke={C.ride} strokeWidth={2} fill="url(#ftp-grad)" dot={{fill:C.ride, r:4, strokeWidth:0}} activeDot={{r:5}} name="FTP" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartBox>
+        </div>
+      )}
     </div>
   );
 }
@@ -1366,6 +1424,28 @@ function GeoSection() {
         );
       })()}
     </div>
+      {sportFilter === "ride" && (
+        <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
+          <ChartBox title={T[lang].ftpTitle} subtitle={T[lang].ftpSub} minH={280}>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={FTP_DATA} margin={{top:4,right:8,left:0,bottom:0}}>
+                <CartesianGrid vertical={false} stroke={C.border} />
+                <XAxis dataKey="date" tick={tickStyle} axisLine={false} tickLine={false} interval={2} />
+                <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={36} domain={[240,380]} unit="W" />
+                <Tooltip content={<Tip />} cursor={{stroke:C.border}} />
+                <defs>
+                  <linearGradient id="ftp-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={C.ride} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={C.ride} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Area type="stepAfter" dataKey="ftp" stroke={C.ride} strokeWidth={2} fill="url(#ftp-grad)" name="FTP" unit="W" dot={{r:3, fill:C.ride, strokeWidth:0}} activeDot={{r:5}}/>
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartBox>
+        </div>
+      )}
+
   );
 }
 
