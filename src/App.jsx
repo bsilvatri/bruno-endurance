@@ -1975,11 +1975,7 @@ export default function App() {
             <h2 style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, letterSpacing: "0.2em", color: C.green, margin: 0 }}>{T[lang].forewordTitle}</h2>
           </div>
           <div style={{ maxWidth: 480, margin: "0 auto" }}>
-            {[
-              "{T[lang].foreword[0]}",
-              "{T[lang].foreword[1]}",
-              "{T[lang].foreword[2]}",
-            ].map((p, i) => (
+            {T[lang].foreword.slice(0,3).map((p, i) => (
               <p key={i} style={{ fontFamily: F.body, fontSize: "0.9rem", lineHeight: 1.8, color: C.dim, marginBottom: "1.2rem", fontWeight: 400 }}>{p}</p>
             ))}
             <p style={{ fontFamily: F.body, fontSize: "0.875rem", lineHeight: 1.8, color: C.green, fontStyle: "italic", marginBottom: "2rem", fontWeight: 500 }}>
