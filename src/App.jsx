@@ -993,6 +993,8 @@ function GeoSection() {
         [["-20.5,-56.5"], "-21,-56.5"],
         // Porto Seguro → Caraíva
         [["-17,-39"], "-16.5,-39"],
+        // Nederland + Longmont → Boulder
+        [["40,-105.5"], "40,-105"],
       ];
       MERGE.forEach(([sources, target]) => {
         if (!map[target]) return;
@@ -1038,6 +1040,7 @@ function GeoSection() {
       const NAME_OVERRIDES = {
         "-16.5,-39": { city: "Caraíva", country: "Brazil" },
         "-21,-56.5": { city: "Bonito", country: "Brazil" },
+        "40,-105": { city: "Boulder", country: "United States" },
       };
       setNamed(results.filter(Boolean).map(n => {
         const key = `${n.gridLat},${n.gridLng}`;
