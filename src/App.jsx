@@ -16,7 +16,7 @@ const T = {
   en: {
     nav: ["ABOUT","NOTABLE","STATS","PROGRESSION","GEOGRAPHY","RECENT"],
     synced: (t) => `· synced ${t}`,
-    motto: "Shugyō — the quiet discipline of giving yourself to the process so completely that repetition becomes transformation",
+    motto: "Shugyō — the quiet discipline of giving yourself to a demanding process, often repetitive, uncomfortable, and humbling, day after day — not because it is easy or glamorous, but because the repetition itself becomes the path to refining skill, character, and self-mastery.",
     activities: "ACTIVITIES", kilometers: "KILOMETERS", miles: "MILES", hours: "HOURS", mClimbed: "M CLIMBED", ftClimbed: "FT CLIMBED",
     lapsEarth: (n) => `${n} laps around the Earth`,
     fullDays: (n) => `${n} full days`,
@@ -73,7 +73,7 @@ const T = {
   pt: {
     nav: ["SOBRE","DESTAQUES","ESTATÍSTICAS","PROGRESSÃO","GEOGRAFIA","RECENTES"],
     synced: (t) => `· sincronizado ${t}`,
-    motto: "Shugyō — a disciplina silenciosa de se entregar ao processo tão completamente que a repetição se torna transformação",
+    motto: "Shugyō — a disciplina silenciosa de se entregar a um processo exigente, muitas vezes repetitivo, desconfortável e capaz de nos colocar no devido lugar, dia após dia — não porque ele é fácil ou glamouroso, mas porque a própria repetição se torna o caminho para refinar habilidade, caráter e autodomínio.",
     activities: "ATIVIDADES", kilometers: "QUILÔMETROS", miles: "MILHAS", hours: "HORAS", mClimbed: "M ESCALADOS", ftClimbed: "PÉS ESCALADOS",
     lapsEarth: (n) => `${n} voltas ao redor da Terra`,
     fullDays: (n) => `${n} dias completos`,
