@@ -1849,6 +1849,7 @@ function ProgressionSection() {
 
 /* ─── ACTIVITY INFO ICON ─── */
 function ActivityInfoIcon() {
+  const lang = useLang();
   const [open, setOpen] = useState(false);
   const [counts, setCounts] = useState(null);
   useEffect(() => {
