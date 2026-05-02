@@ -7,6 +7,124 @@ const _BUILD=Date.now();const SB_KEY = import.meta.env.VITE_SB_KEY;
 const MB_TOKEN = import.meta.env.VITE_MB_TOKEN;
 
 const SBH = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "application/json" };
+
+// ── Language context ──────────────────────────────────────────────────────
+const LangContext = React.createContext("en");
+const useLang = () => React.useContext(LangContext);
+
+const T = {
+  en: {
+    nav: ["ABOUT","NOTABLE","STATS","PROGRESSION","GEOGRAPHY","RECENT"],
+    synced: (t) => `· synced ${t}`,
+    motto: "Shugyō — the quiet discipline of giving yourself to the process so completely that repetition becomes transformation",
+    activities: "ACTIVITIES", kilometers: "KILOMETERS", miles: "MILES", hours: "HOURS", mClimbed: "M CLIMBED", ftClimbed: "FT CLIMBED",
+    lapsEarth: (n) => `${n} laps around the Earth`,
+    fullDays: (n) => `${n} full days`,
+    everests: (n) => `${n} Everests base camp to summit`,
+    restDaysIn: (n, y) => `${n} rest days in ${y}`,
+    forewordTitle: "FOREWORD",
+    foreword: [
+      "Like many, endurance sports entered my life when I hit rock bottom. I was depressed, drinking, partying, and had just walked away from the most toxic relationship I had ever been in. What started as a personal challenge quickly became a lifestyle — one that has reshaped my life, inside and out.",
+      "Triathlon brought discipline, self-discovery, self-respect, and a clear mind. It gave me consistency, and an unshakable, insatiable desire to evolve — in sport and in life.",
+      "I'm a numbers guy, always have been. I like keeping track of my accomplishments as a daily reminder of where I came from, where I am, and what I'm still capable of.",
+      "This is the never-ending search for my own limits.",
+    ],
+    fromCity: "From Tokyo — and all over the world — to Rio de Janeiro",
+    races: "RACES", runs: "RUNS", rides: "RIDES", swims: "SWIMS",
+    personalRecords: "PERSONAL RECORDS",
+    raceHistoryLabel: (r,f,dnf,dns,dnc) => `RACE HISTORY — ${r} RACES · ${f} FINISHES · ${dnf} DNF · ${dns} DNS · ${dnc} DNC`,
+    raceHeaders: ["RACE","DATE","SWIM","BIKE","RUN","FINISH"],
+    personalBests: "PERSONAL BESTS", longest: "LONGEST", elevationGain: "ELEVATION GAIN",
+    fastestRun: "fastest times across standard running distances",
+    fastestRide: "fastest times across standard ride distances",
+    statsTitle: "measured, not guessed.",
+    actByDay: "Activity by Time of Day", peakTime: "peak: early morning",
+    avgDistByDay: "Avg Distance by Day", consistencySub: "consistency, they call it",
+    distDist: "Distance Distribution", distDistSub: "activity counts by distance",
+    allTimeActs: "All-time Activities", bySportType: "by sport type",
+    activityStreaks: "Activity Streaks", consecutiveDays: "consecutive days",
+    bestStreak: "BEST STREAK", currentStreak: "CURRENT STREAK", activeDays: "ACTIVE DAYS",
+    actMixOverTime: "Activity Mix Over Time", actMixSub: "% of training hours per sport per year",
+    speedDist: "Speed Distribution (km/h)", speedDistSub: "ride speed buckets",
+    paceDist: "Pace Distribution (min/km)", paceDistSub: "running pace buckets",
+    swimPaceDist: "Pace Distribution (min/100m)", swimPaceDistSub: "swim pace buckets",
+    hrZones: "Heart Rate Zones",
+    indoorOutdoor: "Indoor vs Outdoor",
+    progressionSub: "i take rest days, but not by choice.",
+    geoSub: "i get around.",
+    gpsActivities: "GPS ACTIVITIES", uniqueLocations: "UNIQUE LOCATIONS",
+    countries: "COUNTRIES", continents: "CONTINENTS",
+    locationCount: (n) => `${n} ${n===1?"location":"locations"}`,
+    recentTitle: "RECENT ACTIVITIES", recentSub: "stalk me if you must.",
+    showAll: (n) => `SHOW ALL ${n} ACTIVITIES`,
+    totalTime: "Total Time", totalDistance: "Total Distance", timeBreakdown: "Time Breakdown",
+    dataFooter: "Data synced live from Strava. Not affiliated with Strava, Inc.",
+    builtBy: "Built by Bruno Silva © 2026",
+    viewOnStrava: "VIEW ON STRAVA →",
+    distanceLabel: "DISTANCE", timeLabel: "TIME", avgPace: "AVG PACE", avgSpeed: "AVG SPEED",
+    elevationLabel: "ELEVATION", avgHr: "AVG HR (BPM)", dateLabel: "DATE",
+    actCount: (n) => `${n} activities`,
+    thisWeek: "THIS WEEK", lastWeek: "LAST WEEK", thisMonth: "THIS MONTH",
+    last60: "LAST 60 DAYS", ytd: "YEAR TO DATE",
+    dnfNote: "DNF — Did not finish | DNS — Did not start | DNC — Did not count",
+  },
+  pt: {
+    nav: ["SOBRE","DESTAQUES","ESTATÍSTICAS","PROGRESSÃO","GEOGRAFIA","RECENTES"],
+    synced: (t) => `· sincronizado ${t}`,
+    motto: "Shugyō — a disciplina silenciosa de se entregar ao processo tão completamente que a repetição se torna transformação",
+    activities: "ATIVIDADES", kilometers: "QUILÔMETROS", miles: "MILHAS", hours: "HORAS", mClimbed: "M ESCALADOS", ftClimbed: "PÉS ESCALADOS",
+    lapsEarth: (n) => `${n} voltas ao redor da Terra`,
+    fullDays: (n) => `${n} dias completos`,
+    everests: (n) => `${n} Everests até o campo base`,
+    restDaysIn: (n, y) => `${n} dias de descanso em ${y}`,
+    forewordTitle: "APRESENTAÇÃO",
+    foreword: [
+      "Como muitos, os esportes de endurance entraram na minha vida quando eu cheguei ao fundo do poço. Eu estava deprimido, bebendo, vivendo de festa, e tinha acabado de sair do relacionamento mais tóxico que já vivi. O que começou como um desafio pessoal rapidamente se transformou em um estilo de vida — um que mudou a minha vida por dentro e por fora.",
+      "O triathlon me trouxe disciplina, autoconhecimento, autoestima e clareza mental. Me deu consistência e um desejo inabalável e insaciável, de evoluir — no esporte e na vida.",
+      "Eu sempre fui um cara de números. Gosto de registrar minhas conquistas como um lembrete diário de onde eu vim, onde estou e do que ainda sou capaz.",
+      "Essa é a busca interminável pelos meus próprios limites.",
+    ],
+    fromCity: "De Tóquio — e de todo o mundo — ao Rio de Janeiro",
+    races: "PROVAS", runs: "CORRIDAS", rides: "PEDAIS", swims: "NATAÇÕES",
+    personalRecords: "RECORDES PESSOAIS",
+    raceHistoryLabel: (r,f,dnf,dns,dnc) => `HISTÓRICO — ${r} PROVAS · ${f} FINALIZADAS · ${dnf} DNF · ${dns} DNS · ${dnc} DNC`,
+    raceHeaders: ["PROVA","DATA","NATAÇÃO","CICLISMO","CORRIDA","CHEGADA"],
+    personalBests: "RECORDES PESSOAIS", longest: "MAIS LONGO", elevationGain: "GANHO DE ALTITUDE",
+    fastestRun: "tempos mais rápidos nas distâncias padrão de corrida",
+    fastestRide: "tempos mais rápidos nas distâncias padrão de ciclismo",
+    statsTitle: "medido, não estimado.",
+    actByDay: "Atividade por Hora do Dia", peakTime: "pico: manhã cedo",
+    avgDistByDay: "Distância Média por Dia", consistencySub: "consistência, dizem eles",
+    distDist: "Distribuição de Distâncias", distDistSub: "contagem de atividades por distância",
+    allTimeActs: "Atividades no Total", bySportType: "por modalidade",
+    activityStreaks: "Sequências de Atividades", consecutiveDays: "dias consecutivos",
+    bestStreak: "MELHOR SEQUÊNCIA", currentStreak: "SEQUÊNCIA ATUAL", activeDays: "DIAS ATIVOS",
+    actMixOverTime: "Mix de Atividades ao Longo do Tempo", actMixSub: "% das horas de treino por modalidade por ano",
+    speedDist: "Distribuição de Velocidade (km/h)", speedDistSub: "faixas de velocidade no ciclismo",
+    paceDist: "Distribuição de Pace (min/km)", paceDistSub: "faixas de pace na corrida",
+    swimPaceDist: "Distribuição de Pace (min/100m)", swimPaceDistSub: "faixas de pace na natação",
+    hrZones: "Zonas de Frequência Cardíaca",
+    indoorOutdoor: "Indoor vs Outdoor",
+    progressionSub: "tiro dias de descanso, mas não por vontade.",
+    geoSub: "eu dou voltas pelo mundo.",
+    gpsActivities: "ATIVIDADES GPS", uniqueLocations: "LOCAIS ÚNICOS",
+    countries: "PAÍSES", continents: "CONTINENTES",
+    locationCount: (n) => `${n} ${n===1?"local":"locais"}`,
+    recentTitle: "ATIVIDADES RECENTES", recentSub: "me stalkeia se quiser.",
+    showAll: (n) => `VER TODAS AS ${n} ATIVIDADES`,
+    totalTime: "Tempo Total", totalDistance: "Distância Total", timeBreakdown: "Distribuição do Tempo",
+    dataFooter: "Dados sincronizados ao vivo do Strava. Não afiliado à Strava, Inc.",
+    builtBy: "Desenvolvido por Bruno Silva © 2026",
+    viewOnStrava: "VER NO STRAVA →",
+    distanceLabel: "DISTÂNCIA", timeLabel: "TEMPO", avgPace: "PACE MÉDIO", avgSpeed: "VELOCIDADE MÉDIA",
+    elevationLabel: "ALTITUDE", avgHr: "FC MÉDIA (BPM)", dateLabel: "DATA",
+    actCount: (n) => `${n} atividades`,
+    thisWeek: "ESTA SEMANA", lastWeek: "SEMANA PASSADA", thisMonth: "ESTE MÊS",
+    last60: "ÚLTIMOS 60 DIAS", ytd: "ANO ATÉ HOJE",
+    dnfNote: "DNF — Não concluiu | DNS — Não largou | DNC — Não contabilizado",
+  },
+};
+
 const rpc = (fn, args = {}) => fetch(`${SB_URL}/rest/v1/rpc/${fn}`, { method: "POST", headers: SBH, body: JSON.stringify(args) }).then(r => r.json());
 const q = path => fetch(`${SB_URL}/rest/v1/${path}`, { headers: SBH }).then(r => r.json());
 const safe = (d, fb = []) => Array.isArray(d) ? d : fb;
@@ -214,7 +332,10 @@ function NotableTable({ rows, cols, selected, onSelect, sportColor, colGap="0" }
 }
 
 /* ─── NOTABLE SECTION ─── */
-function NotableSection({ unitSystem="metric" }) {
+function NotableSection({
+  unitSystem="metric"
+}) {
+  const lang = useLang();
   const [sport, setSport] = useState("races");
   const [tab, setTab] = useState("pbs");
   const [rows, setRows] = useState([]);
@@ -316,14 +437,14 @@ function NotableSection({ unitSystem="metric" }) {
         NOTABLE <span style={{ color:sport==="races"?"#A63D2F":sportColor }}>{sport==="races"?"RACES":sport.toUpperCase()+"S"}</span>
       </h2>
       <div style={{ display:"flex", gap:"0.5rem", marginBottom:"1.25rem" }}>
-        <SportTab label="RACES" active={sport==="races"} onClick={()=>setSport("races")} color="#A63D2F" />
-        <SportTab label="RUNS" active={sport==="run"} onClick={()=>setSport("run")} color={C.run} />
-        <SportTab label="RIDES" active={sport==="ride"} onClick={()=>setSport("ride")} color={C.ride} />
-        <SportTab label="SWIMS" active={sport==="swim"} onClick={()=>setSport("swim")} color={C.swim} />
+        <SportTab label={T[lang].races} active={sport==="races"} onClick={()=>setSport("races")} color="#A63D2F" />
+        <SportTab label={T[lang].runs} active={sport==="run"} onClick={()=>setSport("run")} color={C.run} />
+        <SportTab label={T[lang].rides} active={sport==="ride"} onClick={()=>setSport("ride")} color={C.ride} />
+        <SportTab label={T[lang].swims} active={sport==="swim"} onClick={()=>setSport("swim")} color={C.swim} />
       </div>
       {sport==="races" ? (
         <div>
-          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>PERSONAL RECORDS</div>
+          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>{T[lang].personalRecords}</div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:"1px", background:C.border, border:"1px solid "+C.border, marginBottom:"1.5rem" }}>
             {[{l:"SWIM",v:"0:23:27",sub:"Panama '24",c:C.swim},{l:"BIKE",v:"2:14:26",sub:"Brasília '26",c:C.ride},{l:"RUN",v:"1:25:14",sub:"Cascais '23",c:C.run},{l:"FINISH",v:"4:18:09",sub:"Brasília '26",c:C.ink}].map((pr,i)=>(
               <div key={i} style={{ background:C.bg, padding:"0.65rem 0.75rem" }}>
@@ -333,10 +454,10 @@ function NotableSection({ unitSystem="metric" }) {
               </div>
             ))}
           </div>
-          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>RACE HISTORY — 18 RACES · 15 FINISHES · 2 DNF · 1 DNS · 1 DNC</div>
+          <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>{T[lang].raceHistoryLabel(18,15,2,1,1)}</div>
           <div style={{ overflowX:"auto" }}>
             <div style={{ display:"grid", gridTemplateColumns:"1.5fr 90px 80px 80px 80px 90px", gap:"1px", background:C.border, border:"1px solid "+C.border, minWidth:"520px" }}>
-              {["RACE","DATE","SWIM","BIKE","RUN","FINISH"].map((h,i)=>(
+              {T[lang].raceHeaders.map((h,i)=>(
                 <div key={i} style={{ background:C.surface, padding:"0.4rem 0.5rem", fontFamily:F.mono, fontSize:"0.45rem", letterSpacing:"0.1em", color:[C.faint,C.faint,C.swim,C.ride,C.run,C.ink][i], textAlign:i>1?"center":"left" }}>{h}</div>
               ))}
               {RACES.map((r,i)=>{
@@ -360,12 +481,12 @@ function NotableSection({ unitSystem="metric" }) {
       ) : (
         <>
           <div style={{ display:"flex", gap:"0.4rem", justifyContent:"center", marginBottom:"0.5rem" }}>
-            {(sport==="run"||sport==="ride")&&<SubTab label="PERSONAL BESTS" active={tab==="pbs"} onClick={()=>setTab("pbs")} />}
-            <SubTab label="LONGEST" active={tab==="longest"} onClick={()=>setTab("longest")} />
-            {sport!=="swim"&&<SubTab label="ELEVATION GAIN" active={tab==="elevation"} onClick={()=>setTab("elevation")} />}
+            {(sport==="run"||sport==="ride")&&<SubTab label={T[lang].personalBests} active={tab==="pbs"} onClick={()=>setTab("pbs")} />}
+            <SubTab label={T[lang].longest} active={tab==="longest"} onClick={()=>setTab("longest")} />
+            {sport!=="swim"&&<SubTab label={T[lang].elevationGain} active={tab==="elevation"} onClick={()=>setTab("elevation")} />}
           </div>
           <div style={{ fontFamily:F.mono, fontSize:"0.62rem", color:C.faint, marginBottom:"1rem" }}>
-            {tab==="pbs"?(sport==="ride"?"fastest times across standard ride distances":"fastest times across standard running distances"):tab==="longest"?`my longest ${sport}s on record`:`the most vertical gain in a single ${sport}`}
+            {tab==="pbs"?(sport==="ride"?T[lang].fastestRide:T[lang].fastestRun):tab==="longest"?`my longest ${sport}s on record`:`the most vertical gain in a single ${sport}`}
           </div>
           {(sport==="run"||sport==="ride")&&tab==="pbs" ? (
             (sport==="ride"?ridePbs:prs).length===0 ? (<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>) : (
@@ -384,17 +505,17 @@ function NotableSection({ unitSystem="metric" }) {
                     <div style={{ fontFamily:F.heading, fontSize:"1.1rem", fontWeight:700, color:C.ink, marginBottom:"1rem", lineHeight:1.2 }}>{(sport==="ride"?ridePbs:prs)[selected].name}</div>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0" }}>
                       {[
-                        {l:"DISTANCE",v:(sport==="ride"?ridePbs:prs)[selected]._label},
-                        {l:"TIME",v:fmtTime((sport==="ride"?ridePbs:prs)[selected]._elapsed)},
+                        {l:T[lang].distanceLabel,v:(sport==="ride"?ridePbs:prs)[selected]._label},
+                        {l:T[lang].timeLabel,v:fmtTime((sport==="ride"?ridePbs:prs)[selected]._elapsed)},
                         sport==="ride"
-                          ? {l:"AVG SPEED",v:fmtSpeed((sport==="ride"?ridePbs:prs)[selected].average_speed)}
-                          : {l:"AVG PACE",v:(()=>{const pb=(sport==="ride"?ridePbs:prs)[selected];const dm={"400m":400,"1/2 mile":804,"1K":1000,"1 mile":1609,"2 mile":3218,"5K":5000,"10K":10000,"15K":15000,"10 mile":16093,"20K":20000,"Half-Marathon":21097,"30K":30000};const d=dm[pb._label];if(!d)return"—";const s=pb._elapsed/d*(unitSystem==="imperial"?1609.34:1000);return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}/${unitSystem==="imperial"?"mi":"km"}`;})()},
-                        {l:"ELEVATION",v:unitSystem==="imperial"?`${Math.round(((sport==="ride"?ridePbs:prs)[selected].total_elevation_gain||0)*3.28084)} ft`:`${Math.round((sport==="ride"?ridePbs:prs)[selected].total_elevation_gain||0)} m`},
+                          ? {l:T[lang].avgSpeed,v:fmtSpeed((sport==="ride"?ridePbs:prs)[selected].average_speed)}
+                          : {l:T[lang].avgPace,v:(()=>{const pb=(sport==="ride"?ridePbs:prs)[selected];const dm={"400m":400,"1/2 mile":804,"1K":1000,"1 mile":1609,"2 mile":3218,"5K":5000,"10K":10000,"15K":15000,"10 mile":16093,"20K":20000,"Half-Marathon":21097,"30K":30000};const d=dm[pb._label];if(!d)return"—";const s=pb._elapsed/d*(unitSystem==="imperial"?1609.34:1000);return `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,"0")}/${unitSystem==="imperial"?"mi":"km"}`;})()},
+                        {l:T[lang].elevationLabel,v:unitSystem==="imperial"?`${Math.round(((sport==="ride"?ridePbs:prs)[selected].total_elevation_gain||0)*3.28084)} ft`:`${Math.round((sport==="ride"?ridePbs:prs)[selected].total_elevation_gain||0)} m`},
                       ].filter(Boolean).map(({l,v})=>(<div key={l}><div style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint, marginBottom:2 }}>{l}</div><div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:C.ink }}>{v}</div></div>))}
                     </div>
-                    {(sport==="ride"?ridePbs:prs)[selected].average_heartrate&&(<div><div style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint, marginBottom:2 }}>AVG HR (BPM)</div><div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:C.ink }}>{Math.round((sport==="ride"?ridePbs:prs)[selected].average_heartrate)}</div></div>)}
+                    {(sport==="ride"?ridePbs:prs)[selected].average_heartrate&&(<div><div style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint, marginBottom:2 }}>{T[lang].avgHr}</div><div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:C.ink }}>{Math.round((sport==="ride"?ridePbs:prs)[selected].average_heartrate)}</div></div>)}
                     <div style={{ marginTop:"auto", paddingTop:"1rem", borderTop:`1px solid ${C.border}` }}>
-                      <a href={`https://www.strava.com/activities/${(sport==="ride"?ridePbs:prs)[selected].id}`} target="_blank" rel="noopener noreferrer" style={{ fontFamily:F.mono, fontSize:"0.58rem", letterSpacing:"0.1em", color:C.muted, textDecoration:"none" }}>VIEW ON STRAVA →</a>
+                      <a href={`https://www.strava.com/activities/${(sport==="ride"?ridePbs:prs)[selected].id}`} target="_blank" rel="noopener noreferrer" style={{ fontFamily:F.mono, fontSize:"0.58rem", letterSpacing:"0.1em", color:C.muted, textDecoration:"none" }}>{T[lang].viewOnStrava}</a>
                     </div>
                   </>)}
                 </div>
@@ -410,15 +531,15 @@ function NotableSection({ unitSystem="metric" }) {
                   <div style={{ fontFamily:F.heading, fontSize:"1.1rem", fontWeight:700, color:C.ink, marginBottom:"1rem", lineHeight:1.2 }}>{cur.name}</div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0" }}>
                     {[
-                      {l:unitSystem==="imperial"?"MILES":"KILOMETERS",v:unitSystem==="imperial"?`${(cur.distance/1609.34).toFixed(1)} mi`:`${(cur.distance/1000).toFixed(1)} km`},
-                      {l:"TIME",v:fmtTime(cur.moving_time)},
+                      {l:unitSystem==="imperial"?T[lang].miles:T[lang].kilometers,v:unitSystem==="imperial"?`${(cur.distance/1609.34).toFixed(1)} mi`:`${(cur.distance/1000).toFixed(1)} km`},
+                      {l:T[lang].timeLabel,v:fmtTime(cur.moving_time)},
                       {l:sport==="ride"?"AVG SPEED":"AVG PACE",v:sport==="ride"?fmtSpeed(cur.average_speed):sport==="swim"?fmtSwimPace(cur.moving_time,cur.distance):fmtPace(cur.moving_time,cur.distance)},
-                      {l:"ELEVATION",v:unitSystem==="imperial"?`${Math.round((cur.total_elevation_gain||0)*3.28084)} ft`:`${Math.round(cur.total_elevation_gain||0)} m`},
+                      {l:T[lang].elevationLabel,v:unitSystem==="imperial"?`${Math.round((cur.total_elevation_gain||0)*3.28084)} ft`:`${Math.round(cur.total_elevation_gain||0)} m`},
                     ].map(({l,v})=>(<div key={l}><div style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint, marginBottom:2 }}>{l}</div><div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:C.ink }}>{v}</div></div>))}
                   </div>
-                  {cur.average_heartrate&&(<div><div style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint, marginBottom:2 }}>AVG HR (BPM)</div><div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:C.ink }}>{Math.round(cur.average_heartrate)}</div></div>)}
+                  {cur.average_heartrate&&(<div><div style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.12em", color:C.faint, marginBottom:2 }}>{T[lang].avgHr}</div><div style={{ fontFamily:F.mono, fontSize:"0.85rem", fontWeight:700, color:C.ink }}>{Math.round(cur.average_heartrate)}</div></div>)}
                   <div style={{ marginTop:"auto", paddingTop:"1rem", borderTop:`1px solid ${C.border}` }}>
-                    <a href={`https://www.strava.com/activities/${cur.id}`} target="_blank" rel="noopener noreferrer" style={{ fontFamily:F.mono, fontSize:"0.58rem", letterSpacing:"0.1em", color:C.muted, textDecoration:"none" }}>VIEW ON STRAVA →</a>
+                    <a href={`https://www.strava.com/activities/${cur.id}`} target="_blank" rel="noopener noreferrer" style={{ fontFamily:F.mono, fontSize:"0.58rem", letterSpacing:"0.1em", color:C.muted, textDecoration:"none" }}>{T[lang].viewOnStrava}</a>
                   </div>
                 </>)}
               </div>
@@ -441,7 +562,10 @@ const ChartBox = ({ title, subtitle, children, minH }) => (
   </div>
 );
 
-function StatsSection({ sportFilter, unitSystem="metric" }) {
+function StatsSection({
+  sportFilter, unitSystem="metric"
+}) {
+  const lang = useLang();
   const isMetric = unitSystem === "metric";
   const distUnit = isMetric ? "km" : "mi";
   const toUnit = (km) => isMetric ? km : +(km * 0.621371).toFixed(1);
@@ -591,8 +715,8 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
     {name:"Swims",value:acts.filter(a=>isSwim(a.sport_type)).length,fill:C.swim},
     {name:"Other",value:acts.filter(a=>!isRun(a.sport_type)&&a.sport_type!=='Ride'&&a.sport_type!=='VirtualRide'&&!isSwim(a.sport_type)).length,fill:C.muted},
   ].filter(d=>d.value>0);
-  const ioTitle = sportFilter==="run"?"Indoor vs Outdoor":sportFilter==="ride"?"Indoor vs Outdoor":sportFilter==="swim"?"Pool vs Open Water":"All-time Activities";
-  const ioSubtitle = sportFilter==="run"?"road or treadmill":sportFilter==="ride"?"road or trainer":sportFilter==="swim"?"lane or open water":"by sport type";
+  const ioTitle = sportFilter==="run"?T[lang].indoorOutdoor:sportFilter==="ride"?T[lang].indoorOutdoor:sportFilter==="swim"?"Pool vs Open Water":T[lang].allTimeActs;
+  const ioSubtitle = sportFilter==="run"?"road or treadmill":sportFilter==="ride"?"road or trainer":sportFilter==="swim"?"lane or open water":T[lang].bySportType;
 
   // ── Yearly Volume + Streaks ──
   const yearlyMap = {};
@@ -739,7 +863,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
           })()}
         </ChartBox>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1px",background:C.border}}>
-          <ChartBox title="Activity by Time of Day" subtitle="peak: early morning" minH={310}>
+          <ChartBox title={T[lang].actByDay} subtitle={T[lang].peakTime} minH={310}>
             <ResponsiveContainer width="100%" height={220}>
               <RadarChart data={isAll?todMerged:todData} cx="50%" cy="50%">
                 <PolarGrid stroke={C.border} />
@@ -753,7 +877,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
               </RadarChart>
             </ResponsiveContainer>
           </ChartBox>
-          <ChartBox title="Avg Distance by Day" subtitle="consistency, they call it" minH={310}>
+          <ChartBox title={T[lang].avgDistByDay} subtitle={T[lang].consistencySub} minH={310}>
             <ResponsiveContainer width="100%" height={220}>
               <RadarChart data={isAll?dowMerged:dowData}>
                 <PolarGrid stroke={C.border} />
@@ -772,7 +896,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
 
       {/* ROW 1 — Distance Dist | Indoor/Outdoor | Pace Dist (Run) or Streaks (All) */}
       <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
-        <ChartBox title="Distance Distribution" subtitle="activity counts by distance" minH={331}>
+        <ChartBox title={T[lang].distDist} subtitle={T[lang].distDistSub} minH={331}>
           {isAll ? (
             <div style={{paddingTop:"0.25rem",position:"relative"}} onMouseLeave={()=>setDistTip(null)}>
               {distTip&&<div style={{position:"fixed",pointerEvents:"none",zIndex:9999,background:C.surface,border:"1px solid "+C.border,borderRadius:4,padding:"6px 10px",fontFamily:F.mono,fontSize:"0.65rem",color:C.ink,top:distTip.y-40,left:distTip.x+14,whiteSpace:"nowrap",boxShadow:"0 2px 8px rgba(0,0,0,0.1)",display:"flex",gap:"0.4rem",alignItems:"center"}}><span style={{color:distTip.color,fontWeight:700}}>{distTip.label}:</span><span>{distTip.count}</span></div>}
@@ -835,12 +959,12 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
           )}
         </ChartBox>
         {isAll ? (
-          <ChartBox title="Activity Streaks" subtitle="consecutive days" minH={331}>
+          <ChartBox title={T[lang].activityStreaks} subtitle={T[lang].consecutiveDays} minH={331}>
             <div style={{display:"flex",flexDirection:"column",gap:"1.25rem",paddingTop:"0.75rem"}}>
               {[
-                {label:"BEST STREAK",value:bestStreak+" days",color:C.run},
-                {label:"CURRENT STREAK",value:liveStreak+" days",color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
-                {label:"ACTIVE DAYS",value:totalDaysWithActivity.toLocaleString(),color:C.ink},
+                {label:T[lang].bestStreak,value:bestStreak+" days",color:C.run},
+                {label:T[lang].currentStreak,value:liveStreak+" days",color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
+                {label:T[lang].activeDays,value:totalDaysWithActivity.toLocaleString(),color:C.ink},
               ].map(({label,value,color})=>(
                 <div key={label} style={{borderLeft:"3px solid "+color,paddingLeft:"0.75rem"}}>
                   <div style={{fontFamily:F.mono,fontSize:"0.45rem",letterSpacing:"0.12em",color:C.faint,marginBottom:"0.2rem"}}>{label}</div>
@@ -851,8 +975,8 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
           </ChartBox>
         ) : (
           <ChartBox
-            title={sportFilter==='ride' ? "Speed Distribution (km/h)" : sportFilter==='swim' ? "Pace Distribution (min/100m)" : "Pace Distribution (min/km)"}
-            subtitle={sportFilter==='ride' ? "ride speed buckets" : sportFilter==='swim' ? "swim pace buckets" : "running pace buckets"}
+            title={sportFilter==='ride' ? T[lang].speedDist : sportFilter==='swim' ? T[lang].swimPaceDist : T[lang].paceDist}
+            subtitle={sportFilter==='ride' ? T[lang].speedDistSub : sportFilter==='swim' ? T[lang].swimPaceDistSub : T[lang].paceDistSub}
             minH={331}
           >
             {(() => {
@@ -884,7 +1008,7 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
       {/* ROW 3 — Activity Mix Over Time (ALL tab only) */}
       {isAll && (
         <div style={{...G, gridTemplateColumns:"1fr", borderTop:"none"}}>
-          <ChartBox title="Activity Mix Over Time" subtitle="% of training hours per sport per year" minH={280}>
+          <ChartBox title={T[lang].actMixOverTime} subtitle={T[lang].actMixSub} minH={280}>
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={actMixData} stackOffset="expand">
                 <CartesianGrid vertical={false} stroke={C.border} />
@@ -931,7 +1055,10 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
 
 
 /* ─── GEOGRAPHY ─── */
-function CountryList({ countryList }) {
+function CountryList({
+  countryList
+}) {
+  const lang = useLang();
   const [openCountry, setOpenCountry] = useState(null);
   return (
     <div style={{ display:"flex", flexDirection:"column" }}>
@@ -970,6 +1097,7 @@ function CountryList({ countryList }) {
 }
 
 function GeoSection() {
+  const lang = useLang();
   const containerRef = useRef(null);
   const mapRef       = useRef(null);
   const [clusters, setClusters]   = useState([]); // raw {lat,lng,count,realLat,realLng}
@@ -1181,13 +1309,13 @@ function GeoSection() {
           <div style={{ fontFamily:F.heading, fontSize:"1.4rem", fontWeight:700, color:C.ink }}>{totalGps.toLocaleString()}</div>
         </div>
         <div style={{ background:C.surface, padding:"1rem 1.25rem" }} data-drop="true">
-          <DropBtn id="locations" label="UNIQUE LOCATIONS" count={named.length} items={[...named].sort((a,b)=>b.count-a.count).map(n=>`${n.city}, ${n.country}`)} />
+          <DropBtn id="locations" label={T[lang].uniqueLocations} count={named.length} items={[...named].sort((a,b)=>b.count-a.count).map(n=>`${n.city}, ${n.country}`)} />
         </div>
         <div style={{ background:C.surface, padding:"1rem 1.25rem" }} data-drop="true">
-          <DropBtn id="countries" label="COUNTRIES" count={countries.length} items={countries} />
+          <DropBtn id="countries" label={T[lang].countries} count={countries.length} items={countries} />
         </div>
         <div style={{ background:C.surface, padding:"1rem 1.25rem" }} data-drop="true">
-          <DropBtn id="continents" label="CONTINENTS" count={continents.length} items={continents.map(k=>CONT[k]||k)} />
+          <DropBtn id="continents" label={T[lang].continents} count={continents.length} items={continents.map(k=>CONT[k]||k)} />
         </div>
       </div>
 
@@ -1324,7 +1452,10 @@ function ActivityIcon({ type, color }) {
 }
 
 
-function RecentSection({ lang, unitSystem="metric" }) {
+function RecentSection({
+  unitSystem="metric"
+}) {
+  const lang = useLang();
   const fmtDist = m => unitSystem==="imperial" ? `${(m/1609.34).toFixed(1)} mi` : `${(m/1000).toFixed(1)} km`;
   const [period, setPeriod] = useState("thisweek");
   const [acts, setActs] = useState([]);
@@ -1394,8 +1525,8 @@ function RecentSection({ lang, unitSystem="metric" }) {
     <section id="recent" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
       <Divider />
       <SectionNum n={6} />
-      <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 1.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>RECENT ACTIVITIES</h2>
-      <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>stalk me if you must.</div>
+      <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 1.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>{T[lang].recentTitle}</h2>
+      <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>{T[lang].recentSub}</div>
 
       <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap", alignItems:"center" }}>
         {Object.entries(periodLabels).map(([key,lbl]) => (
@@ -1443,7 +1574,7 @@ function RecentSection({ lang, unitSystem="metric" }) {
                                 <span style={{ color:C.faint }}>{l}</span><span style={{ color:C.ink, fontWeight:600 }}>{v}</span>
                               </div>
                             ))}
-                            <a href={`https://www.strava.com/activities/${act.id}`} target="_blank" rel="noopener noreferrer" style={{ display:"block", marginTop:"0.75rem", fontFamily:F.mono, fontSize:"0.58rem", color:C.green, textDecoration:"none", letterSpacing:"0.08em" }}>VIEW ON STRAVA →</a>
+                            <a href={`https://www.strava.com/activities/${act.id}`} target="_blank" rel="noopener noreferrer" style={{ display:"block", marginTop:"0.75rem", fontFamily:F.mono, fontSize:"0.58rem", color:C.green, textDecoration:"none", letterSpacing:"0.08em" }}>{T[lang].viewOnStrava}</a>
                           </div>
                         </div>
                       </div>
@@ -1454,7 +1585,7 @@ function RecentSection({ lang, unitSystem="metric" }) {
             </div>
             {acts.length > 8 && (
               <button onClick={()=>setShowAll(v=>!v)} style={{ width:"100%", marginTop:"0.5rem", padding:"0.75rem", background:"transparent", border:`1px solid ${C.border}`, borderRadius:2, cursor:"pointer", fontFamily:F.mono, fontSize:"0.6rem", letterSpacing:"0.1em", textTransform:"uppercase", color:C.muted }}>
-                {showAll ? "SHOW LESS ▲" : `SHOW ALL ${acts.length} ACTIVITIES ▼`}
+                {showAll ? "SHOW LESS ▲" : T[lang].showAll(acts.length) + " ▼"}
               </button>
             )}
           </div>
@@ -1502,6 +1633,7 @@ function RecentSection({ lang, unitSystem="metric" }) {
 
 /* ─── PROGRESSION ─── */
 function ProgressionSection() {
+  const lang = useLang();
   const YEARS = ["All time","Last 365","2026","2025","2024","2023","2022","2021","2020","2019"];
   const [period, setPeriod] = useState("Last 365");
   const [actDays, setActDays] = useState({});
@@ -1656,7 +1788,7 @@ function ProgressionSection() {
       <h2 style={{ fontFamily:F.heading, fontSize:"clamp(2rem,5vw,3.5rem)", fontWeight:800, color:C.ink, margin:"0 0 0.5rem", lineHeight:0.9, letterSpacing:"-1px" }}>
         PROGRESSION
       </h2>
-      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>i take rest days, but not by choice.</div>
+      <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>{T[lang].progressionSub}</div>
       <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap" }}>
         {YEARS.map(y => <SubTab key={y} label={y} active={period===y} onClick={()=>setPeriod(y)} />)}
       </div>
@@ -1747,6 +1879,7 @@ export default function App() {
   const [sportFilter, setSportFilter] = useState("all");
   const [statsTab, setStatsTab] = useState("all");
   const [unitSystem, setUnitSystem] = useState("metric");
+  const [lang, setLang] = useState("en");
   const NAV_IDS = ["about", "notable", "stats", "progression", "geography", "recent"];
   const [active, setActive] = useScrollSpy(NAV_IDS);
 
@@ -1785,20 +1918,22 @@ export default function App() {
   const statColors = { all: C.green, run: C.run, ride: C.ride, swim: C.swim };
 
   return (
+    <LangContext.Provider value={lang}>
     <div style={{ background: C.bg, color: C.ink, fontFamily: F.body, fontSize: 14, minHeight: "100vh" }}>
       {/* NAV */}
       <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(237,232,220,0.92)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2rem", height: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <span style={{ fontFamily: F.heading, fontSize: "0.9rem", fontWeight: 800, color: C.green, letterSpacing: "0.02em" }}>BRUNO S.</span>
-          {lastSync && <span style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint }}>· synced {fmtSync(lastSync)}</span>}
+          {lastSync && <span style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint }}>{T[lang].synced(fmtSync(lastSync)).slice(2)}</span>}
         </div>
         <div style={{ display: "flex", gap: "2rem" }}>
-          {NAV_IDS.map(id => (
+          {NAV_IDS.map((id, i) => (
             <button key={id} onClick={() => goto(id)} style={{ background: "none", border: "none", borderBottom: `1.5px solid ${active === id ? C.green : "transparent"}`, padding: "4px 0", cursor: "pointer", fontFamily: F.mono, fontSize: "0.58rem", letterSpacing: "0.15em", textTransform: "uppercase", color: active === id ? C.green : C.muted, transition: "all 0.15s" }}>
-              {id.toUpperCase()}
+              {T[lang].nav[NAV_IDS.indexOf(id)]}
             </button>
           ))}
         </div>
+        <button onClick={() => setLang(l => l === "en" ? "pt" : "en")} style={{ fontFamily: F.mono, fontSize: "0.52rem", letterSpacing: "0.1em", background: "transparent", border: `1px solid ${C.border}`, color: C.muted, padding: "0.2rem 0.6rem", cursor: "pointer", borderRadius: 2, marginLeft: "0.5rem" }}>{lang === "en" ? "PT" : "EN"}</button>
       </nav>
 
       <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 2rem" }}>
@@ -1809,15 +1944,15 @@ export default function App() {
             修行
           </h1>
           <div style={{ fontFamily: F.body, fontSize: "0.9rem", color: C.muted, lineHeight: 1.8, marginBottom: "2.5rem", maxWidth: "520px", margin: "0 auto 2.5rem", textAlign: "center", fontStyle: "italic" }}>
-            <em>Shugyō</em> — the quiet discipline of giving yourself to the process so completely that repetition becomes transformation
+            {T[lang].motto}
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", border: `1px solid ${C.border}` }}>
             {[
-              { val: acts, label: "ACTIVITIES", sub: restDays !== null ? `${restDays} rest day${restDays !== 1 ? 's' : ''} in ${new Date().getFullYear()}` : null, showInfo: true },
-              { val: unitSystem==="imperial" ? Math.round(km*0.621371) : km, label: unitSystem==="imperial" ? "MILES" : "KILOMETERS", sub: hero ? `${(hero.total_km / 40075).toFixed(2)} laps around the Earth` : null },
-              { val: hrs, label: "HOURS", sub: hero ? `${(hero.total_hours / 24).toFixed(0)} full days` : null },
-              { val: unitSystem==="imperial" ? Math.round(elev*3.28084) : elev, label: unitSystem==="imperial" ? "FT CLIMBED" : "M CLIMBED", sub: hero ? `${(hero.total_elevation / 3500).toFixed(1)} Everests base camp to summit` : null, last: true },
+              { val: acts, label: T[lang].activities, sub: restDays !== null ? T[lang].restDaysIn(restDays, new Date().getFullYear()) : null, showInfo: true },
+              { val: unitSystem==="imperial" ? Math.round(km*0.621371) : km, label: unitSystem==="imperial" ? T[lang].miles : T[lang].kilometers, sub: hero ? T[lang].lapsEarth((hero.total_km/40075).toFixed(2)) : null },
+              { val: hrs, label: T[lang].hours, sub: hero ? T[lang].fullDays((hero.total_hours/24).toFixed(0)) : null },
+              { val: unitSystem==="imperial" ? Math.round(elev*3.28084) : elev, label: unitSystem==="imperial" ? T[lang].ftClimbed : T[lang].mClimbed, sub: hero ? T[lang].everests((hero.total_elevation/3500).toFixed(1)) : null, last: true },
             ].map(({ val, label, sub, last }) => (
               <div key={label} style={{ padding: "1.25rem 1rem", textAlign: "center", borderRight: last ? "none" : `1px solid ${C.border}` }}>
                 <div style={{ fontFamily: F.mono, fontSize: "clamp(1.6rem,2.5vw,2.2rem)", fontWeight: 800, color: C.green, letterSpacing: "-1px", lineHeight: 1 }}>
@@ -1837,25 +1972,25 @@ export default function App() {
         <section id="about" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
           <Divider />
           <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-            <h2 style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, letterSpacing: "0.2em", color: C.green, margin: 0 }}>FOREWORD</h2>
+            <h2 style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, letterSpacing: "0.2em", color: C.green, margin: 0 }}>{T[lang].forewordTitle}</h2>
           </div>
           <div style={{ maxWidth: 480, margin: "0 auto" }}>
             {[
-              "Like many, endurance sports entered my life when I hit rock bottom. I was depressed, drinking, partying, and had just walked away from the most toxic relationship I'd ever been in. What started as a personal challenge quickly became a lifestyle — one that has reshaped my life, inside and out.",
-              "Triathlon brought discipline, self-discovery, self-respect, and a clear mind. It gave me consistency, and an unshakable, insatiable desire to evolve — in sport and in life.",
-              "I'm a numbers guy, always have been. I like keeping track of my accomplishments as a daily reminder of where I came from, where I am, and what I'm still capable of.",
+              "{T[lang].foreword[0]}",
+              "{T[lang].foreword[1]}",
+              "{T[lang].foreword[2]}",
             ].map((p, i) => (
               <p key={i} style={{ fontFamily: F.body, fontSize: "0.9rem", lineHeight: 1.8, color: C.dim, marginBottom: "1.2rem", fontWeight: 400 }}>{p}</p>
             ))}
             <p style={{ fontFamily: F.body, fontSize: "0.875rem", lineHeight: 1.8, color: C.green, fontStyle: "italic", marginBottom: "2rem", fontWeight: 500 }}>
-              This is the never-ending search for my own limits.
+              {T[lang].foreword[3]}
             </p>
           </div>
           <Divider />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
               <div style={{ fontFamily: F.heading, fontSize: "1.1rem", fontWeight: 700, color: C.ink, marginBottom: "0.3rem" }}>Bruno Silva</div>
-              <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, letterSpacing: "0.12em" }}>From Tokyo — and all over the world — to Rio de Janeiro</div>
+              <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, letterSpacing: "0.12em" }}>{T[lang].fromCity}</div>
             </div>
             <div style={{ fontFamily: F.mono, fontSize: "0.7rem", color: C.faint }}>2026</div>
           </div>
@@ -1895,7 +2030,7 @@ export default function App() {
               ))}
             </div>
           </div>
-          <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>measured, not guessed.</div>
+          <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>{T[lang].statsTitle}</div>
           
           <StatsSection sportFilter={statsTab} unitSystem={unitSystem} />
         </section>
@@ -1910,7 +2045,7 @@ export default function App() {
           <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 0.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>
             GEOGRAPHY
           </h2>
-          <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>i get around.</div>
+          <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>{T[lang].geoSub}</div>
           <GeoSection />
         </section>
 
@@ -1918,8 +2053,8 @@ export default function App() {
         <RecentSection unitSystem={unitSystem} />
 
         <footer style={{ borderTop: `1px solid ${C.border}`, padding: "2rem 0", fontFamily: F.mono, fontSize: "0.55rem", color: C.faint, display: "flex", justifyContent: "space-between" }}>
-          <span>Data synced live from Strava. Not affiliated with Strava, Inc.</span>
-          <span>Built by Bruno Silva © 2026</span>
+          <span>{T[lang].dataFooter}</span>
+          <span>{T[lang].builtBy}</span>
         </footer>
       </div>
 
@@ -1930,6 +2065,7 @@ export default function App() {
         ))}
       </div>
     </div>
+    </LangContext.Provider>
   );
 }
 
