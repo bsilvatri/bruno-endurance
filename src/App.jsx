@@ -934,74 +934,85 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
 function GeoSection() {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
-  const [loaded, setLoaded] = useState(false);
+  const [clusters, setClusters] = useState([]);
   const [tip, setTip] = useState(null);
-  const [geoCounts, setGeoCounts] = useState({});
+  const [loaded, setLoaded] = useState(false);
 
-  const cities = [
-    { city: "Rio de Janeiro", key: "Rio de Janeiro", country: "Brazil", lat: -22.9068, lng: -43.1729 },
-    { city: "Cascais", key: "Cascais", country: "Portugal", lat: 38.6979, lng: -9.4215 },
-    { city: "Florianópolis", key: "Florianopolis", country: "Brazil", lat: -27.5969, lng: -48.5495 },
-    { city: "São Paulo", key: "Sao Paulo", country: "Brazil", lat: -23.5505, lng: -46.6333 },
-    { city: "Brasília", key: "Brasilia", country: "Brazil", lat: -15.7942, lng: -47.8822 },
-    { city: "Panama City", key: "Panama City", country: "Panama", lat: 8.9824, lng: -79.5199 },
-    { city: "Eagleman MD", key: "Eagleman MD", country: "USA", lat: 38.5157, lng: -76.0788 },
-    { city: "Marbella", key: "Marbella", country: "Spain", lat: 36.5100, lng: -4.8860 },
-    { city: "Curitiba", key: "Curitiba", country: "Brazil", lat: -25.4284, lng: -49.2733 },
-  ];
-
+  // Fetch all activities with coordinates, page through all results
   useEffect(() => {
-    rpc("get_geo_counts").then(d => { if (d && !d.code) setGeoCounts(d); }).catch(() => {});
+    const PAGE = 1000;
+    const fetchPage = (offset) =>
+      fetch(`${SB_URL}/rest/v1/activities?select=start_latlng&start_latlng=not.is.null&limit=${PAGE}&offset=${offset}`, { headers: SBH })
+        .then(r => r.json());
+
+    (async () => {
+      let all = [], offset = 0, page;
+      do {
+        page = await fetchPage(offset);
+        if (!Array.isArray(page) || page.length === 0) break;
+        all = all.concat(page);
+        offset += PAGE;
+      } while (page.length === PAGE);
+
+      // Cluster by rounding to 0.5 degree grid (~55km cells)
+      const map = {};
+      all.forEach(({ start_latlng }) => {
+        if (!start_latlng || start_latlng.length < 2) return;
+        const [lat, lng] = start_latlng;
+        const key = `${Math.round(lat * 2) / 2},${Math.round(lng * 2) / 2}`;
+        if (!map[key]) map[key] = { lat: Math.round(lat * 2) / 2, lng: Math.round(lng * 2) / 2, count: 0 };
+        map[key].count++;
+      });
+      setClusters(Object.values(map));
+    })();
   }, []);
 
+  // Build map once clusters are ready
   useEffect(() => {
-    if (loaded || !containerRef.current || !Object.keys(geoCounts).length) return;
+    if (loaded || !containerRef.current || clusters.length === 0) return;
     loadMapbox(() => {
       if (mapRef.current) return;
       const map = new window.mapboxgl.Map({
         container: containerRef.current,
-        style: "mapbox://styles/mapbox/dark-v11",
+        style: 'mapbox://styles/mapbox/dark-v11',
         center: [-20, 10], zoom: 1.2, attributionControl: false
       });
       mapRef.current = map;
 
-      map.on("load", () => {
+      map.on('load', () => {
         const geojson = {
-          type: "FeatureCollection",
-          features: cities.map(loc => ({
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [loc.lng, loc.lat] },
-            properties: { city: loc.city, country: loc.country, key: loc.key, count: geoCounts[loc.key] || 0 }
+          type: 'FeatureCollection',
+          features: clusters.map(c => ({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [c.lng, c.lat] },
+            properties: { count: c.count }
           }))
         };
 
-        map.addSource("cities", { type: "geojson", data: geojson });
+        map.addSource('clusters', { type: 'geojson', data: geojson });
 
-        // Outer glow
-        map.addLayer({ id: "city-glow", type: "circle", source: "cities", paint: {
-          "circle-radius": 14, "circle-color": C.green, "circle-opacity": 0.15, "circle-blur": 1
+        map.addLayer({ id: 'cluster-glow', type: 'circle', source: 'clusters', paint: {
+          'circle-radius': ['interpolate', ['linear'], ['get', 'count'], 1, 10, 50, 16, 200, 22],
+          'circle-color': C.green, 'circle-opacity': 0.12, 'circle-blur': 1
         }});
 
-        // Main dot
-        map.addLayer({ id: "city-dots", type: "circle", source: "cities", paint: {
-          "circle-radius": ["interpolate",["linear"],["get","count"],0,4,100,6,500,9,1000,12],
-          "circle-color": C.green, "circle-opacity": 0.9,
-          "circle-stroke-width": 1.5, "circle-stroke-color": "rgba(255,255,255,0.6)"
+        map.addLayer({ id: 'cluster-dots', type: 'circle', source: 'clusters', paint: {
+          'circle-radius': ['interpolate', ['linear'], ['get', 'count'], 1, 4, 50, 7, 200, 11, 500, 14],
+          'circle-color': C.green, 'circle-opacity': 0.9,
+          'circle-stroke-width': 1.5, 'circle-stroke-color': 'rgba(255,255,255,0.6)'
         }});
 
-        // Hover state
-        map.on("mouseenter", "city-dots", e => {
-          map.getCanvas().style.cursor = "pointer";
-          const props = e.features[0].properties;
-          setTip({ city: props.city, country: props.country, acts: props.count });
+        map.on('mouseenter', 'cluster-dots', e => {
+          map.getCanvas().style.cursor = 'pointer';
+          const { count } = e.features[0].properties;
+          const [lng, lat] = e.features[0].geometry.coordinates;
+          setTip({ lat: lat.toFixed(1), lng: lng.toFixed(1), count });
         });
-        map.on("mouseleave", "city-dots", () => {
-          map.getCanvas().style.cursor = "";
+        map.on('mouseleave', 'cluster-dots', () => {
+          map.getCanvas().style.cursor = '';
           setTip(null);
         });
-
-        // Click to fly
-        map.on("click", "city-dots", e => {
+        map.on('click', 'cluster-dots', e => {
           const [lng, lat] = e.features[0].geometry.coordinates;
           map.flyTo({ center: [lng, lat], zoom: 8, duration: 1200 });
         });
@@ -1009,55 +1020,33 @@ function GeoSection() {
         setLoaded(true);
       });
     });
-  }, [geoCounts]);
+  }, [clusters]);
 
-  const sorted = cities.filter(l => (geoCounts[l.key]||0) > 0).sort((a,b) => (geoCounts[b.key]||0)-(geoCounts[a.key]||0));
-  const uniqueCountries = new Set(sorted.map(l=>l.country)).size;
+  const total = clusters.reduce((s, c) => s + c.count, 0);
 
   return (
-    <div>
-      <div style={{ position:"relative", border:`1px solid ${C.border}`, overflow:"hidden" }}>
-        <div ref={containerRef} style={{ height:"clamp(300px,50vw,480px)", background:C.surface }} />
-        {!loaded && <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading map...</div>}
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: '1.5rem', alignItems: 'start' }}>
+      <div style={{ position: 'relative', height: 420, background: '#1a1a2e', borderRadius: 4, overflow: 'hidden' }} ref={containerRef}>
+        {!loaded && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: F.mono, fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>loading map…</span>
+          </div>
+        )}
         {tip && (
-          <div style={{ position:"absolute", top:12, left:12, background:"rgba(20,20,20,0.92)", color:"#fff", padding:"6px 12px", fontFamily:F.mono, fontSize:"0.62rem", pointerEvents:"none", border:"1px solid rgba(255,255,255,0.1)" }}>
-            <span style={{color:C.green,fontWeight:600}}>{(tip.acts||0).toLocaleString()}</span> · {tip.city}, {tip.country}
+          <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.75)', padding: '0.5rem 0.75rem', borderRadius: 4, pointerEvents: 'none' }}>
+            <div style={{ fontFamily: F.mono, fontSize: '0.55rem', color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{tip.lat}°, {tip.lng}°</div>
+            <div style={{ fontFamily: F.mono, fontSize: '0.85rem', fontWeight: 700, color: C.green }}>{tip.count.toLocaleString()} activities</div>
           </div>
         )}
       </div>
-
-      <div style={{ border:`1px solid ${C.border}`, borderTop:"none", background:C.surface, padding:"1rem 1.25rem" }}>
-        <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.2em", textTransform:"uppercase", color:C.faint, marginBottom:"0.5rem" }}>Top places</div>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:"0 1.5rem", marginBottom:"1rem", justifyContent:"center" }}>
-          {sorted.slice(0,5).map(l => (
-            <span key={l.city} onClick={() => mapRef.current?.flyTo({center:[l.lng,l.lat],zoom:8,duration:1200})} style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted, cursor:"pointer" }}>
-              <span style={{color:C.green,fontWeight:600}}>{(geoCounts[l.key]||0).toLocaleString()}</span> in {l.city}, {l.country}
-            </span>
-          ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+        <div style={{ fontFamily: F.mono, fontSize: '0.45rem', letterSpacing: '0.12em', color: C.faint, marginBottom: '0.75rem', textTransform: 'uppercase' }}>
+          {total.toLocaleString()} activities with GPS · {clusters.length} locations
         </div>
-        <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.2em", textTransform:"uppercase", color:C.faint, marginBottom:"0.5rem" }}>Facts</div>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:"0 1.5rem", justifyContent:"center" }}>
-          {[
-            { val: sorted.length, label: "locations" },
-            { val: uniqueCountries, label: "countries" },
-            { val: 3, label: "continents" },
-          ].map(f => (
-            <span key={f.label} style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>
-              <span style={{color:C.green,fontWeight:600}}>{f.val}</span> {f.label}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ marginTop:"1rem", display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"1px", background:C.border }}>
-        {sorted.map((l, i) => (
-          <div key={l.city}
-            onClick={() => mapRef.current?.flyTo({center:[l.lng,l.lat],zoom:8,duration:1200})}
-            style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0.5rem 0.75rem", background:C.bg, cursor:"pointer", gap:"0.5rem" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", minWidth:0 }}>
-<span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{l.city}</span>
-            </div>
-            <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.green, fontWeight:600, flexShrink:0 }}>{(geoCounts[l.key]||0).toLocaleString()}</span>
+        {[...clusters].sort((a, b) => b.count - a.count).slice(0, 12).map((c, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.35rem 0', borderBottom: `1px solid ${C.border}` }}>
+            <span style={{ fontFamily: F.mono, fontSize: '0.6rem', color: C.muted }}>{c.lat.toFixed(1)}°, {c.lng.toFixed(1)}°</span>
+            <span style={{ fontFamily: F.mono, fontSize: '0.6rem', color: C.green, fontWeight: 600 }}>{c.count.toLocaleString()}</span>
           </div>
         ))}
       </div>
