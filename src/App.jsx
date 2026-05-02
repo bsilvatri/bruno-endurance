@@ -981,10 +981,34 @@ function GeoSection() {
         map[key].sumLat += lat;
         map[key].sumLng += lng;
       });
+      // Merge rules: [keysToAbsorb, targetKey]
+      const MERGE = [
+        // Rio de Janeiro — multiple grid cells all over the bay area
+        [["-23,-43.5","-23,-42"], "-23,-43"],
+        // Araraquara
+        [["-21.5,-48"], "-22,-48"],
+        // Angra dos Reis
+        [["-23,-44.5"], "-23,-44"],
+        // Bodoquena → Bonito
+        [["-20.5,-56.5"], "-21,-56.5"],
+        // Porto Seguro → Caraíva
+        [["-17,-39"], "-16.5,-39"],
+      ];
+      MERGE.forEach(([sources, target]) => {
+        if (!map[target]) return;
+        sources.forEach(src => {
+          if (!map[src]) return;
+          map[target].count   += map[src].count;
+          map[target].sumLat  += map[src].sumLat;
+          map[target].sumLng  += map[src].sumLng;
+          delete map[src];
+        });
+      });
+
       // Convert to array using real centroid for map positioning
       setClusters(Object.values(map).map(c => ({
         ...c,
-        lat: c.sumLat / c.count,   // real centroid
+        lat: c.sumLat / c.count,
         lng: c.sumLng / c.count,
       })));
     };
@@ -1010,7 +1034,16 @@ function GeoSection() {
           return { ...c, city, country, continent };
         })
         .catch(() => null)
-    )).then(results => setNamed(results.filter(Boolean)));
+    )).then(results => {
+      const NAME_OVERRIDES = {
+        "-16.5,-39": { city: "Caraíva", country: "Brazil" },
+        "-21,-56.5": { city: "Bonito", country: "Brazil" },
+      };
+      setNamed(results.filter(Boolean).map(n => {
+        const key = `${n.gridLat},${n.gridLng}`;
+        return NAME_OVERRIDES[key] ? { ...n, ...NAME_OVERRIDES[key] } : n;
+      }));
+    });
   }, [clusters]);
 
   // Step 3 — build map once clusters are ready (use all clusters, not just named ones)
