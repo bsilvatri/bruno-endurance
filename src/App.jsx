@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
 
 /* ─── TOKENS ─── */
@@ -9,8 +9,8 @@ const MB_TOKEN = import.meta.env.VITE_MB_TOKEN;
 const SBH = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "application/json" };
 
 // ── Language context ──────────────────────────────────────────────────────
-const LangContext = React.createContext("en");
-const useLang = () => React.useContext(LangContext);
+const LangContext = createContext("en");
+const useLang = () => useContext(LangContext);
 
 const T = {
   en: {
