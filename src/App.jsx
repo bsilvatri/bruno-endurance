@@ -66,6 +66,8 @@ const T = {
     actCount: (n) => `${n} activities`,
     thisWeek: "THIS WEEK", lastWeek: "LAST WEEK", thisMonth: "THIS MONTH",
     last60: "LAST 60 DAYS", ytd: "YEAR TO DATE",
+    daysWord: "days",
+    translateCountry: (c) => c,
     dnfNote: "DNF — Did not finish | DNS — Did not start | DNC — Did not count",
     annualDist: "Annual Distance", sectionNotable: "NOTABLE", sectionStats: "Statistics", sectionGeo: "GEOGRAPHY", sectionProg: "PROGRESSION",
     statsSubtitle: (tab) => `${tab.charAt(0).toUpperCase()+tab.slice(1)}`,
@@ -123,9 +125,11 @@ const T = {
     actCount: (n) => `${n} atividades`,
     thisWeek: "ESTA SEMANA", lastWeek: "SEMANA PASSADA", thisMonth: "ESTE MÊS",
     last60: "ÚLTIMOS 60 DIAS", ytd: "ANO ATÉ HOJE",
+    daysWord: "dias",
+    translateCountry: (c) => ({ "Brazil":"Brasil","Portugal":"Portugal","United States":"Estados Unidos","Argentina":"Argentina","Uruguay":"Uruguai","Chile":"Chile","Colombia":"Colômbia","Peru":"Peru","France":"França","Spain":"Espanha","Italy":"Itália","Germany":"Alemanha","United Kingdom":"Reino Unido","Japan":"Japão","Mexico":"México","Panama":"Panamá","Australia":"Austrália","Netherlands":"Holanda","Switzerland":"Suíça","Austria":"Áustria","Belgium":"Bélgica","Sweden":"Suécia","Norway":"Noruega","Denmark":"Dinamarca","Finland":"Finlândia","Ireland":"Irlanda","Greece":"Grécia","Croatia":"Croácia","Czech Republic":"República Checa","Poland":"Polônia","Hungary":"Hungria","Romania":"Romênia","South Africa":"África do Sul","New Zealand":"Nova Zelândia","Canada":"Canadá","Singapore":"Singapura","Thailand":"Tailândia" })[c] || c,
     dnfNote: "DNF — Não concluiu | DNS — Não largou | DNC — Não contabilizado",
     annualDist: "Distância Anual", sectionNotable: "DESTAQUES", sectionStats: "Estatísticas", sectionGeo: "GEOGRAFIA", sectionProg: "PROGRESSÃO",
-    statsSubtitle: (tab) => tab==="all"?"Geral":tab==="run"?"Corrida":tab==="ride"?"Ciclismo":"Natação",
+    statsSubtitle: (tab) => tab==="all"?"Geral":tab==="run"?"Corrida":tab==="ride"?"Pedais":"Natação",
   },
 };
 
@@ -842,9 +846,9 @@ function StatsSection({
                 );
               }} cursor={{fill:"rgba(0,0,0,0.03)"}} />
               {isAll ? <>
-                <Bar dataKey="swim" stackId="a" fill={C.swim} name="Swim" unit={" "+distUnit} />
-                <Bar dataKey="ride" stackId="a" fill={C.ride} name="Ride" unit={" "+distUnit} />
-                <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name="Run"  unit={" "+distUnit} />
+                <Bar dataKey="swim" stackId="a" fill={C.swim} name={T[lang].swims} unit={" "+distUnit} />
+                <Bar dataKey="ride" stackId="a" fill={C.ride} name={T[lang].rides} unit={" "+distUnit} />
+                <Bar dataKey="run"  stackId="a" fill={C.run}  radius={[2,2,0,0]} name={T[lang].runs}  unit={" "+distUnit} />
               </> : <Bar dataKey="km" fill={sColor} radius={[2,2,0,0]} name={sportFilter==="run"?"Run":sportFilter==="ride"?"Ride":"Swim"} unit={" "+distUnit} />}
             </BarChart>
           </ResponsiveContainer>
@@ -873,10 +877,10 @@ function StatsSection({
                 <PolarGrid stroke={C.border} />
                 <PolarAngleAxis dataKey="hour" tick={{fontFamily:F.mono,fontSize:8,fill:C.faint}} />
                 {isAll ? <>
-                  <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name="Run" />
-                  <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name="Ride" />
-                  <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name="Swim" />
-                </> : <Radar dataKey="count" stroke={sColor} fill={sColor} fillOpacity={0.2} dot={false} name="activities" />}
+                  <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name={T[lang].runs} />
+                  <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name={T[lang].rides} />
+                  <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name={T[lang].swims} />
+                </> : <Radar dataKey="count" stroke={sColor} fill={sColor} fillOpacity={0.2} dot={false} name={T[lang].activities.toLowerCase()} />}
                 <Tooltip content={<Tip />} />
               </RadarChart>
             </ResponsiveContainer>
@@ -887,9 +891,9 @@ function StatsSection({
                 <PolarGrid stroke={C.border} />
                 <PolarAngleAxis dataKey="day" tick={{fontFamily:F.mono,fontSize:8,fill:C.faint}} />
                 {isAll ? <>
-                  <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name="Run"  unit={" "+distUnit} />
-                  <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name="Ride" unit={" "+distUnit} />
-                  <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name="Swim" unit={" "+distUnit} />
+                  <Radar dataKey="run"  stroke={C.run}  fill={C.run}  fillOpacity={0.1} dot={false} name={T[lang].runs}  unit={" "+distUnit} />
+                  <Radar dataKey="ride" stroke={C.ride} fill={C.ride} fillOpacity={0.1} dot={false} name={T[lang].rides} unit={" "+distUnit} />
+                  <Radar dataKey="swim" stroke={C.swim} fill={C.swim} fillOpacity={0.1} dot={false} name={T[lang].swims} unit={" "+distUnit} />
                 </> : <Radar dataKey="avg" stroke={sColor} fill={sColor} fillOpacity={0.2} dot={false} name="Avg" unit={" "+distUnit} />}
                 <Tooltip content={<Tip />} />
               </RadarChart>
@@ -929,7 +933,7 @@ function StatsSection({
                 <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} hide />
                 <YAxis type="category" dataKey="label" tick={tickStyle} axisLine={false} tickLine={false} width={60} />
                 <Tooltip content={<Tip />} cursor={{fill:"rgba(0,0,0,0.03)"}} />
-                <Bar dataKey="count" fill={sColor} radius={[0,2,2,0]} name="activities" />
+                <Bar dataKey="count" fill={sColor} radius={[0,2,2,0]} name={T[lang].activities.toLowerCase()} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -966,8 +970,8 @@ function StatsSection({
           <ChartBox title={T[lang].activityStreaks} subtitle={T[lang].consecutiveDays} minH={331}>
             <div style={{display:"flex",flexDirection:"column",gap:"1.25rem",paddingTop:"0.75rem"}}>
               {[
-                {label:T[lang].bestStreak,value:bestStreak+" days",color:C.run},
-                {label:T[lang].currentStreak,value:liveStreak+" days",color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
+                {label:T[lang].bestStreak,value:bestStreak+" "+T[lang].daysWord,color:C.run},
+                {label:T[lang].currentStreak,value:liveStreak+" "+T[lang].daysWord,color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
                 {label:T[lang].activeDays,value:totalDaysWithActivity.toLocaleString(),color:C.ink},
               ].map(({label,value,color})=>(
                 <div key={label} style={{borderLeft:"3px solid "+color,paddingLeft:"0.75rem"}}>
@@ -1000,7 +1004,7 @@ function StatsSection({
                         <stop offset="95%" stopColor={color} stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <Area type="monotone" dataKey="count" stroke={color} strokeWidth={1.5} fill={`url(#${gradId})`} name="activities" dot={false}/>
+                    <Area type="monotone" dataKey="count" stroke={color} strokeWidth={1.5} fill={`url(#${gradId})`} name={T[lang].activities.toLowerCase()} dot={false}/>
                   </AreaChart>
                 </ResponsiveContainer>
               );
@@ -1038,9 +1042,9 @@ function StatsSection({
                     </div>
                   );
                 }} cursor={{stroke:C.border}} />
-                <Area type="monotone" dataKey="swim" stackId="1" stroke={C.swim} fill={C.swim} fillOpacity={0.85} name="Swim" dot={false} />
-                <Area type="monotone" dataKey="ride" stackId="1" stroke={C.ride} fill={C.ride} fillOpacity={0.85} name="Ride" dot={false} />
-                <Area type="monotone" dataKey="run"  stackId="1" stroke={C.run}  fill={C.run}  fillOpacity={0.85} name="Run"  dot={false} />
+                <Area type="monotone" dataKey="swim" stackId="1" stroke={C.swim} fill={C.swim} fillOpacity={0.85} name={T[lang].swims} dot={false} />
+                <Area type="monotone" dataKey="ride" stackId="1" stroke={C.ride} fill={C.ride} fillOpacity={0.85} name={T[lang].rides} dot={false} />
+                <Area type="monotone" dataKey="run"  stackId="1" stroke={C.run}  fill={C.run}  fillOpacity={0.85} name={T[lang].runs}  dot={false} />
               </AreaChart>
             </ResponsiveContainer>
             <div style={{display:"flex",gap:"0.75rem",justifyContent:"center",marginTop:"0.5rem"}}>
@@ -1079,7 +1083,7 @@ function CountryList({
               <span style={{ fontFamily:F.mono, fontSize:"0.5rem", color:C.faint }}>{c.cities.length} {c.cities.length === 1 ? "location" : "locations"}</span>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:"0.75rem" }}>
-              <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.green, fontWeight:600 }}>{c.total.toLocaleString()} activities</span>
+              <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.green, fontWeight:600 }}>{T[lang].actCount(c.total)}</span>
               <span style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.faint }}>{openCountry === c.country ? "▲" : "▼"}</span>
             </div>
           </div>
@@ -1089,7 +1093,7 @@ function CountryList({
               {[...c.cities].sort((a,b) => b.count - a.count).map((city, j) => (
                 <div key={j} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.45rem 0.75rem 0.45rem 2.5rem", borderBottom:`1px solid ${C.border}` }}>
                   <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>{city.city}</span>
-                  <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.green }}>{city.count.toLocaleString()} activities</span>
+                  <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.green }}>{T[lang].actCount(city.count)}</span>
                 </div>
               ))}
             </div>
@@ -1316,10 +1320,10 @@ function GeoSection() {
           <div style={{ fontFamily:F.heading, fontSize:"1.4rem", fontWeight:700, color:C.ink }}>{totalGps.toLocaleString()}</div>
         </div>
         <div style={{ background:C.surface, padding:"1rem 1.25rem" }} data-drop="true">
-          <DropBtn id="locations" label={T[lang].uniqueLocations} count={named.length} items={[...named].sort((a,b)=>b.count-a.count).map(n=>`${n.city}, ${n.country}`)} />
+          <DropBtn id="locations" label={T[lang].uniqueLocations} count={named.length} items={[...named].sort((a,b)=>b.count-a.count).map(n=>`${n.city}, ${T[lang].translateCountry(n.country)}`)} />
         </div>
         <div style={{ background:C.surface, padding:"1rem 1.25rem" }} data-drop="true">
-          <DropBtn id="countries" label={T[lang].countries} count={countries.length} items={countries} />
+          <DropBtn id="countries" label={T[lang].countries} count={countries.length} items={countries.map(c=>T[lang].translateCountry(c))} />
         </div>
         <div style={{ background:C.surface, padding:"1rem 1.25rem" }} data-drop="true">
           <DropBtn id="continents" label={T[lang].continents} count={continents.length} items={continents.map(k=>CONT[k]||k)} />
@@ -1352,7 +1356,7 @@ function GeoSection() {
         // Group filtered locations by country
         const byCountry = {};
         filtered.forEach(n => {
-          if (!byCountry[n.country]) byCountry[n.country] = { country: n.country, total: 0, cities: [] };
+          if (!byCountry[n.country]) byCountry[n.country] = { country: T[lang].translateCountry(n.country), total: 0, cities: [] };
           byCountry[n.country].total += n.count;
           byCountry[n.country].cities.push(n);
         });
@@ -1507,7 +1511,7 @@ function RecentSection({
   const fmtDate = d => d ? new Date(d).toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" }) : "";
   const typeColor = { Swim: "#3a7ca8", Ride: "#b85a3a", VirtualRide: "#b85a3a", Run: C.green, Workout: "#9a8070", WeightTraining: "#b85a7a", AlpineSki: "#6ab" };
   const typeIcon = { Swim: "~", Ride: "⊙", VirtualRide: "⊙", Run: "↗", Workout: "◈", WeightTraining: "◈", AlpineSki: "❄" };
-  const typeLabel = { Swim:"Swim", Ride:"Ride", VirtualRide:"Virtual Ride", Run:"Run", Workout:"Workout", WeightTraining:"Weights", AlpineSki:"Ski" };
+  const typeLabel = lang==="pt" ? { Swim:"Natação", Ride:"Ciclismo", VirtualRide:"Ciclismo Virtual", Run:"Corrida", Workout:"Treino", WeightTraining:"Musculação", AlpineSki:"Esqui" } : { Swim:"Swim", Ride:"Ride", VirtualRide:"Virtual Ride", Run:"Run", Workout:"Workout", WeightTraining:"Weights", AlpineSki:"Ski" };
 
   const totalTime = acts.reduce((s,a) => s+(a.moving_time||0), 0);
   const totalDist = acts.reduce((s,a) => s+(a.distance||0), 0) / 1000;
@@ -1539,7 +1543,7 @@ function RecentSection({
         {Object.entries(periodLabels).map(([key,lbl]) => (
           <SubTab key={key} label={lbl} active={period===key} onClick={()=>setPeriod(key)} />
         ))}
-        {!loading && <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint, marginLeft:"0.5rem" }}>{acts.length} activities</span>}
+        {!loading && <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint, marginLeft:"0.5rem" }}>{T[lang].actCount(acts.length)}</span>}
       </div>
 
       {loading ? <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div> : (
@@ -1856,7 +1860,7 @@ function ActivityInfoIcon() {
       .then(r=>({type:t, count:parseInt(r.headers.get('content-range')?.split('/')[1]||'0')}))
     )).then(results => setCounts(results.filter(r=>r.count>0).sort((a,b)=>b.count-a.count)));
   }, [open]);
-  const typeLabel = {Run:'Run',Ride:'Ride',VirtualRide:'Virtual Ride',Swim:'Swim',Workout:'Workout',WeightTraining:'Weights',AlpineSki:'Alpine Ski',Walk:'Walk',Hike:'Hike',Yoga:'Yoga'};
+  const typeLabel = lang==="pt" ? {Run:'Corrida',Ride:'Ciclismo',VirtualRide:'Ciclismo Virtual',Swim:'Natação',Workout:'Treino',WeightTraining:'Musculação',AlpineSki:'Esqui Alpino',Walk:'Caminhada',Hike:'Trilha',Yoga:'Yoga'} : {Run:'Run',Ride:'Ride',VirtualRide:'Virtual Ride',Swim:'Swim',Workout:'Workout',WeightTraining:'Weights',AlpineSki:'Alpine Ski',Walk:'Walk',Hike:'Hike',Yoga:'Yoga'};
   return (
     <div style={{position:"relative",display:"inline-flex",alignItems:"center"}}>
       <span onClick={e=>{e.stopPropagation();setOpen(v=>!v);}} style={{cursor:"pointer",color:C.faint,fontSize:"0.65rem",lineHeight:1,userSelect:"none",marginLeft:2}}>ⓘ</span>
