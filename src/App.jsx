@@ -67,6 +67,8 @@ const T = {
     thisWeek: "THIS WEEK", lastWeek: "LAST WEEK", thisMonth: "THIS MONTH",
     last60: "LAST 60 DAYS", ytd: "YEAR TO DATE",
     dnfNote: "DNF — Did not finish | DNS — Did not start | DNC — Did not count",
+    sectionNotable: "NOTABLE", sectionStats: "Statistics", sectionGeo: "GEOGRAPHY", sectionProg: "PROGRESSION",
+    statsSubtitle: (tab) => `${tab.charAt(0).toUpperCase()+tab.slice(1)}`,
   },
   pt: {
     nav: ["SOBRE","DESTAQUES","ESTATÍSTICAS","PROGRESSÃO","GEOGRAFIA","RECENTES"],
@@ -122,6 +124,8 @@ const T = {
     thisWeek: "ESTA SEMANA", lastWeek: "SEMANA PASSADA", thisMonth: "ESTE MÊS",
     last60: "ÚLTIMOS 60 DIAS", ytd: "ANO ATÉ HOJE",
     dnfNote: "DNF — Não concluiu | DNS — Não largou | DNC — Não contabilizado",
+    sectionNotable: "DESTAQUES", sectionStats: "Estatísticas", sectionGeo: "GEOGRAFIA", sectionProg: "PROGRESSÃO",
+    statsSubtitle: (tab) => tab==="all"?"Geral":tab==="run"?"Corrida":tab==="ride"?"Ciclismo":"Natação",
   },
 };
 
@@ -434,7 +438,7 @@ function NotableSection({
       <Divider />
       <SectionNum n={2} />
       <h2 style={{ fontFamily:F.heading, fontSize:"clamp(2rem,5vw,3.5rem)", fontWeight:800, color:C.ink, margin:"0 0 1.5rem", lineHeight:0.9, letterSpacing:"-1px" }}>
-        NOTABLE <span style={{ color:sport==="races"?"#A63D2F":sportColor }}>{sport==="races"?"RACES":sport.toUpperCase()+"S"}</span>
+        {T[lang].sectionNotable} <span style={{ color:sport==="races"?"#A63D2F":sportColor }}>{sport==="races"?T[lang].races:sport==="run"?T[lang].runs:sport==="ride"?T[lang].rides:T[lang].swims}</span>
       </h2>
       <div style={{ display:"flex", gap:"0.5rem", marginBottom:"1.25rem" }}>
         <SportTab label={T[lang].races} active={sport==="races"} onClick={()=>setSport("races")} color="#A63D2F" />
@@ -1519,7 +1523,7 @@ function RecentSection({
     .sort((a,b) => b.value - a.value);
 
   const shown = showAll ? acts : acts.slice(0, 8);
-  const periodLabels = { thisweek:"THIS WEEK", lastweek:"LAST WEEK", thismonth:"THIS MONTH", last60:"LAST 60 DAYS", ytd:"YEAR TO DATE" };
+  const periodLabels = { thisweek:T[lang].thisWeek, lastweek:T[lang].lastWeek, thismonth:T[lang].thisMonth, last60:T[lang].last60, ytd:T[lang].ytd };
 
   return (
     <section id="recent" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
@@ -1786,7 +1790,7 @@ function ProgressionSection() {
       <Divider />
       <SectionNum n={4} />
       <h2 style={{ fontFamily:F.heading, fontSize:"clamp(2rem,5vw,3.5rem)", fontWeight:800, color:C.ink, margin:"0 0 0.5rem", lineHeight:0.9, letterSpacing:"-1px" }}>
-        PROGRESSION
+        {T[lang].sectionProg}
       </h2>
       <div style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.faint, marginBottom:"1.5rem" }}>{T[lang].progressionSub}</div>
       <div style={{ display:"flex", gap:"0.4rem", marginBottom:"1.5rem", flexWrap:"wrap" }}>
@@ -2018,7 +2022,7 @@ export default function App() {
           <SectionNum n={3} />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
             <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: 0, lineHeight: 0.9, letterSpacing: "-1px" }}>
-              Statistics <span style={{ color: statColors[statsTab] }}>{statsTab.charAt(0).toUpperCase() + statsTab.slice(1)}</span>
+              {T[lang].sectionStats} <span style={{ color: statColors[statsTab] }}>{T[lang].statsSubtitle(statsTab)}</span>
             </h2>
             <div style={{ display: "flex", gap: "0.4rem" }}>
               {["all", "run", "ride", "swim"].map(s => (
@@ -2039,7 +2043,7 @@ export default function App() {
           <Divider />
           <SectionNum n={5} />
           <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: "0 0 0.5rem", lineHeight: 0.9, letterSpacing: "-1px" }}>
-            GEOGRAPHY
+            {T[lang].sectionGeo}
           </h2>
           <div style={{ fontFamily: F.mono, fontSize: "0.58rem", color: C.faint, marginBottom: "1.5rem" }}>{T[lang].geoSub}</div>
           <GeoSection />
