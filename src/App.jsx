@@ -931,6 +931,44 @@ function StatsSection({ sportFilter, unitSystem="metric" }) {
 
 
 /* ─── GEOGRAPHY ─── */
+function CountryList({ countryList }) {
+  const [openCountry, setOpenCountry] = useState(null);
+  return (
+    <div style={{ display:"flex", flexDirection:"column" }}>
+      {countryList.map((c, i) => (
+        <div key={c.country}>
+          {/* Country row */}
+          <div
+            onClick={() => setOpenCountry(openCountry === c.country ? null : c.country)}
+            style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.6rem 0", borderBottom:`1px solid ${C.border}`, cursor:"pointer", userSelect:"none" }}
+          >
+            <div style={{ display:"flex", alignItems:"center", gap:"0.6rem" }}>
+              <span style={{ fontFamily:F.mono, fontSize:"0.5rem", color:C.faint, minWidth:"1.5rem" }}>{i+1}</span>
+              <span style={{ fontFamily:F.mono, fontSize:"0.72rem", fontWeight:600, color:C.ink }}>{c.country}</span>
+              <span style={{ fontFamily:F.mono, fontSize:"0.5rem", color:C.faint }}>{c.cities.length} {c.cities.length === 1 ? "location" : "locations"}</span>
+            </div>
+            <div style={{ display:"flex", alignItems:"center", gap:"0.75rem" }}>
+              <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.green, fontWeight:600 }}>{c.total.toLocaleString()} activities</span>
+              <span style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.faint }}>{openCountry === c.country ? "▲" : "▼"}</span>
+            </div>
+          </div>
+          {/* Expanded city rows */}
+          {openCountry === c.country && (
+            <div style={{ background:C.card, borderBottom:`1px solid ${C.border}` }}>
+              {[...c.cities].sort((a,b) => b.count - a.count).map((city, j) => (
+                <div key={j} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.45rem 0.75rem 0.45rem 2.5rem", borderBottom:`1px solid ${C.border}` }}>
+                  <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.muted }}>{city.city}</span>
+                  <span style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.green }}>{city.count.toLocaleString()} activities</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function GeoSection() {
   const containerRef = useRef(null);
   const mapRef       = useRef(null);
@@ -1171,22 +1209,23 @@ function GeoSection() {
         })}
       </div>
 
-      {/* Location list */}
-      <div style={{ display:"flex", flexDirection:"column" }}>
-        {!named.length && (
+      {/* Location list — grouped by country */}
+      {(() => {
+        if (!named.length) return (
           <div style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.faint, padding:"2rem 0" }}>loading locations…</div>
-        )}
-        {filtered.map((n, i) => (
-          <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"0.5rem 0", borderBottom:`1px solid ${C.border}` }}>
-            <div style={{ display:"flex", alignItems:"baseline", gap:"0.5rem" }}>
-              <span style={{ fontFamily:F.mono, fontSize:"0.5rem", color:C.faint, minWidth:"1.5rem" }}>{i+1}</span>
-              <span style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.ink }}>{n.city}</span>
-              <span style={{ fontFamily:F.mono, fontSize:"0.55rem", color:C.muted }}>{n.country}</span>
-            </div>
-            <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:C.green, fontWeight:600 }}>{n.count.toLocaleString()} activities</span>
-          </div>
-        ))}
-      </div>
+        );
+        // Group filtered locations by country
+        const byCountry = {};
+        filtered.forEach(n => {
+          if (!byCountry[n.country]) byCountry[n.country] = { country: n.country, total: 0, cities: [] };
+          byCountry[n.country].total += n.count;
+          byCountry[n.country].cities.push(n);
+        });
+        const countryList = Object.values(byCountry).sort((a, b) => b.total - a.total);
+        return (
+          <CountryList countryList={countryList} />
+        );
+      })()}
     </div>
   );
 }
