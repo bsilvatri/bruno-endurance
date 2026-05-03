@@ -1,0 +1,112 @@
+/* ============================================================
+   MOBILE RESPONSIVE FIXES
+   All rules scoped to <= 768px. Desktop layout is untouched.
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+  /* ---- 1. NAV BAR ---- */
+  .m-nav {
+    padding: 0 1rem !important;
+    gap: 0.5rem;
+  }
+
+  .m-nav-brand-sync {
+    display: none !important;
+  }
+
+  .m-nav-buttons {
+    gap: 1rem !important;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .m-nav-buttons::-webkit-scrollbar {
+    display: none;
+  }
+
+  .m-nav-buttons button {
+    flex-shrink: 0;
+  }
+
+  /* ---- 2. KM/MI FLOATING TOGGLE ---- */
+  .m-unit-toggle {
+    position: static !important;
+    box-shadow: none !important;
+    bottom: auto !important;
+    right: auto !important;
+  }
+
+  /* ---- 3. HERO STAT CARDS ---- */
+  .m-hero-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .m-hero-stats > div:nth-child(2) {
+    border-right: none !important;
+  }
+
+  .m-hero-stats > div:nth-child(1),
+  .m-hero-stats > div:nth-child(2) {
+    border-bottom: 1px solid #d8d2c4;
+  }
+
+  /* ---- 4. STATS CHART GRIDS ---- */
+  .m-stats-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ---- 5. RACE TABLE / HEATMAP — scroll hint with animated arrow ---- */
+  .m-race-scroll,
+  .m-heatmap-scroll {
+    position: relative;
+  }
+
+  .m-race-scroll::after,
+  .m-heatmap-scroll::after {
+    content: "\2192";
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(237, 232, 220, 0.95);
+    color: #6b6b6b;
+    font-size: 14px;
+    border-radius: 50%;
+    border: 1px solid #d8d2c4;
+    pointer-events: none;
+    box-shadow: -4px 0 8px rgba(237, 232, 220, 0.8);
+    animation: m-swipe-hint 1.8s ease-in-out infinite;
+  }
+
+  @keyframes m-swipe-hint {
+    0%, 100% {
+      transform: translateY(-50%) translateX(0);
+      opacity: 0.85;
+    }
+    50% {
+      transform: translateY(-50%) translateX(-4px);
+      opacity: 1;
+    }
+  }
+
+  /* ---- 6. RECENT ACTIVITIES — collapse 1fr 220px to single column ---- */
+  .m-recent-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Right panel (donut + breakdown) becomes non-sticky on mobile */
+  .m-recent-grid > div:nth-child(2) {
+    position: static !important;
+    border-top: 1px solid #d8d2c4;
+    padding-top: 1rem;
+  }
+}

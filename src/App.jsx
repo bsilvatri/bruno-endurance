@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
+import "./App.css";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
 
 /* ─── TOKENS ─── */
@@ -481,7 +482,7 @@ function NotableSection({
             ))}
           </div>
           <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>{T[lang].raceHistoryLabel(18,15,2,1,1)}</div>
-          <div style={{ overflowX:"auto" }}>
+          <div className="m-race-scroll" style={{ overflowX:"auto" }}>
             <div style={{ display:"grid", gridTemplateColumns:"1.5fr 90px 80px 80px 80px 90px", gap:"1px", background:C.border, border:"1px solid "+C.border, minWidth:"520px" }}>
               {T[lang].raceHeaders.map((h,i)=>(
                 <div key={i} style={{ background:C.surface, padding:"0.4rem 0.5rem", fontFamily:F.mono, fontSize:"0.45rem", letterSpacing:"0.1em", color:[C.faint,C.faint,C.swim,C.ride,C.run,C.ink][i], textAlign:i>1?"center":"left" }}>{h}</div>
@@ -836,7 +837,7 @@ function StatsSection({
   return (
     <div>
       {/* ROW 0 — Annual Distance | Time of Day + Avg Dist */}
-      <div style={{ ...G, gridTemplateColumns:"1fr 2fr" }}>
+      <div className="m-stats-row" style={{ ...G, gridTemplateColumns:"1fr 2fr" }}>
         <ChartBox title={`${T[lang].annualDist} (${distUnit})`} subtitle={isAll?T[lang].bySportType:sportFilter+" distance"} minH={310}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={annData} barSize={isAll?16:22}>
@@ -921,7 +922,7 @@ function StatsSection({
       </div>
 
       {/* ROW 1 — Distance Dist | Indoor/Outdoor | Pace Dist (Run) or Streaks (All) */}
-      <div style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
+      <div className="m-stats-row" style={{...G, gridTemplateColumns:"1fr 1fr 1fr", borderTop:"none"}}>
         <ChartBox title={T[lang].distDist} subtitle={T[lang].distDistSub} minH={331}>
           {isAll ? (
             <div style={{paddingTop:"0.25rem",position:"relative"}} onMouseLeave={()=>setDistTip(null)}>
@@ -1605,7 +1606,7 @@ function RecentSection({
       </div>
 
       {loading ? <div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint }}>loading...</div> : (
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 220px", gap:"2rem", alignItems:"start" }}>
+        <div className="m-recent-grid" style={{ display:"grid", gridTemplateColumns:"1fr 220px", gap:"2rem", alignItems:"start" }}>
           <div>
             <div style={{ borderTop:`1px solid ${C.border}` }}>
               {shown.map(act => {
@@ -1806,7 +1807,7 @@ function ProgressionSection() {
       <div style={{ marginBottom:"1.5rem" }}>
         <div style={{ display:"flex", alignItems:"flex-start", gap:"1rem" }}>
           {/* Heatmap */}
-          <div style={{ overflowX:"auto", flex:1 }}>
+          <div className="m-heatmap-scroll" style={{ overflowX:"auto", flex:1 }}>
             <div style={{ display:"inline-flex", flexDirection:"column" }}>
               <div style={{ display:"flex", gap:3, marginBottom:4, marginLeft:18 }}>
                 {weeks.map((_, wi) => (
@@ -1991,12 +1992,12 @@ export default function App() {
     <LangContext.Provider value={lang}>
     <div style={{ background: C.bg, color: C.ink, fontFamily: F.body, fontSize: 14, minHeight: "100vh" }}>
       {/* NAV */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(237,232,220,0.92)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2rem", height: 50 }}>
+      <nav className="m-nav" style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(237,232,220,0.92)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2rem", height: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <span style={{ fontFamily: F.heading, fontSize: "0.9rem", fontWeight: 800, color: C.green, letterSpacing: "0.02em" }}>BRUNO S.</span>
-          {lastSync && <span style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint }}>{T[lang].synced(fmtSync(lastSync)).slice(2)}</span>}
+          {lastSync && <span className="m-nav-brand-sync" style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint }}>{T[lang].synced(fmtSync(lastSync)).slice(2)}</span>}
         </div>
-        <div style={{ display: "flex", gap: "2rem" }}>
+        <div className="m-nav-buttons" style={{ display: "flex", gap: "2rem" }}>
           {NAV_IDS.map((id, i) => (
             <button key={id} onClick={() => goto(id)} style={{ background: "none", border: "none", borderBottom: `1.5px solid ${active === id ? C.green : "transparent"}`, padding: "4px 0", cursor: "pointer", fontFamily: F.mono, fontSize: "0.58rem", letterSpacing: "0.15em", textTransform: "uppercase", color: active === id ? C.green : C.muted, transition: "all 0.15s" }}>
               {T[lang].nav[NAV_IDS.indexOf(id)]}
@@ -2017,7 +2018,7 @@ export default function App() {
             {T[lang].motto}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", border: `1px solid ${C.border}` }}>
+          <div className="m-hero-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", border: `1px solid ${C.border}` }}>
             {[
               { val: acts, label: T[lang].activities, sub: restDays !== null ? T[lang].restDaysIn(restDays, new Date().getFullYear()) : null, showInfo: true },
               { val: unitSystem==="imperial" ? Math.round(km*0.621371) : km, label: unitSystem==="imperial" ? T[lang].miles : T[lang].kilometers, sub: hero ? T[lang].lapsEarth((hero.total_km/40075).toFixed(2)) : null },
@@ -2125,7 +2126,7 @@ export default function App() {
       </div>
 
       {/* Floating unit toggle */}
-      <div style={{ position:"fixed", bottom:"1.5rem", right:"1.5rem", zIndex:1000, display:"flex", gap:0, boxShadow:"0 2px 12px rgba(0,0,0,0.12)", borderRadius:4, overflow:"hidden", border:`1px solid ${C.border}` }}>
+      <div className="m-unit-toggle" style={{ position:"fixed", bottom:"1.5rem", right:"1.5rem", zIndex:1000, display:"flex", gap:0, boxShadow:"0 2px 12px rgba(0,0,0,0.12)", borderRadius:4, overflow:"hidden", border:`1px solid ${C.border}` }}>
         {["metric","imperial"].map(u=>(
           <button key={u} onClick={()=>setUnitSystem(u)} style={{ fontFamily:F.mono, fontSize:"0.5rem", letterSpacing:"0.1em", textTransform:"uppercase", padding:"6px 10px", background:unitSystem===u?C.ink:C.surface, color:unitSystem===u?"#fff":C.faint, border:"none", cursor:"pointer", transition:"all 0.15s" }}>{u==="metric"?"km":"mi"}</button>
         ))}
