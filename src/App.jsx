@@ -1347,7 +1347,7 @@ function GeoSection() {
         </div>
       </div>
       {openDrop === id && (
-        <div style={{
+        <div className="m-geo-dropdown" style={{
           position:"absolute", top:"100%", left:0, zIndex:10, background:C.surface,
           border:`1px solid ${C.border}`, borderRadius:4, padding:"0.5rem 0",
           minWidth:"180px", maxHeight:"220px", overflowY:"auto", marginTop:"0.4rem",

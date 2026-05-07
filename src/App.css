@@ -426,3 +426,14 @@
     align-items: baseline !important;
   }
 }
+
+@media (max-width: 768px) {
+  /* Geography section dropdowns: anchor to RIGHT edge on mobile so they
+     don't overflow the viewport when the button is on the right side. */
+  .m-geo-dropdown {
+    left: auto !important;
+    right: 0 !important;
+    min-width: min(180px, calc(100vw - 2rem)) !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+}
