@@ -78,6 +78,7 @@ const T = {
     showAll: (n) => `SHOW ALL ${n} ACTIVITIES`,
     totalTime: "Total Time", totalDistance: "Total Distance", timeBreakdown: "Time Breakdown",
     dataFooter: "Data synced live from Strava. Not affiliated with Strava, Inc.",
+    followStrava: "Follow me on Strava",
     builtBy: "Built by Bruno Silva © 2026",
     viewOnStrava: "VIEW ON STRAVA →",
     distanceLabel: "DISTANCE", timeLabel: "TIME", avgPace: "AVG PACE", avgSpeed: "AVG SPEED",
@@ -137,6 +138,7 @@ const T = {
     showAll: (n) => `VER TODAS AS ${n} ATIVIDADES`,
     totalTime: "Tempo Total", totalDistance: "Distância Total", timeBreakdown: "Distribuição do Tempo",
     dataFooter: "Dados sincronizados ao vivo do Strava. Não afiliado à Strava, Inc.",
+    followStrava: "Siga-me no Strava",
     builtBy: "Desenvolvido por Bruno Silva © 2026",
     viewOnStrava: "VER NO STRAVA →",
     distanceLabel: "DISTÂNCIA", timeLabel: "TEMPO", avgPace: "PACE MÉDIO", avgSpeed: "VELOCIDADE MÉDIA",
@@ -483,7 +485,7 @@ function NotableSection({
           </div>
           <div style={{ fontFamily:F.mono, fontSize:"0.48rem", letterSpacing:"0.12em", color:C.muted, marginBottom:"0.75rem" }}>{T[lang].raceHistoryLabel(18,15,2,1,1)}</div>
           <div className="m-race-scroll" style={{ overflowX:"auto" }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1.5fr 90px 80px 80px 80px 90px", gap:"1px", background:C.border, border:"1px solid "+C.border, minWidth:"520px" }}>
+            <div className="m-race-table" style={{ display:"grid", gridTemplateColumns:"1.5fr 90px 80px 80px 80px 90px", gap:"1px", background:C.border, border:"1px solid "+C.border, minWidth:"520px" }}>
               {T[lang].raceHeaders.map((h,i)=>(
                 <div key={i} style={{ background:C.surface, padding:"0.4rem 0.5rem", fontFamily:F.mono, fontSize:"0.45rem", letterSpacing:"0.1em", color:[C.faint,C.faint,C.swim,C.ride,C.run,C.ink][i], textAlign:i>1?"center":"left" }}>{h}</div>
               ))}
@@ -517,7 +519,7 @@ function NotableSection({
           </div>
           {(sport==="run"||sport==="ride")&&tab==="pbs" ? (
             (sport==="ride"?ridePbs:prs).length===0 ? (<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>) : (
-              <div style={{ display:"grid", gridTemplateColumns:"330px 1fr 250px", gap:"0", overflow:"hidden", background:C.surface }}>
+              <div className="m-notable-grid" style={{ display:"grid", gridTemplateColumns:"330px 1fr 250px", gap:"0", overflow:"hidden", background:C.surface }}>
                 <div style={{ borderRight:`1px solid ${C.border}` }}>
                   <NotableTable
                     rows={(sport==="ride"?ridePbs:prs).map(r=>{const dm={"5 mile":8046,"10K":10000,"10 mile":16093,"20K":20000,"30K":30000,"40K":40000,"50K":50000,"80K":80000,"50 mile":80467,"90K":90000,"100K":100000,"100 mile":160934,"180K":180000};const d=dm[r._label];const spd=d&&r._elapsed?(((d/r._elapsed)*3.6).toFixed(1)+" km/h"):"—";return { dist:r._label, date:fmtDate(r.start_date_local), time:fmtTime(r._elapsed), speed:sport==="ride"?spd:undefined, name:r.name };})}
@@ -549,7 +551,7 @@ function NotableSection({
               </div>
             )
           ) : loading?(<div style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.faint, padding:"3rem 0" }}>loading...</div>):(
-            <div style={{ display:"grid", gridTemplateColumns:"330px 1fr 250px", gap:"0", overflow:"hidden", background:C.surface }}>
+            <div className="m-notable-grid" style={{ display:"grid", gridTemplateColumns:"330px 1fr 250px", gap:"0", overflow:"hidden", background:C.surface }}>
               <div style={{ borderRight:`1px solid ${C.border}` }}><NotableTable rows={tableRows} cols={cols} selected={selected} onSelect={setSelected} sportColor={sportColor} colGap={tab==="elevation"?"0.75rem":"0"} /></div>
               <div><ActivityMap polyline={cur?.map_summary_polyline} type={sport==="run"?"Run":sport==="ride"?"Ride":"Swim"} height={380} /></div>
               <div style={{ padding:"1.25rem", borderLeft:`1px solid ${C.border}`, display:"flex", flexDirection:"column", gap:"0.1rem" }}>
@@ -957,12 +959,13 @@ function StatsSection({
             </ResponsiveContainer>
           )}
         </ChartBox>
-        <ChartBox title={ioTitle} subtitle={ioSubtitle} minH={331}>
+        <ChartBox title={ioTitle} subtitle={ioSubtitle} minH={200}>
           {ioData.length>0 && (
-            <div style={{height:220,display:"flex",flexDirection:"column",gap:"0.5rem"}}>
-              <ResponsiveContainer width="100%" height={155}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",alignItems:"center",gap:"0.5rem"}}>
+              <div></div>
+              <ResponsiveContainer width={140} height={140}>
                 <PieChart>
-                  <Pie data={ioData} cx="50%" cy="50%" innerRadius={42} outerRadius={65} dataKey="value" strokeWidth={0} paddingAngle={2}>
+                  <Pie data={ioData} cx="50%" cy="50%" innerRadius={36} outerRadius={60} dataKey="value" strokeWidth={0} paddingAngle={2}>
                     {ioData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
                   </Pie>
                   <Tooltip content={({active,payload})=>{
@@ -973,12 +976,12 @@ function StatsSection({
                   }} />
                 </PieChart>
               </ResponsiveContainer>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.2rem 0.5rem"}}>
+              <div style={{display:"flex",flexDirection:"column",gap:"0.35rem",justifySelf:"start"}}>
                 {ioData.map(d=>(
-                  <div key={d.name} style={{display:"flex",alignItems:"center",gap:4}}>
+                  <div key={d.name} style={{display:"flex",alignItems:"center",gap:6}}>
                     <div style={{width:6,height:6,borderRadius:1,background:d.fill,flexShrink:0}}/>
-                    <span style={{fontFamily:F.mono,fontSize:"0.45rem",color:C.faint}}>{d.name}</span>
-                    <span style={{fontFamily:F.mono,fontSize:"0.45rem",color:C.muted,marginLeft:"auto"}}>{d.value}</span>
+                    <span style={{fontFamily:F.mono,fontSize:"0.5rem",color:C.faint}}>{d.name}</span>
+                    <span style={{fontFamily:F.mono,fontSize:"0.5rem",color:C.muted,marginLeft:"0.4rem"}}>{d.value}</span>
                   </div>
                 ))}
               </div>
@@ -986,8 +989,8 @@ function StatsSection({
           )}
         </ChartBox>
         {isAll ? (
-          <ChartBox title={T[lang].activityStreaks} subtitle={T[lang].consecutiveDays} minH={331}>
-            <div style={{display:"flex",flexDirection:"column",gap:"1.25rem",paddingTop:"0.75rem"}}>
+          <ChartBox title={T[lang].activityStreaks} subtitle={T[lang].consecutiveDays} minH={140}>
+            <div style={{display:"flex",flexDirection:"row",gap:"1rem",paddingTop:"0.75rem",justifyContent:"space-around",flexWrap:"wrap"}}>
               {[
                 {label:T[lang].bestStreak,value:bestStreak+" "+T[lang].daysWord,color:C.run},
                 {label:T[lang].currentStreak,value:liveStreak+" "+T[lang].daysWord,color:liveStreak>=bestStreak?C.run:liveStreak>0?C.ride:C.faint},
@@ -1621,7 +1624,7 @@ function RecentSection({
                         <div style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:400, color:C.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{act.name}</div>
                         <div style={{ fontFamily:F.mono, fontSize:"0.6rem", color:C.faint }}>{fmtDate(act.start_date_local)}</div>
                       </div>
-                      <div style={{ display:"flex", gap:"1rem", alignItems:"center", flexShrink:0 }}>
+                      <div className="m-activity-row-right" style={{ display:"flex", gap:"1rem", alignItems:"center", flexShrink:0 }}>
                         {act.distance > 0 && <span style={{ fontFamily:F.body, fontSize:"0.85rem", fontWeight:500, color:C.ink, fontFamily:F.mono }}>{fmtDist(act.distance)}</span>}
                         <span style={{ fontFamily:F.mono, fontSize:"0.7rem", color:C.muted }}>{fmtTime(act.moving_time)}</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.65rem", color:isExp?C.green:C.faint }}>{isExp?"▲":"▼"}</span>
@@ -1681,7 +1684,7 @@ function RecentSection({
                   {donutData.map(d => {
                     const pct = totalTime ? Math.round(d.value/totalTime*100) : 0;
                     return (
-                      <div key={d.label} style={{ display:"grid", gridTemplateColumns:"8px 1fr 30px 52px 42px", alignItems:"center", gap:"0.4rem", marginBottom:"0.4rem" }}>
+                      <div key={d.label} className="m-donut-legend" style={{ display:"grid", gridTemplateColumns:"8px 1fr 30px 52px 42px", alignItems:"center", gap:"0.4rem", marginBottom:"0.4rem" }}>
                         <div style={{ width:7, height:7, borderRadius:"50%", background:d.color, opacity:0.75 }} />
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{d.label}</span>
                         <span style={{ fontFamily:F.mono, fontSize:"0.58rem", color:C.ink, textAlign:"right" }}>{pct}%</span>
@@ -1809,13 +1812,6 @@ function ProgressionSection() {
           {/* Heatmap */}
           <div className="m-heatmap-scroll" style={{ overflowX:"auto", flex:1 }}>
             <div style={{ display:"inline-flex", flexDirection:"column" }}>
-              <div style={{ display:"flex", gap:3, marginBottom:4, marginLeft:18 }}>
-                {weeks.map((_, wi) => (
-                  <div key={wi} style={{ width:9, flexShrink:0, fontFamily:F.mono, fontSize:"0.38rem", color:C.faint, textTransform:"uppercase", overflow:"hidden" }}>
-                    {monthLabels[wi]||''}
-                  </div>
-                ))}
-              </div>
               <div style={{ display:"flex", gap:3 }}>
                 <div style={{ display:"grid", gridTemplateRows:"repeat(7,9px)", gap:1, marginRight:2 }}>
                   {['M','','W','','F','',''].map((lbl,i) => (
@@ -1870,11 +1866,11 @@ function ProgressionSection() {
           {yearsToShow.map(yr => {
             const { start, end } = getRange(yr);
             return (
-              <div key={yr} style={{ display:"flex", alignItems:"flex-start", gap:"0.75rem" }}>
+              <div key={yr} className="m-prog-row" style={{ display:"flex", flexDirection:"column", alignItems:"flex-start", gap:"0.4rem", marginBottom:"1rem" }}>
                 {period === "All time" && (
-                  <div style={{ fontFamily:F.mono, fontSize:"0.85rem", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600, color:C.ink, width:44, textAlign:"right", flexShrink:0, alignSelf:"center" }}>{yr}</div>
+                  <div style={{ fontFamily:F.mono, fontSize:"0.85rem", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:600, color:C.ink }}>{yr}</div>
                 )}
-                <div style={{ flex:1 }}>
+                <div style={{ width:"100%" }}>
                   <Heatmap rangeStart={start} rangeEnd={end} label={yr} maxMins={globalMax} />
                 </div>
               </div>
@@ -1953,6 +1949,7 @@ export default function App() {
   const [lang, setLang] = useState("en");
   const NAV_IDS = ["about", "notable", "stats", "progression", "geography", "recent"];
   const [active, setActive] = useScrollSpy(NAV_IDS);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const acts = useCountUp(hero?.total_activities || 0);
   const km = useCountUp(hero?.total_km || 0);
@@ -1997,7 +1994,7 @@ export default function App() {
           <span style={{ fontFamily: F.heading, fontSize: "0.9rem", fontWeight: 800, color: C.green, letterSpacing: "0.02em" }}>BRUNO S.</span>
           {lastSync && <span className="m-nav-brand-sync" style={{ fontFamily: F.mono, fontSize: "0.55rem", color: C.faint }}>{T[lang].synced(fmtSync(lastSync)).slice(2)}</span>}
         </div>
-        <div className="m-nav-buttons" style={{ display: "flex", gap: "2rem" }}>
+        <div className="m-nav-buttons m-desktop-only" style={{ display: "flex", gap: "2rem" }}>
           {NAV_IDS.map((id, i) => (
             <button key={id} onClick={() => goto(id)} style={{ background: "none", border: "none", borderBottom: `1.5px solid ${active === id ? C.green : "transparent"}`, padding: "4px 0", cursor: "pointer", fontFamily: F.mono, fontSize: "0.58rem", letterSpacing: "0.15em", textTransform: "uppercase", color: active === id ? C.green : C.muted, transition: "all 0.15s" }}>
               {T[lang].nav[NAV_IDS.indexOf(id)]}
@@ -2005,9 +2002,28 @@ export default function App() {
           ))}
         </div>
         <button onClick={() => setLang(l => l === "en" ? "pt" : "en")} style={{ fontFamily: F.mono, fontSize: "0.52rem", letterSpacing: "0.1em", background: "transparent", border: `1px solid ${C.border}`, color: C.muted, padding: "0.2rem 0.6rem", cursor: "pointer", borderRadius: 2, marginLeft: "0.5rem" }}>{lang === "en" ? "PT" : "EN"}</button>
+        {/* MOBILE INLINE UNIT TOGGLE */}
+        <div className="m-nav-unit-toggle" style={{ display: "none", gap: 0, border: `1px solid ${C.border}`, borderRadius: 2, overflow: "hidden", marginRight: "0.4rem" }}>
+          {["metric","imperial"].map(u => (
+            <button key={u} onClick={() => setUnitSystem(u)} style={{ fontFamily: F.mono, fontSize: "0.5rem", letterSpacing: "0.1em", textTransform: "uppercase", padding: "4px 8px", background: unitSystem === u ? C.ink : "transparent", color: unitSystem === u ? "#fff" : C.faint, border: "none", cursor: "pointer" }}>{u === "metric" ? "km" : "mi"}</button>
+          ))}
+        </div>
+        {/* MOBILE HAMBURGER */}
+        <button className="m-hamburger" onClick={() => setMobileNavOpen(o => !o)} aria-label="menu" style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: "4px 8px", fontSize: "1.2rem", color: C.green }}>
+          {mobileNavOpen ? "\u2715" : "\u2630"}
+        </button>
       </nav>
+      {mobileNavOpen && (
+        <div className="m-mobile-menu" style={{ position: "fixed", top: 50, left: 0, right: 0, background: "rgba(237,232,220,0.98)", backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.border}`, padding: "1rem", zIndex: 99, display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          {NAV_IDS.map((id, i) => (
+            <button key={id} onClick={() => { goto(id); setMobileNavOpen(false); }} style={{ background: "none", border: "none", textAlign: "left", padding: "0.5rem 0", cursor: "pointer", fontFamily: F.mono, fontSize: "0.75rem", letterSpacing: "0.15em", textTransform: "uppercase", color: active === id ? C.green : C.ink }}>
+              {T[lang].nav[NAV_IDS.indexOf(id)]}
+            </button>
+          ))}
+        </div>
+      )}
 
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 2rem" }}>
+      <div className="m-page-wrap" style={{ maxWidth: 980, margin: "0 auto", padding: "0 2rem" }}>
 
         {/* HERO */}
         <section style={{ padding: "5rem 0 3rem", textAlign: "center" }}>
@@ -2087,7 +2103,7 @@ export default function App() {
         <section id="stats" style={{ scrollMarginTop: 50, paddingBottom: "4rem" }}>
           <Divider />
           <SectionNum n={3} />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
+          <div className="m-stats-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
             <h2 style={{ fontFamily: F.heading, fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: C.ink, margin: 0, lineHeight: 0.9, letterSpacing: "-1px" }}>
               {T[lang].sectionStats} <span style={{ color: statColors[statsTab] }}>{T[lang].statsSubtitle(statsTab)}</span>
             </h2>
@@ -2118,6 +2134,13 @@ export default function App() {
 
         {/* RECENT */}
         <RecentSection unitSystem={unitSystem} />
+
+        {/* STRAVA CTA */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"2rem 0 1rem" }}>
+          <a href="https://www.strava.com/athletes/49295798" target="_blank" rel="noopener noreferrer" style={{ fontFamily:F.mono, fontSize:"0.7rem", letterSpacing:"0.15em", textTransform:"uppercase", color:"#fc4c02", textDecoration:"none", padding:"0.75rem 1.5rem", border:"1.5px solid #fc4c02", borderRadius:4, transition:"all 0.15s", display:"inline-block" }} onMouseEnter={e => { e.currentTarget.style.background = "#fc4c02"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#fc4c02"; }}>
+            {T[lang].followStrava} →
+          </a>
+        </div>
 
         <footer style={{ borderTop: `1px solid ${C.border}`, padding: "2rem 0", fontFamily: F.mono, fontSize: "0.55rem", color: C.faint, display: "flex", justifyContent: "space-between" }}>
           <span>{T[lang].dataFooter}</span>
